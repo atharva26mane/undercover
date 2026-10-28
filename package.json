@@ -1,0 +1,13 @@
+{
+  "name": "undercover-room",
+  "version": "1.0.0",
+  "description": "Undercover / Mr. White word game for playing physically, each player on their own phone",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+    
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": { "ws": "^8.18.0" },
+  "license": "MIT"
+}

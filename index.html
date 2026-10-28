@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0e1020">
+<title>Undercover</title>
+<style>
+:root{--bg:#0e1020;--card:#171a31;--card2:#1f2340;--line:#2b3058;--text:#eef0ff;--mute:#9ba1cc;--accent:#ffb703;--accent-ink:#241a00;--ok:#2ee59d;--bad:#ff5d73;--vio:#8b5cf6}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+#wrap{max-width:520px;margin:0 auto;padding:12px 14px 40px}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;min-height:36px}
+.logo{font-weight:800;letter-spacing:.14em;font-size:13px;color:var(--mute);text-transform:uppercase}
+.hdr-r{display:flex;gap:8px;align-items:center}
+.chip{background:var(--card2);border:1px solid var(--line);color:var(--text);border-radius:999px;padding:6px 12px;font-weight:700;letter-spacing:.12em;font-size:14px}
+.link{background:none;border:0;color:var(--mute);font-size:13px;padding:6px;text-decoration:underline}
+h1{font-size:34px;margin:18px 0 4px;letter-spacing:-.02em}
+h2{font-size:15px;margin:0 0 10px;color:var(--mute);font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+p{margin:6px 0}
+.sub{color:var(--mute);margin:0 0 18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+input[type=text],input[type=number]{width:100%;background:var(--bg);border:2px solid var(--line);color:var(--text);border-radius:12px;padding:13px 14px;font-size:18px;outline:none}
+input:focus{border-color:var(--accent)}
+input.code{text-transform:uppercase;letter-spacing:.35em;text-align:center;font-weight:800;font-size:24px}
+.btn{display:block;width:100%;min-height:50px;border:0;border-radius:14px;font-size:17px;font-weight:800;padding:12px 16px;background:var(--card2);color:var(--text);border:1px solid var(--line)}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.danger{background:transparent;color:var(--bad);border-color:var(--bad)}
+.btn.small{min-height:38px;font-size:14px;padding:6px 12px;width:auto;display:inline-block;border-radius:10px}
+.btn[disabled]{opacity:.45}
+.row{display:flex;gap:8px;align-items:center}
+.row>*{flex:1}
+.gap{height:10px}
+.mute{color:var(--mute)}
+.err{color:var(--bad)}
+.center{text-align:center}
+.bigcode{font-size:56px;font-weight:900;letter-spacing:.22em;text-align:center;padding-left:.22em;color:var(--accent)}
+.plist{list-style:none;margin:0;padding:0}
+.plist li{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+.plist li:first-child{border-top:0}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--ok);flex:none}
+.dot.off{background:#566}
+.pname{flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pname.dead{text-decoration:line-through;color:var(--mute)}
+.tag{font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px;background:var(--card2);border:1px solid var(--line);color:var(--mute);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+.tag.civ{color:var(--ok);border-color:var(--ok)}.tag.und{color:var(--bad);border-color:var(--bad)}.tag.wht{color:#fff;border-color:#fff}.tag.ok{color:var(--ok);border-color:var(--ok)}
+.set{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.set:first-of-type{border-top:0}
+.set .lbl{flex:1}.set .lbl small{display:block;color:var(--mute);font-size:12px}
+.step{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.step button{width:42px;height:42px;background:var(--card2);border:0;color:var(--text);font-size:22px;font-weight:700}
+.step span{min-width:46px;text-align:center;font-weight:800;font-size:18px}
+.sw{position:relative;width:52px;height:30px;flex:none}
+.sw input{opacity:0;position:absolute;inset:0;width:100%;height:100%;margin:0;z-index:2}
+.sw i{position:absolute;inset:0;background:var(--card2);border:1px solid var(--line);border-radius:999px;transition:.15s}
+.sw i:after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--mute);transition:.15s}
+.sw input:checked+i{background:var(--accent);border-color:var(--accent)}
+.sw input:checked+i:after{left:25px;background:var(--accent-ink)}
+.timer{text-align:center;margin-bottom:12px}
+.timer b{font-size:54px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+.bar{height:8px;background:var(--card2);border-radius:99px;overflow:hidden;margin-top:8px}
+.bar>div{height:100%;background:var(--accent);width:100%;transition:width .25s linear}
+.bar>div.low{background:var(--bad)}
+.word{width:100%;text-align:center;border:2px dashed var(--line);background:var(--card);color:var(--mute);border-radius:16px;padding:16px;font-size:16px;font-weight:700;margin-bottom:12px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.word.show{border-style:solid;border-color:var(--accent);color:var(--text)}
+.word .big{display:block;font-size:34px;font-weight:900;color:var(--accent);margin-top:4px;word-break:break-word}
+.banner{border-radius:14px;padding:12px 14px;margin-bottom:12px;font-weight:700;background:rgba(255,183,3,.12);border:1px solid var(--accent)}
+.banner.bad{background:rgba(255,93,115,.12);border-color:var(--bad)}
+.banner.ok{background:rgba(46,229,157,.12);border-color:var(--ok)}
+.desc{display:flex;gap:8px;padding:7px 0;border-top:1px solid var(--line)}
+.desc:first-child{border-top:0}.desc b{min-width:86px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.desc span{flex:1;word-break:break-word}
+.vbtn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;text-align:left;min-height:54px;padding:10px 14px;margin-bottom:8px;border-radius:14px;border:2px solid var(--line);background:var(--card2);color:var(--text);font-size:17px;font-weight:700}
+.vbtn.sel{border-color:var(--accent);background:rgba(255,183,3,.14)}
+.vbtn small{color:var(--mute);font-weight:600;font-size:12px;text-align:right}
+.result{text-align:center;padding:22px 14px}
+.result .who{font-size:30px;font-weight:900;margin:4px 0}
+.result .what{font-size:22px;font-weight:800}
+.result .w{font-size:18px;color:var(--mute);margin-top:6px}
+.sup-row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:9px 0;border-top:1px solid var(--line)}
+.sup-row:first-child{border-top:0}.sup-row .w{color:var(--accent);font-weight:800}.sup-row .d{grid-column:1/3;color:var(--mute);font-size:14px}
+details{margin-top:8px}summary{color:var(--mute);cursor:pointer;padding:6px 0}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#fff;color:#111;padding:11px 16px;border-radius:12px;font-weight:700;max-width:90vw;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}
+#toast.on{opacity:1}
+#net{position:fixed;top:0;left:0;right:0;background:var(--bad);color:#fff;text-align:center;font-weight:800;padding:6px;font-size:14px;z-index:10;display:none}
+</style>
+</head>
+<body>
+<div id="net">Reconnecting…</div>
+<div id="wrap"><header id="hdr"></header><main id="app"></main></div>
+<div id="toast"></div>
+<script>
+(function () {
+  'use strict';
+  /* ---------- tiny DOM helper (always textContent, never innerHTML) ---------- */
+  function h(tag, attrs) {
+    var e = document.createElement(tag);
+    if (attrs) for (var k in attrs) {
+      var v = attrs[k];
+      if (v == null || v === false) continue;
+      if (k === 'class') e.className = v;
+      else if (k.slice(0, 2) === 'on') e.addEventListener(k.slice(2), v);
+      else if (k === 'value' || k === 'checked' || k === 'disabled') e[k] = v;
+      else e.setAttribute(k, v === true ? '' : v);
+    }
+    for (var i = 2; i < arguments.length; i++) add(e, arguments[i]);
+    return e;
+  }
+  function add(e, c) {
+    if (c == null || c === false) return;
+    if (Array.isArray(c)) c.forEach(function (x) { add(e, x); });
+    else e.appendChild(c.nodeType ? c : document.createTextNode(String(c)));
+  }
+  function clear(e) { while (e.firstChild) e.removeChild(e.firstChild); return e; }
+  function fill(e) { clear(e); for (var i = 1; i < arguments.length; i++) add(e, arguments[i]); return e; }
+
+  /* ---------- state + storage ---------- */
+  var S = null, session = null, offset = 0, ws = null, retry = 0, queue = [], open = false;
+  function store(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
+  function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  try { session = JSON.parse(load('uc.session') || 'null'); } catch (e) { session = null; }
+  var savedName = load('uc.name') || '';
+
+  function toast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg; t.className = 'on';
+    clearTimeout(toast.tm); toast.tm = setTimeout(function () { t.className = ''; }, 2600);
+  }
+
+  /* ---------- network ---------- */
+  function send(m) {
+    if (open && ws.readyState === 1) ws.send(JSON.stringify(m)); else queue.push(m);
+  }
+  function connect() {
+    var url = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws';
+    ws = new WebSocket(url);
+    ws.onopen = function () {
+      open = true; retry = 0; document.getElementById('net').style.display = 'none';
+      if (session) ws.send(JSON.stringify({ t: 'rejoin', code: session.code, token: session.token }));
+      var q = queue; queue = []; q.forEach(function (m) { ws.send(JSON.stringify(m)); });
+    };
+    ws.onmessage = function (ev) {
+      var m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+      onMsg(m);
+    };
+    ws.onclose = function () {
+      open = false;
+      if (S || session) document.getElementById('net').style.display = 'block';
+      setTimeout(connect, Math.min(3000, 400 * Math.pow(2, retry++)));
+    };
+    ws.onerror = function () { try { ws.close(); } catch (e) {} };
+  }
+  setInterval(function () { if (open) send({ t: 'ping' }); }, 20000);
+
+  var lastPhase = null;
+  function onMsg(m) {
+    if (m.t === 'joined') { session = { id: m.id, token: m.token, code: m.code }; store('uc.session', JSON.stringify(session)); }
+    else if (m.t === 'state') {
+      offset = m.now - Date.now();
+      var phaseChanged = !S || S.phase !== m.phase;
+      S = m;
+      if (phaseChanged && lastPhase !== null && navigator.vibrate && (m.phase === 'describe' || m.phase === 'vote' || m.phase === 'over')) navigator.vibrate(120);
+      lastPhase = m.phase;
+      render();
+    }
+    else if (m.t === 'err') toast(m.msg);
+    else if (m.t === 'norejoin') { session = null; store('uc.session', null); S = null; render(); }
+    else if (m.t === 'kicked' || m.t === 'left') {
+      if (m.t === 'kicked') toast('The host removed you from the lobby');
+      session = null; store('uc.session', null); S = null; render();
+    }
+  }
+
+  /* ---------- keep screen awake while playing ---------- */
+  var wake = null;
+  function wakeLock() {
+    try { if (navigator.wakeLock && !wake) navigator.wakeLock.request('screen').then(function (l) { wake = l; l.addEventListener('release', function () { wake = null; }); }, function () {}); } catch (e) {}
+  }
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && S) wakeLock(); });
+
+  /* ---------- shared components ---------- */
+  function secsLeft() { return S && S.endsAt ? Math.max(0, Math.ceil((S.endsAt - (Date.now() + offset)) / 1000)) : 0; }
+  function timerBox(total) {
+    var num = h('b', null, '0'), fillBar = h('div'), root = h('div', { class: 'timer' }, num, h('div', { class: 'bar' }, fillBar));
+    function tick() {
+      if (!S) return;
+      var s = secsLeft(), t = total();
+      num.textContent = s; fillBar.style.width = Math.min(100, (s / t) * 100) + '%'; fillBar.className = s <= 5 ? 'low' : '';
+    }
+    return { root: root, tick: tick };
+  }
+  function wordCard() {
+    var btn = h('button', { class: 'word', type: 'button' }), tm = null, shown = false;
+    function paint() {
+      var me = S && S.me;
+      if (!me || !('word' in me)) { btn.style.display = 'none'; return; }
+      btn.style.display = '';
+      btn.className = 'word' + (shown ? ' show' : '');
+      if (!shown) fill(btn, 'Tap to see your word');
+      else if (me.white) fill(btn, 'You are Mr. White', h('span', { class: 'big' }, 'No word'), h('small', null, 'Blend in and work out the word'));
+      else fill(btn, 'Your word', h('span', { class: 'big' }, me.word));
+    }
+    function hide() { shown = false; clearTimeout(tm); paint(); }
+    btn.addEventListener('click', function () {
+      if (shown) return hide();
+      shown = true; paint(); clearTimeout(tm); tm = setTimeout(hide, 4000);
+    });
+    btn.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+    return { root: btn, update: paint };
+  }
+  function nameOf(id) { var p = S.players.filter(function (x) { return x.id === id; })[0]; return p ? p.name : '?'; }
+  function roleLabel(r) { return r === 'civilian' ? 'Civilian' : r === 'undercover' ? 'Undercover' : r === 'white' ? 'Mr. White' : ''; }
+  function roleTag(r) { return r ? h('span', { class: 'tag ' + (r === 'civilian' ? 'civ' : r === 'undercover' ? 'und' : 'wht') }, roleLabel(r)) : null; }
+  function playerRow(p, extra) {
+    return h('li', null,
+      h('span', { class: 'dot' + (p.connected ? '' : ' off') }),
+      h('span', { class: 'pname' + (p.alive === false && S.phase !== 'lobby' ? ' dead' : '') }, p.name, p.id === S.me.id ? ' (you)' : ''),
+      p.host ? h('span', { class: 'tag' }, 'Host') : null,
+      p.sup ? h('span', { class: 'tag' }, 'Supervisor') : null,
+      extra);
+  }
+  function toggle(label, hint, onchange) {
+    var inp = h('input', { type: 'checkbox', onchange: function () { onchange(inp.checked); } });
+    return { inp: inp, root: h('div', { class: 'set' }, h('div', { class: 'lbl' }, label, hint ? h('small', null, hint) : null), h('label', { class: 'sw' }, inp, h('i'))) };
+  }
+  function stepper(min, max, stepBy, onchange) {
+    var val = min, out = h('span', null, String(min));
+    function set(v) { val = v; out.textContent = String(v); }
+    function bump(d) { var n = Math.max(min, Math.min(max, val + d)); if (n !== val) { set(n); onchange(n); } }
+    return { set: set, get: function () { return val; }, root: h('div', { class: 'step' }, h('button', { type: 'button', onclick: function () { bump(-stepBy); } }, '−'), out, h('button', { type: 'button', onclick: function () { bump(stepBy); } }, '+')) };
+  }
+  function hostBtn(label, msg, cls, confirmText) {
+    return h('button', { class: 'btn ' + (cls || ''), type: 'button', onclick: function () { if (confirmText && !confirm(confirmText)) return; send(msg); } }, label);
+  }
+
+  /* ---------- header ---------- */
+  var hdr = document.getElementById('hdr');
+  function renderHeader() {
+    if (!S) return fill(hdr, h('span', { class: 'logo' }, 'Undercover'));
+    var parts = [];
+    if (S.round > 0 && S.phase !== 'lobby') parts.push(h('span', { class: 'tag' }, 'Round ' + S.round));
+    fill(hdr, h('span', { class: 'logo' }, 'Undercover'),
+      h('div', { class: 'hdr-r' }, parts,
+        h('button', { class: 'chip', type: 'button', onclick: shareLink }, S.code),
+        h('button', { class: 'link', type: 'button', onclick: function () { if (confirm('Leave this lobby?')) send({ t: 'leave' }); } }, 'Leave')));
+  }
+  function shareLink() {
+    var url = location.origin + '/?c=' + S.code;
+    if (navigator.share) navigator.share({ title: 'Undercover', text: 'Join my Undercover lobby: ' + S.code, url: url }).catch(function () {});
+    else if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { toast('Link copied'); }, function () { toast(url); });
+    else toast(url);
+  }
+
+  /* ---------- screens ---------- */
+  var screens = {};
+
+  screens.home = function () {
+    var nameIn = h('input', { type: 'text', maxlength: 14, placeholder: 'Your name', value: savedName, autocomplete: 'off' });
+    var codeIn = h('input', { type: 'text', class: 'code', maxlength: 4, placeholder: 'CODE', autocomplete: 'off', autocapitalize: 'characters', value: (new URLSearchParams(location.search).get('c') || '').toUpperCase().slice(0, 4) });
+    function nm() { var n = nameIn.value.trim(); if (!n) { toast('Enter your name first'); nameIn.focus(); return null; } savedName = n; store('uc.name', n); return n; }
+    var root = h('div', null,
+      h('h1', null, 'Undercover'),
+      h('p', { class: 'sub' }, 'Everyone gets a word. Find who has a different one.'),
+      h('div', { class: 'card' }, nameIn, h('div', { class: 'gap' }),
+        h('button', { class: 'btn primary', type: 'button', onclick: function () { var n = nm(); if (n) send({ t: 'create', name: n }); } }, 'Create lobby')),
+      h('div', { class: 'card' }, h('h2', null, 'Join a lobby'), codeIn, h('div', { class: 'gap' }),
+        h('button', { class: 'btn', type: 'button', onclick: function () { var n = nm(); if (!n) return; if (codeIn.value.trim().length < 4) { toast('Enter the 4-letter code'); return; } send({ t: 'join', name: n, code: codeIn.value.trim() }); } }, 'Join')),
+      h('details', { class: 'card' }, h('summary', null, 'How to play'),
+        h('p', null, h('b', null, 'Civilians'), ' all get the same word. ', h('b', null, 'Undercover'), ' gets a similar but different word (and doesn\'t know it). ', h('b', null, 'Mr. White'), ' gets no word.'),
+        h('p', null, 'Each round, type a short clue about your word without saying it. Then discuss out loud and vote. The player with the most votes is out. Civilians win when all impostors are out; impostors win when they equal the civilians. If Mr. White is voted out, they get one guess at the civilian word.')));
+    return { root: root, update: function () {} };
+  };
+
+  screens.lobby = function () {
+    var isHost = S.me.host;
+    var list = h('ul', { class: 'plist' });
+    var count = h('h2');
+    var root = h('div');
+    if (!isHost) {
+      var summary = h('div', { class: 'mute' });
+      fill(root, h('div', { class: 'card' }, h('div', { class: 'mute center' }, 'Lobby code'), h('div', { class: 'bigcode' }, S.code)),
+        h('div', { class: 'card' }, count, list),
+        h('div', { class: 'card' }, h('h2', null, 'Game settings'), summary),
+        h('div', { class: 'banner center' }, 'Waiting for the host to start…'));
+      return { root: root, update: function () {
+        fill(count, 'Players (' + S.players.length + ')');
+        fill(list, S.players.map(function (p) { return playerRow(p); }));
+        var s = S.settings, pl = S.plan;
+        fill(summary, h('p', null, 'Describe time: ' + s.describeSecs + 's'),
+          h('p', null, 'Roles for ' + pl.n + ' players: ' + pl.c + ' Civilian · ' + pl.u + ' Undercover · ' + pl.w + ' Mr. White'),
+          S.players.some(function (p) { return p.sup; }) ? h('p', null, 'The host is supervising (not playing).') : null);
+      } };
+    }
+    /* host */
+    var secsStep = stepper(5, 300, 5, function (v) { send({ t: 'settings', describeSecs: v }); });
+    var autoRoles = toggle('Automatic roles', 'Picks Undercover / Mr. White counts from the player count', function (v) { send({ t: 'settings', autoRoles: v }); });
+    var uStep = stepper(0, 10, 1, function (v) { send({ t: 'settings', undercover: v }); });
+    var wStep = stepper(0, 5, 1, function (v) { send({ t: 'settings', white: v }); });
+    var uRow = h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Undercover'), uStep.root);
+    var wRow = h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Mr. White'), wStep.root);
+    var planTxt = h('p', { class: 'mute' });
+    var autoAdv = toggle('Skip timer when all have answered', null, function (v) { send({ t: 'settings', autoAdvance: v }); });
+    var wGuess = toggle('Mr. White gets a final guess', 'If voted out, one try at the civilian word', function (v) { send({ t: 'settings', whiteGuess: v }); });
+    var sup = toggle('I\'ll be the supervisor', 'You won\'t get a word. You see everyone\'s role and word', function (v) { send({ t: 'settings', supervisor: v }); });
+    var preview = h('div'), cw = h('input', { type: 'text', maxlength: 24, placeholder: 'Civilian word (optional)' }), uw = h('input', { type: 'text', maxlength: 24, placeholder: 'Undercover word (optional)' });
+    var supBox = h('div', { class: 'card' }, h('h2', null, 'Words (supervisor)'), preview,
+      h('div', { class: 'gap' }), h('button', { class: 'btn small', type: 'button', onclick: function () { send({ t: 'reroll' }); } }, '🎲 Pick another random pair'),
+      h('p', { class: 'mute' }, 'Or type your own pair. Both boxes filled = used instead of the random pair.'), cw, h('div', { class: 'gap' }), uw);
+    var startBtn = h('button', { class: 'btn primary', type: 'button', onclick: function () {
+      var m = { t: 'start' };
+      if (S.me.sup && (cw.value.trim() || uw.value.trim())) m.custom = { civilian: cw.value, undercover: uw.value };
+      send(m);
+    } }, 'Start game');
+    var why = h('p', { class: 'err center' });
+    fill(root,
+      h('div', { class: 'card' }, h('div', { class: 'mute center' }, 'Lobby code. Share it with the players'), h('div', { class: 'bigcode' }, S.code),
+        h('button', { class: 'btn small', type: 'button', style: 'margin:0 auto', onclick: shareLink }, 'Share link')),
+      h('div', { class: 'card' }, count, list),
+      h('div', { class: 'card' }, h('h2', null, 'Settings'),
+        h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Describe time', h('small', null, 'seconds each round')), secsStep.root),
+        autoRoles.root, uRow, wRow, planTxt, autoAdv.root, wGuess.root, sup.root),
+      supBox, startBtn, why);
+    return { root: root, update: function () {
+      var s = S.settings, pl = S.plan;
+      fill(count, 'Players (' + S.players.length + ')');
+      fill(list, S.players.map(function (p) {
+        return playerRow(p, p.id !== S.me.id ? h('button', { class: 'btn small danger', type: 'button', onclick: function () { if (confirm('Remove ' + p.name + '?')) send({ t: 'kick', id: p.id }); } }, 'Kick') : null);
+      }));
+      secsStep.set(s.describeSecs);
+      autoRoles.inp.checked = s.autoRoles; autoAdv.inp.checked = s.autoAdvance; wGuess.inp.checked = s.whiteGuess; sup.inp.checked = S.me.sup;
+      uStep.set(s.undercover); wStep.set(s.white);
+      uRow.style.display = wRow.style.display = s.autoRoles ? 'none' : '';
+      fill(planTxt, pl.n + ' playing → ' + pl.c + ' Civilian · ' + pl.u + ' Undercover · ' + pl.w + ' Mr. White');
+      supBox.style.display = S.me.sup ? '' : 'none';
+      if (S.nextPair) fill(preview, h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Civilians get'), h('b', null, S.nextPair.civilian)), h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Undercover gets'), h('b', null, S.nextPair.undercover)));
+      startBtn.disabled = !!S.startErr;
+      fill(why, S.startErr || '');
+    } };
+  };
+
+  function supPanel(liveFn) {
+    var box = h('div', { class: 'card' }, h('h2', null, 'Supervisor view'));
+    var body = h('div');
+    box.appendChild(body);
+    return { root: box, update: function () {
+      box.style.display = S.me.sup ? '' : 'none';
+      if (!S.me.sup) return;
+      fill(body, S.players.filter(function (p) { return p.in; }).map(function (p) {
+        var live = liveFn ? liveFn(p) : null;
+        return h('div', { class: 'sup-row' },
+          h('div', null, h('b', { class: p.alive ? '' : 'mute' }, p.name), ' ', p.alive ? '' : h('span', { class: 'tag' }, 'out'), p.left ? h('span', { class: 'tag' }, 'left') : null),
+          h('div', null, roleTag(p.role), ' ', h('span', { class: 'w' }, p.role === 'white' ? '—' : p.word)),
+          live ? h('div', { class: 'd' }, live) : null);
+      }));
+    } };
+  }
+
+  screens.describe = function () {
+    var tm = timerBox(function () { return S.settings.describeSecs; });
+    var wc = wordCard();
+    var sp = supPanel(function (p) { var d = S.live && S.live[p.id]; return d ? '“' + d + '”' : (p.alive ? 'typing…' : null); });
+    var inp = h('input', { type: 'text', maxlength: 40, placeholder: 'Your clue (1–3 words)', autocomplete: 'off', enterkeyhint: 'send' });
+    var sent = h('p', { class: 'mute' });
+    function submit() { var t = inp.value.trim(); if (!t) return toast('Type a clue first'); send({ t: 'describe', text: t }); }
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
+    var form = h('div', { class: 'card' }, h('h2', null, 'Describe your word'), inp, h('div', { class: 'gap' }),
+      h('button', { class: 'btn primary', type: 'button', onclick: submit }, 'Send clue'), sent);
+    var out = h('div', { class: 'banner' }, 'You are out this game. Watch the others.');
+    var list = h('ul', { class: 'plist' }), listCard = h('div', { class: 'card' }, h('h2', null, 'Who has answered'), list);
+    var endBtn = hostBtn('End timer now →', { t: 'endDescribe' }, '');
+    var root = h('div', null, tm.root, wc.root, sp.root, form, out, listCard, h('div', { class: 'gap' }), endBtn);
+    return { root: root, tick: tm.tick, update: function () {
+      wc.update(); sp.update(); tm.tick();
+      var playing = !S.me.sup && S.me.alive;
+      form.style.display = playing ? '' : 'none';
+      out.style.display = !S.me.sup && !S.me.alive ? '' : 'none';
+      fill(sent, S.myDesc ? '✓ Sent: “' + S.myDesc + '”. You can change it until time is up.' : 'Describe it without saying the word itself.');
+      fill(list, S.players.filter(function (p) { return p.in && p.alive; }).map(function (p) {
+        return playerRow(p, p.submitted ? h('span', { class: 'tag ok' }, 'Done') : h('span', { class: 'tag' }, '…'));
+      }));
+      endBtn.style.display = S.me.host ? '' : 'none';
+    } };
+  };
+
+  screens.vote = function () {
+    var wc = wordCard();
+    var sp = supPanel(function (p) { var v = S.breakdown && Object.keys(S.breakdown).filter(function (t) { return S.breakdown[t].indexOf(p.id) >= 0; })[0]; return p.alive ? (v ? 'votes for ' + nameOf(v) : 'has not voted') : null; });
+    var tie = h('div', { class: 'banner bad' }, 'No majority. Votes are tied, so anyone can change their vote.');
+    var cur = h('div', { class: 'card' }), older = h('div');
+    var status = h('p', { class: 'mute center' });
+    var ballot = h('div', { class: 'card' }, h('h2', null, 'Vote someone out'));
+    var ballotBody = h('div'); ballot.appendChild(ballotBody);
+    var hostBox = h('div', null, h('div', { class: 'row' }, hostBtn('Close vote now', { t: 'closeVote' }, ''), hostBtn('Skip (nobody out)', { t: 'skipVote' }, 'danger', 'Skip the elimination and start a new round?')));
+    var root = h('div', null, wc.root, sp.root, cur, older, tie, ballot, status, hostBox);
+    return { root: root, update: function () {
+      wc.update(); sp.update();
+      var last = S.history[S.history.length - 1];
+      fill(cur, h('h2', null, 'Round ' + S.round + ' clues'), last ? last.items.map(function (it) { return h('div', { class: 'desc' }, h('b', null, nameOf(it[0])), h('span', null, it[1] || '—')); }) : null);
+      var prev = S.history.slice(0, -1).reverse();
+      fill(older, prev.length ? h('details', { class: 'card' }, h('summary', null, 'Earlier rounds (' + prev.length + ')'), prev.map(function (r) {
+        return h('div', null, h('p', { class: 'mute' }, 'Round ' + r.round), r.items.map(function (it) { return h('div', { class: 'desc' }, h('b', null, nameOf(it[0])), h('span', null, it[1] || '—')); }));
+      })) : null);
+      tie.style.display = S.tie ? '' : 'none';
+      var alive = S.players.filter(function (p) { return p.in && p.alive; });
+      var canVote = S.me.alive && !S.me.sup;
+      ballot.style.display = canVote ? '' : 'none';
+      fill(ballotBody, alive.filter(function (p) { return p.id !== S.me.id; }).map(function (p) {
+        var voters = S.breakdown && S.breakdown[p.id];
+        return h('button', { class: 'vbtn' + (S.myVote === p.id ? ' sel' : ''), type: 'button', onclick: function () { send({ t: 'vote', target: S.myVote === p.id ? null : p.id }); } },
+          h('span', null, p.name, S.myVote === p.id ? '  ✓' : ''),
+          S.tie && voters ? h('small', null, voters.length + ': ' + voters.map(nameOf).join(', ')) : null);
+      }));
+      var votedN = alive.filter(function (p) { return p.voted; }).length;
+      fill(status, 'Voted ' + votedN + ' / ' + alive.length + (S.me.alive || S.me.sup ? '' : ' · you are out, just watching'));
+      hostBox.style.display = S.me.host ? '' : 'none';
+    } };
+  };
+
+  screens.whiteguess = function () {
+    var tm = timerBox(function () { return 30; });
+    var inp = h('input', { type: 'text', maxlength: 40, placeholder: 'The civilians\' word…', autocomplete: 'off' });
+    function go() { send({ t: 'guess', text: inp.value.trim() }); }
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
+    var mine = h('div', { class: 'card' }, h('h2', null, 'Last chance, Mr. White'), h('p', null, 'You were voted out. Guess the civilians\' word and you win.'), inp, h('div', { class: 'gap' }), h('button', { class: 'btn primary', type: 'button', onclick: go }, 'Submit guess'));
+    var other = h('div', { class: 'banner center' });
+    return { root: h('div', null, tm.root, mine, other), tick: tm.tick, update: function () {
+      tm.tick();
+      var me = S.me.id === S.whiteId;
+      mine.style.display = me ? '' : 'none'; other.style.display = me ? 'none' : '';
+      fill(other, nameOf(S.whiteId) + ' was Mr. White and is making a final guess…');
+    } };
+  };
+
+  screens.elim = function () {
+    var wc = wordCard();
+    var res = h('div', { class: 'card result' }), votes = h('div', { class: 'card' });
+    var nextBtn = hostBtn('Next round →', { t: 'next' }, 'primary'), wait = h('p', { class: 'mute center' }, 'Waiting for the host…');
+    return { root: h('div', null, wc.root, res, votes, nextBtn, wait), update: function () {
+      wc.update();
+      var e = S.lastElim;
+      fill(res, h('div', { class: 'mute' }, 'Eliminated'), h('div', { class: 'who' }, e ? e.name : '—'),
+        e ? h('div', { class: 'what' }, 'was ' + roleLabel(e.role)) : null,
+        e && e.role !== 'white' ? h('div', { class: 'w' }, 'Word: ' + e.word) : null,
+        S.guess ? h('div', { class: 'w' }, 'Mr. White guessed “' + (S.guess.text || '—') + '” (wrong)') : null);
+      var bd = e && e.breakdown || {};
+      fill(votes, h('h2', null, 'Votes'), Object.keys(bd).sort(function (a, b) { return bd[b].length - bd[a].length; }).map(function (t) {
+        return h('div', { class: 'desc' }, h('b', null, nameOf(t)), h('span', null, bd[t].length + ' ← ' + bd[t].map(nameOf).join(', ')));
+      }));
+      nextBtn.style.display = S.me.host ? '' : 'none'; wait.style.display = S.me.host ? 'none' : '';
+    } };
+  };
+
+  screens.over = function () {
+    var ban = h('div', { class: 'banner ok center' }), words = h('div', { class: 'card' }), tbl = h('div', { class: 'card' });
+    var again = hostBtn('Play again (same players)', { t: 'playAgain' }, 'primary'), lobby = hostBtn('Back to lobby (change settings / kick)', { t: 'toLobby' }, '');
+    var wait = h('p', { class: 'mute center' }, 'Waiting for the host to pick what\'s next…');
+    return { root: h('div', null, ban, words, tbl, again, h('div', { class: 'gap' }), lobby, wait), update: function () {
+      var w = S.winner;
+      fill(ban, w === 'civilians' ? '🎉 Civilians win!' : w === 'impostors' ? '🕵️ Undercover team wins!' : '⬜ Mr. White wins. They guessed the word!');
+      ban.className = 'banner center ' + (w === 'civilians' ? 'ok' : 'bad');
+      fill(words, h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Civilian word'), h('b', null, S.pair ? S.pair.civilian : '')), h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Undercover word'), h('b', null, S.pair ? S.pair.undercover : '')));
+      fill(tbl, h('h2', null, 'Everyone\'s role'), S.players.filter(function (p) { return p.in; }).map(function (p) {
+        return h('div', { class: 'sup-row' }, h('div', null, h('b', null, p.name), p.id === S.me.id ? ' (you)' : '', p.alive ? '' : h('span', { class: 'tag' }, p.left ? 'left' : 'out')), h('div', null, roleTag(p.role), ' ', h('span', { class: 'w' }, p.role === 'white' ? '—' : p.word)));
+      }));
+      again.style.display = lobby.style.display = S.me.host ? '' : 'none'; wait.style.display = S.me.host ? 'none' : '';
+    } };
+  };
+
+  /* ---------- render loop ---------- */
+  var app = document.getElementById('app'), cur = null, curKey = null;
+  function keyFor() {
+    if (!S) return 'home';
+    if (S.phase === 'lobby') return S.me.host ? 'lobby-host' : 'lobby';
+    return S.phase;
+  }
+  function render() {
+    renderHeader();
+    var key = keyFor();
+    if (key !== curKey) {
+      curKey = key; clear(app);
+      cur = (key === 'home' ? screens.home : key.indexOf('lobby') === 0 ? screens.lobby : screens[key])();
+      app.appendChild(cur.root);
+      window.scrollTo(0, 0);
+    }
+    if (S && S.phase !== 'lobby' && S.phase !== 'over') wakeLock();
+    cur.update();
+  }
+  setInterval(function () { if (cur && cur.tick) cur.tick(); }, 250);
+
+  render();
+  connect();
+})();
+</script>
+</body>
+</html>
