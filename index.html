@@ -287,7 +287,7 @@ details{margin-top:8px}summary{color:var(--mute);cursor:pointer;padding:6px 0}
         fill(count, 'Players (' + S.players.length + ')');
         fill(list, S.players.map(function (p) { return playerRow(p); }));
         var s = S.settings, pl = S.plan;
-        fill(summary, h('p', null, 'Describe time: ' + s.describeSecs + 's'),
+        fill(summary, h('p', null, 'Time per clue: ' + s.describeSecs + 's'),
           h('p', null, 'Roles for ' + pl.n + ' players: ' + pl.c + ' Civilian · ' + pl.u + ' Undercover · ' + pl.w + ' Mr. White'),
           S.players.some(function (p) { return p.sup; }) ? h('p', null, 'The host is supervising (not playing).') : null);
       } };
@@ -300,7 +300,6 @@ details{margin-top:8px}summary{color:var(--mute);cursor:pointer;padding:6px 0}
     var uRow = h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Undercover'), uStep.root);
     var wRow = h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Mr. White'), wStep.root);
     var planTxt = h('p', { class: 'mute' });
-    var autoAdv = toggle('Skip timer when all have answered', null, function (v) { send({ t: 'settings', autoAdvance: v }); });
     var wGuess = toggle('Mr. White gets a final guess', 'If voted out, one try at the civilian word', function (v) { send({ t: 'settings', whiteGuess: v }); });
     var sup = toggle('I\'ll be the supervisor', 'You won\'t get a word. You see everyone\'s role and word', function (v) { send({ t: 'settings', supervisor: v }); });
     var preview = h('div'), cw = h('input', { type: 'text', maxlength: 24, placeholder: 'Civilian word (optional)' }), uw = h('input', { type: 'text', maxlength: 24, placeholder: 'Undercover word (optional)' });
@@ -318,8 +317,8 @@ details{margin-top:8px}summary{color:var(--mute);cursor:pointer;padding:6px 0}
         h('button', { class: 'btn small', type: 'button', style: 'margin:0 auto', onclick: shareLink }, 'Share link')),
       h('div', { class: 'card' }, count, list),
       h('div', { class: 'card' }, h('h2', null, 'Settings'),
-        h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Describe time', h('small', null, 'seconds each round')), secsStep.root),
-        autoRoles.root, uRow, wRow, planTxt, autoAdv.root, wGuess.root, sup.root),
+        h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Time per clue', h('small', null, 'seconds for each player\'s turn')), secsStep.root),
+        autoRoles.root, uRow, wRow, planTxt, wGuess.root, sup.root),
       supBox, startBtn, why);
     return { root: root, update: function () {
       var s = S.settings, pl = S.plan;
@@ -328,7 +327,7 @@ details{margin-top:8px}summary{color:var(--mute);cursor:pointer;padding:6px 0}
         return playerRow(p, p.id !== S.me.id ? h('button', { class: 'btn small danger', type: 'button', onclick: function () { if (confirm('Remove ' + p.name + '?')) send({ t: 'kick', id: p.id }); } }, 'Kick') : null);
       }));
       secsStep.set(s.describeSecs);
-      autoRoles.inp.checked = s.autoRoles; autoAdv.inp.checked = s.autoAdvance; wGuess.inp.checked = s.whiteGuess; sup.inp.checked = S.me.sup;
+      autoRoles.inp.checked = s.autoRoles; wGuess.inp.checked = s.whiteGuess; sup.inp.checked = S.me.sup;
       uStep.set(s.undercover); wStep.set(s.white);
       uRow.style.display = wRow.style.display = s.autoRoles ? 'none' : '';
       fill(planTxt, pl.n + ' playing → ' + pl.c + ' Civilian · ' + pl.u + ' Undercover · ' + pl.w + ' Mr. White');
@@ -359,27 +358,35 @@ details{margin-top:8px}summary{color:var(--mute);cursor:pointer;padding:6px 0}
   screens.describe = function () {
     var tm = timerBox(function () { return S.settings.describeSecs; });
     var wc = wordCard();
-    var sp = supPanel(function (p) { var d = S.live && S.live[p.id]; return d ? '“' + d + '”' : (p.alive ? 'typing…' : null); });
+    var sp = supPanel(function (p) { var d = S.clues && S.clues[p.id]; return d ? '“' + d + '”' : (p.alive ? (S.turnId === p.id ? 'giving a clue now…' : 'waiting') : null); });
+    var turnBox = h('div', { class: 'banner' });
     var inp = h('input', { type: 'text', maxlength: 40, placeholder: 'Your clue (1–3 words)', autocomplete: 'off', enterkeyhint: 'send' });
-    var sent = h('p', { class: 'mute' });
     function submit() { var t = inp.value.trim(); if (!t) return toast('Type a clue first'); send({ t: 'describe', text: t }); }
     inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
-    var form = h('div', { class: 'card' }, h('h2', null, 'Describe your word'), inp, h('div', { class: 'gap' }),
-      h('button', { class: 'btn primary', type: 'button', onclick: submit }, 'Send clue'), sent);
-    var out = h('div', { class: 'banner' }, 'You are out this game. Watch the others.');
-    var list = h('ul', { class: 'plist' }), listCard = h('div', { class: 'card' }, h('h2', null, 'Who has answered'), list);
-    var endBtn = hostBtn('End timer now →', { t: 'endDescribe' }, '');
-    var root = h('div', null, tm.root, wc.root, sp.root, form, out, listCard, h('div', { class: 'gap' }), endBtn);
+    var hint = h('p', { class: 'mute' });
+    var form = h('div', { class: 'card' }, h('h2', null, 'Your clue'), inp, h('div', { class: 'gap' }),
+      h('button', { class: 'btn primary', type: 'button', onclick: submit }, 'Send clue'), hint);
+    var list = h('ul', { class: 'plist' }), listCard = h('div', { class: 'card' }, h('h2', null, 'Clues so far'), list);
+    var hostRow = h('div', { class: 'row' }, hostBtn('Skip this player', { t: 'skipTurn' }, ''), hostBtn('Go to voting now', { t: 'endDescribe' }, 'danger', 'End the clue round and go to voting?'));
+    var wasMine = false;
+    var root = h('div', null, tm.root, wc.root, sp.root, turnBox, form, listCard, hostRow);
     return { root: root, tick: tm.tick, update: function () {
       wc.update(); sp.update(); tm.tick();
-      var playing = !S.me.sup && S.me.alive;
-      form.style.display = playing ? '' : 'none';
-      out.style.display = !S.me.sup && !S.me.alive ? '' : 'none';
-      fill(sent, S.myDesc ? '✓ Sent: “' + S.myDesc + '”. You can change it until time is up.' : 'Describe it without saying the word itself.');
-      fill(list, S.players.filter(function (p) { return p.in && p.alive; }).map(function (p) {
-        return playerRow(p, p.submitted ? h('span', { class: 'tag ok' }, 'Done') : h('span', { class: 'tag' }, '…'));
+      var mine = S.turnId === S.me.id && S.me.alive && !S.me.sup;
+      if (mine && !wasMine) { if (navigator.vibrate) navigator.vibrate(200); setTimeout(function () { try { inp.focus(); } catch (e) {} }, 50); }
+      if (!mine) inp.value = '';
+      wasMine = mine;
+      turnBox.className = 'banner' + (mine ? ' ok' : '');
+      fill(turnBox, mine ? '🎤 Your turn. Give a clue!' : nameOf(S.turnId) + ' is giving a clue…');
+      form.style.display = mine ? '' : 'none';
+      fill(hint, S.me.white ? 'You have no word. Use the clues already given to blend in.' : 'Hint about your word without saying it. Others will see it right away.');
+      fill(list, (S.order || []).map(function (id) {
+        var c = S.clues && S.clues[id], pl = S.players.filter(function (x) { return x.id === id; })[0];
+        return h('li', null, h('span', { class: 'dot' + (pl && pl.connected ? '' : ' off') }),
+          h('span', { class: 'pname' }, nameOf(id), id === S.me.id ? ' (you)' : ''),
+          c ? h('b', null, '“' + c + '”') : id === S.turnId ? h('span', { class: 'tag ok' }, 'Now') : h('span', { class: 'tag' }, 'waiting'));
       }));
-      endBtn.style.display = S.me.host ? '' : 'none';
+      hostRow.style.display = S.me.host ? '' : 'none';
     } };
   };
 
@@ -441,7 +448,6 @@ details{margin-top:8px}summary{color:var(--mute);cursor:pointer;padding:6px 0}
       var e = S.lastElim;
       fill(res, h('div', { class: 'mute' }, 'Eliminated'), h('div', { class: 'who' }, e ? e.name : '—'),
         e ? h('div', { class: 'what' }, 'was ' + roleLabel(e.role)) : null,
-        e && e.role !== 'white' ? h('div', { class: 'w' }, 'Word: ' + e.word) : null,
         S.guess ? h('div', { class: 'w' }, 'Mr. White guessed “' + (S.guess.text || '—') + '” (wrong)') : null);
       var bd = e && e.breakdown || {};
       fill(votes, h('h2', null, 'Votes'), Object.keys(bd).sort(function (a, b) { return bd[b].length - bd[a].length; }).map(function (t) {

@@ -71,9 +71,9 @@ function makeRoom() {
   const room = {
     code: newCode(), hostId: null, supervisorId: null, players: new Map(),
     phase: 'lobby', round: 0, seq: 0, timer: null, endsAt: 0,
-    settings: { describeSecs: 30, autoRoles: true, undercover: 1, white: 1, autoAdvance: true, whiteGuess: true },
+    settings: { describeSecs: 30, autoRoles: true, undercover: 1, white: 1, whiteGuess: true },
     deck: [], pair: null, nextPair: null,
-    descs: {}, history: [], votes: {}, tie: false,
+    descs: {}, order: [], turn: 0, history: [], votes: {}, tie: false,
     lastElim: null, guess: null, whiteId: null, winner: null, touched: Date.now(),
   };
   room.nextPair = drawPair(room);
@@ -93,7 +93,7 @@ const parts = (room) => [...room.players.values()].filter((p) => p.id !== room.s
 const alivePlayers = (room) => parts(room).filter((p) => p.alive && p.role);
 
 function autoCounts(n) {
-  return { u: Math.max(1, Math.floor((n - 1) / 4)), w: n >= 5 ? (n >= 12 ? 2 : 1) : 0 };
+  return { u: Math.max(1, Math.floor((n - 1) / 4)), w: n >= 6 ? (n >= 12 ? 2 : 1) : 0 };
 }
 function plan(room) {
   const n = parts(room).length;
@@ -140,7 +140,8 @@ function view(room, p) {
       o.in = true; // takes part in this game (role itself stays private)
       if (room.phase === 'describe') o.submitted = !!room.descs[q.id];
       if (room.phase === 'vote') o.voted = !!room.votes[q.id];
-      if (sup || over || q.revealed) { o.role = q.role; o.word = q.word; }
+      if (sup || over) { o.role = q.role; o.word = q.word; }
+      else if (q.revealed) o.role = q.role; // eliminated: role only, never the word
     }
     return o;
   });
@@ -154,7 +155,7 @@ function view(room, p) {
   if (inGame && p.role) { v.me.white = p.role === 'white'; v.me.word = p.word; }
   if (p.id === room.hostId) v.startErr = room.phase === 'lobby' ? checkStart(room) : null;
   if (sup && room.phase === 'lobby') v.nextPair = room.nextPair;
-  if (room.phase === 'describe') { v.myDesc = room.descs[p.id] || ''; if (sup) v.live = room.descs; }
+  if (room.phase === 'describe') { v.order = room.order; v.turnId = room.order[room.turn]; v.clues = room.descs; }
   if (room.phase === 'vote') {
     v.myVote = room.votes[p.id] || null;
     if (room.tie || sup) v.breakdown = breakdown(room, room.votes);
@@ -193,15 +194,28 @@ function startGame(room, custom) {
   return null;
 }
 
+const isActive = (room, id) => { const q = room.players.get(id); return !!q && !q.left && q.alive; };
 function startDescribe(room) {
   setPhase(room, 'describe');
   room.descs = {}; room.votes = {}; room.tie = false; room.guess = null; room.whiteId = null;
-  schedule(room, room.settings.describeSecs * 1000, () => endDescribe(room));
+  room.order = shuffle(alivePlayers(room).map((p) => p.id)); // fresh random speaking order every round
+  room.turn = 0;
+  startTurn(room);
+}
+function startTurn(room) {
+  room.seq++; clearTimeout(room.timer);
+  schedule(room, room.settings.describeSecs * 1000, () => advanceTurn(room)); // out of time = skipped
   broadcast(room);
+}
+function advanceTurn(room) {
+  if (room.phase !== 'describe') return;
+  do { room.turn++; } while (room.turn < room.order.length && !isActive(room, room.order[room.turn]));
+  if (room.turn >= room.order.length) return endDescribe(room); // everyone has spoken -> straight to discussion + voting
+  startTurn(room);
 }
 function endDescribe(room) {
   if (room.phase !== 'describe') return;
-  room.history.push({ round: room.round, items: alivePlayers(room).map((p) => [p.id, room.descs[p.id] || '']) });
+  room.history.push({ round: room.round, items: room.order.filter((id) => { const q = room.players.get(id); return q && !q.left; }).map((id) => [id, room.descs[id] || '']) });
   setPhase(room, 'vote');
   room.votes = {}; room.tie = false;
   broadcast(room);
@@ -224,7 +238,7 @@ function tryResolve(room, force) {
 function eliminate(room, id) {
   const p = room.players.get(id);
   p.alive = false; p.revealed = true;
-  room.lastElim = { id: p.id, name: p.name, role: p.role, word: p.word, breakdown: breakdown(room, room.votes) };
+  room.lastElim = { id: p.id, name: p.name, role: p.role, breakdown: breakdown(room, room.votes) };
   room.tie = false;
   if (p.role === 'white' && room.settings.whiteGuess) {
     setPhase(room, 'whiteguess');
@@ -275,8 +289,7 @@ function afterRemoval(room) {
   const win = checkWin(room);
   if (win) return endGame(room, win);
   if (room.phase === 'describe') {
-    const alive = alivePlayers(room);
-    if (room.settings.autoAdvance && alive.every((p) => room.descs[p.id])) return endDescribe(room);
+    if (!isActive(room, room.order[room.turn])) return advanceTurn(room);
   } else if (room.phase === 'vote') {
     for (const [voter, target] of Object.entries(room.votes)) {
       const a = room.players.get(voter), b = room.players.get(target);
@@ -367,7 +380,6 @@ function handle(ws, m) {
       if ('autoRoles' in m) s.autoRoles = !!m.autoRoles;
       if ('undercover' in m) s.undercover = clamp(m.undercover, 0, 10);
       if ('white' in m) s.white = clamp(m.white, 0, 5);
-      if ('autoAdvance' in m) s.autoAdvance = !!m.autoAdvance;
       if ('whiteGuess' in m) s.whiteGuess = !!m.whiteGuess;
       if ('supervisor' in m) room.supervisorId = m.supervisor ? room.hostId : null;
       return broadcast(room);
@@ -383,13 +395,17 @@ function handle(ws, m) {
     }
     case 'describe': {
       if (room.phase !== 'describe' || !p.alive || !p.role) return;
+      if (room.order[room.turn] !== p.id) return errTo(ws, "It's not your turn yet");
       const text = clean(m.text, 40);
       if (!text) return errTo(ws, 'Type a word or short phrase');
       if (p.word && mentions(text, p.word)) return errTo(ws, "Don't say your actual word!");
+      if (Object.values(room.descs).some((d) => norm(d) === norm(text))) return errTo(ws, 'Someone already said that. Try a different clue');
       room.descs[p.id] = text;
-      if (room.settings.autoAdvance && alivePlayers(room).every((q) => room.descs[q.id])) return endDescribe(room);
-      return broadcast(room);
+      return advanceTurn(room);
     }
+    case 'skipTurn':
+      if (!hostOnly() || room.phase !== 'describe') return;
+      return advanceTurn(room);
     case 'endDescribe':
       if (!hostOnly()) return;
       return endDescribe(room);
