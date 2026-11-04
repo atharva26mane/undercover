@@ -17,7 +17,8 @@ const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // no I, L, O, 0, 1
 
 // ---------------------------------------------------------------- static page
 const htmlPath = [path.join(__dirname, 'public', 'index.html'), path.join(__dirname, 'index.html')].find((f) => fs.existsSync(f));
-const htmlRaw = fs.readFileSync(htmlPath);
+// One-phone mode runs fully in the browser, so the page gets the same word pairs as the server (from words.js).
+const htmlRaw = Buffer.from(fs.readFileSync(htmlPath, 'utf8').replace('/*__WORDS__*/[]', () => JSON.stringify(PAIRS)));
 const htmlGz = zlib.gzipSync(htmlRaw, { level: 9 });
 const etag = '"' + crypto.createHash('sha1').update(htmlRaw).digest('hex').slice(0, 16) + '"';
 

@@ -116,6 +116,8 @@ details{margin-top:8px}summary{color:var(--mute);cursor:pointer;padding:6px 0}
   function fill(e) { clear(e); for (var i = 1; i < arguments.length; i++) add(e, arguments[i]); return e; }
 
   /* ---------- state + storage ---------- */
+  var PAIRS = /*__WORDS__*/[];
+  if (!PAIRS.length) PAIRS = [['tea', 'coffee']];
   var S = null, session = null, offset = 0, ws = null, retry = 0, queue = [], open = false;
   function store(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
   function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
@@ -237,7 +239,7 @@ details{margin-top:8px}summary{color:var(--mute);cursor:pointer;padding:6px 0}
   /* ---------- header ---------- */
   var hdr = document.getElementById('hdr');
   function renderHeader() {
-    if (!S) return fill(hdr, h('span', { class: 'logo' }, 'Undercover'));
+    if (!S) return fill(hdr, h('span', { class: 'logo' }, 'Undercover'), mode === 'menu' ? null : h('button', { class: 'link', type: 'button', onclick: goMenu }, '← Menu'));
     var parts = [];
     if (S.round > 0 && S.phase !== 'lobby') parts.push(h('span', { class: 'tag' }, 'Round ' + S.round));
     fill(hdr, h('span', { class: 'logo' }, 'Undercover'),
@@ -268,7 +270,7 @@ details{margin-top:8px}summary{color:var(--mute);cursor:pointer;padding:6px 0}
         h('button', { class: 'btn', type: 'button', onclick: function () { var n = nm(); if (!n) return; if (codeIn.value.trim().length < 4) { toast('Enter the 4-letter code'); return; } send({ t: 'join', name: n, code: codeIn.value.trim() }); } }, 'Join')),
       h('details', { class: 'card' }, h('summary', null, 'How to play'),
         h('p', null, h('b', null, 'Civilians'), ' all get the same word. ', h('b', null, 'Undercover'), ' gets a similar but different word (and doesn\'t know it). ', h('b', null, 'Mr. White'), ' gets no word.'),
-        h('p', null, 'Each round, type a short clue about your word without saying it. Then discuss out loud and vote. The player with the most votes is out. Civilians win when all impostors are out; impostors win when they equal the civilians. If Mr. White is voted out, they get one guess at the civilian word.')));
+        h('p', null, 'Take turns giving a short clue about your word without saying it. Then discuss out loud and vote. The player with the most votes is out. Civilians win when all impostors are out; impostors win when they equal the civilians. If Mr. White is voted out, they get one guess at the civilian word.')));
     return { root: root, update: function () {} };
   };
 
@@ -473,10 +475,226 @@ details{margin-top:8px}summary{color:var(--mute);cursor:pointer;padding:6px 0}
     } };
   };
 
+
+  /* ---------- mode menu ---------- */
+  screens.menu = function () {
+    var root = h('div', null,
+      h('h1', null, 'Undercover'),
+      h('p', { class: 'sub' }, 'Everyone gets a word. Find who has a different one.'),
+      h('div', { class: 'card' }, h('h2', null, 'Online'),
+        h('p', { class: 'mute' }, 'Everyone plays on their own phone. Create a lobby and share the code.'),
+        h('button', { class: 'btn primary', type: 'button', onclick: function () { mode = 'online'; render(); } }, 'Play on separate phones')),
+      h('div', { class: 'card' }, h('h2', null, 'One phone'),
+        h('p', { class: 'mute' }, 'No internet needed once the page is open. Pass one phone around: everyone enters their name and sees their word. You discuss and vote out loud.'),
+        h('button', { class: 'btn', type: 'button', onclick: function () { mode = 'solo'; render(); } }, 'Play on this phone only')));
+    return { root: root, update: function () {} };
+  };
+
+  /* ---------- one-phone (pass-and-play) mode ---------- */
+  var L = null;
+  function newSolo() { return { cfg: { n: 5, u: 1, w: 0, manual: false }, names: [], players: [], pair: null, step: 'setup', i: 0, last: null, winner: null }; }
+  try { L = JSON.parse(load('uc.solo') || 'null'); } catch (e) { L = null; }
+  if (!L || !L.cfg || !L.step) L = newSolo();
+  function saveSolo() { store('uc.solo', JSON.stringify(L)); }
+  var mode = (session || /[?&]c=/.test(location.search)) ? 'online' : (L.step !== 'setup' ? 'solo' : 'menu');
+  function goMenu() {
+    if (mode === 'solo') {
+      if (L.step !== 'setup' && L.step !== 'over' && !confirm('Leave this game? The roles and words will be lost.')) return;
+      var cfg = L.cfg; L = newSolo(); L.cfg = cfg; store('uc.solo', null);
+    }
+    mode = 'menu'; render();
+  }
+  function rnd(n) { try { var a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; } catch (e) { return Math.floor(Math.random() * n); } }
+  function shuf(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = rnd(i + 1), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function normW(s) { return String(s).toLowerCase().normalize('NFKD').replace(/[^\p{L}\p{N}]+/gu, ' ').trim(); }
+  function drawPair() {
+    var d = null; try { d = JSON.parse(load('uc.deck') || 'null'); } catch (e) { d = null; }
+    if (!Array.isArray(d) || !d.length || d.some(function (x) { return !(x < PAIRS.length); })) d = shuf(PAIRS.map(function (_, i) { return i; }));
+    var pr = PAIRS[d.pop()]; store('uc.deck', JSON.stringify(d));
+    return rnd(2) ? { civilian: pr[0], undercover: pr[1] } : { civilian: pr[1], undercover: pr[0] };
+  }
+  function autoCounts(n) { return { u: Math.max(1, Math.floor((n - 1) / 4)), w: n >= 6 ? (n >= 12 ? 2 : 1) : 0 }; }
+  function dealRoles() {
+    var c = L.cfg, roles = [], k;
+    for (k = 0; k < c.u; k++) roles.push('undercover');
+    for (k = 0; k < c.w; k++) roles.push('white');
+    while (roles.length < c.n) roles.push('civilian');
+    roles = shuf(roles); L.pair = drawPair();
+    L.players = roles.map(function (r, idx) { return { name: L.names[idx] || '', role: r, word: r === 'civilian' ? L.pair.civilian : r === 'undercover' ? L.pair.undercover : '', alive: true }; });
+    L.i = 0; L.last = null; L.winner = null; L.step = 'deal';
+  }
+  function soloWin() {
+    var alive = L.players.filter(function (p) { return p.alive; });
+    var imp = alive.filter(function (p) { return p.role !== 'civilian'; }).length, civ = alive.length - imp;
+    return imp === 0 ? 'civilians' : imp >= civ ? 'impostors' : null;
+  }
+  function wordCardFor(p) {
+    return p.role === 'white'
+      ? h('div', { class: 'word show' }, 'You are Mr. White', h('span', { class: 'big' }, 'No word'), h('small', null, 'Listen to the others and blend in'))
+      : h('div', { class: 'word show' }, 'Your word', h('span', { class: 'big' }, p.word));
+  }
+
+  screens.solo = function () {
+    var root = h('div');
+    function go(step) { L.step = step; saveSolo(); draw(); window.scrollTo(0, 0); }
+    function draw() { clear(root); root.appendChild(views[L.step]()); if (L.step !== 'setup') wakeLock(); }
+
+    function peek() {
+      var wrap = h('div');
+      function closed() { fill(wrap, h('button', { class: 'link', type: 'button', onclick: chooser }, 'Forgot a word? Peek')); }
+      function chooser() {
+        fill(wrap, h('div', { class: 'card' }, h('h2', null, 'Whose word?'),
+          L.players.filter(function (p) { return p.alive; }).map(function (p) { return h('button', { class: 'vbtn', type: 'button', onclick: function () { show(p); } }, p.name); }),
+          h('button', { class: 'btn small', type: 'button', onclick: closed }, 'Cancel')));
+      }
+      function show(p) { fill(wrap, h('div', { class: 'card' }, h('div', { class: 'mute center' }, p.name + ', only you should look!'), wordCardFor(p), h('button', { class: 'btn primary', type: 'button', onclick: closed }, 'Hide'))); }
+      closed(); return wrap;
+    }
+
+    var views = {};
+
+    views.setup = function () {
+      var c = L.cfg;
+      var nS = stepper(3, 20, 1, function (v) { c.n = v; if (!c.manual) { var a = autoCounts(v); c.u = a.u; c.w = a.w; } refresh(); });
+      var uS = stepper(0, 10, 1, function (v) { c.u = v; c.manual = true; refresh(); });
+      var wS = stepper(0, 5, 1, function (v) { c.w = v; c.manual = true; refresh(); });
+      var info = h('p', { class: 'mute' }), err = h('p', { class: 'err center' });
+      function check() {
+        var civ = c.n - c.u - c.w;
+        if (c.u + c.w < 1) return 'Add at least one Undercover or Mr. White';
+        if (civ < 2 || civ <= c.u + c.w) return 'Too many impostors: civilians must outnumber Undercover + Mr. White';
+        return null;
+      }
+      var start = h('button', { class: 'btn primary', type: 'button', onclick: function () {
+        if (check()) return;
+        if (L.names.length !== c.n) L.names = [];
+        dealRoles(); saveSolo(); draw(); window.scrollTo(0, 0);
+      } }, 'Start: pass the phone around');
+      function refresh() {
+        nS.set(c.n); uS.set(c.u); wS.set(c.w);
+        var civ = c.n - c.u - c.w, e = check();
+        fill(info, c.n + ' players → ' + civ + ' Civilian · ' + c.u + ' Undercover · ' + c.w + ' Mr. White');
+        fill(err, e || ''); start.disabled = !!e; saveSolo();
+      }
+      var node = h('div', null,
+        h('h1', null, 'One phone'),
+        h('p', { class: 'sub' }, 'Pass this phone around. Each player enters their name and sees their word in private.'),
+        h('div', { class: 'card' },
+          h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Players'), nS.root),
+          h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Undercover'), uS.root),
+          h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Mr. White'), wS.root),
+          info),
+        err, start);
+      refresh(); return node;
+    };
+
+    views.deal = function () {
+      var i = L.i, n = L.players.length, p = L.players[i], box = h('div');
+      function nameStage() {
+        var inp = h('input', { type: 'text', maxlength: 14, placeholder: 'Player ' + (i + 1), value: p.name, autocomplete: 'off', enterkeyhint: 'go' });
+        function reveal() {
+          var nm = inp.value.trim() || ('Player ' + (i + 1));
+          var dup = L.players.some(function (q, j) { return j !== i && q.name && normW(q.name) === normW(nm); });
+          if (dup) return toast('That name is already used');
+          p.name = nm; L.names[i] = nm; saveSolo(); showStage();
+        }
+        inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') reveal(); });
+        fill(box, h('div', { class: 'mute center' }, 'Player ' + (i + 1) + ' of ' + n),
+          h('h1', { class: 'center' }, 'Pass the phone to the next player'),
+          h('div', { class: 'card' }, h('h2', null, 'Your name'), inp, h('div', { class: 'gap' }),
+            h('button', { class: 'btn primary', type: 'button', onclick: reveal }, 'Show my word')));
+        window.scrollTo(0, 0);
+      }
+      function showStage() {
+        fill(box, h('div', { class: 'mute center' }, p.name + ', only you should look!'), wordCardFor(p),
+          h('button', { class: 'btn primary', type: 'button', onclick: function () { L.i = i + 1; if (L.i >= n) L.step = 'ready'; saveSolo(); draw(); window.scrollTo(0, 0); } },
+            i + 1 >= n ? 'Hide it & finish' : 'Hide it & pass to the next player'));
+      }
+      nameStage(); return box;
+    };
+
+    views.ready = function () {
+      return h('div', null,
+        h('h1', null, 'Everyone has a word'),
+        h('p', { class: 'sub' }, 'Take turns saying a clue out loud (without saying your word). Start the discussion whenever you like.'),
+        h('div', { class: 'card' }, h('h2', null, 'Players'), h('ul', { class: 'plist' }, L.players.map(function (p) { return h('li', null, h('span', { class: 'pname' }, p.name)); }))),
+        h('button', { class: 'btn primary', type: 'button', onclick: function () { go('discuss'); } }, 'Start discussion & voting'),
+        h('div', { class: 'gap' }), peek());
+    };
+
+    views.discuss = function () {
+      var sel = {}, alive = [], out = [];
+      L.players.forEach(function (p, i) { (p.alive ? alive : out).push({ p: p, i: i }); });
+      var list = h('div'), btn = h('button', { class: 'btn primary', type: 'button', disabled: true, onclick: kick });
+      function count() { return Object.keys(sel).filter(function (k) { return sel[k]; }).length; }
+      function paint() {
+        fill(list, alive.map(function (x) {
+          var on = !!sel[x.i];
+          return h('button', { class: 'vbtn' + (on ? ' sel' : ''), type: 'button', onclick: function () { sel[x.i] = !on; paint(); } }, h('span', null, x.p.name, on ? '  ✓' : ''));
+        }));
+        var k = count(); btn.disabled = k === 0; fill(btn, k ? 'Kick out selected (' + k + ')' : 'Select who to kick out');
+      }
+      function kick() {
+        var ids = alive.filter(function (x) { return sel[x.i]; }).map(function (x) { return x.i; });
+        if (!ids.length) return;
+        if (ids.length >= alive.length) return toast('At least one player has to stay');
+        if (!confirm('Kick out ' + ids.map(function (i) { return L.players[i].name; }).join(', ') + '?')) return;
+        ids.forEach(function (i) { L.players[i].alive = false; });
+        L.last = { ids: ids, guess: {} }; go('result');
+      }
+      paint();
+      return h('div', null,
+        h('h1', null, 'Discussion'),
+        h('p', { class: 'sub' }, 'Talk it out, vote however you like, then tap everyone who is being kicked out. You can pick any number of players.'),
+        h('div', { class: 'card' }, h('h2', null, alive.length + ' players left'), list), btn,
+        out.length ? h('div', { class: 'card' }, h('h2', null, 'Out'), h('ul', { class: 'plist' }, out.map(function (x) { return h('li', null, h('span', { class: 'pname dead' }, x.p.name), roleTag(x.p.role)); }))) : null,
+        h('div', { class: 'gap' }), peek());
+    };
+
+    views.result = function () {
+      var ids = L.last.ids, g = L.last.guess;
+      var whites = ids.filter(function (i) { return L.players[i].role === 'white'; });
+      var cont = h('button', { class: 'btn primary', type: 'button', onclick: function () {
+        if (whites.some(function (i) { return g[i].ok; })) { L.winner = 'white'; return go('over'); }
+        var w = soloWin(); if (w) { L.winner = w; return go('over'); }
+        go('discuss');
+      } }, 'Continue');
+      cont.disabled = whites.some(function (i) { return !g[i]; });
+      var cards = whites.map(function (i) {
+        var p = L.players[i];
+        if (g[i]) return h('div', { class: 'card' }, h('h2', null, p.name + ' (Mr. White): final guess'), h('p', null, '“' + (g[i].text || '—') + '” → ', g[i].ok ? '✓ Correct! Mr. White wins.' : '✗ Wrong.'));
+        var inp = h('input', { type: 'text', maxlength: 40, placeholder: 'The civilians\' word…', autocomplete: 'off' });
+        function submit() { g[i] = { text: inp.value.trim(), ok: !!inp.value.trim() && normW(inp.value) === normW(L.pair.civilian) }; saveSolo(); draw(); }
+        inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
+        return h('div', { class: 'card' }, h('h2', null, p.name + ' is Mr. White'), h('p', null, 'One last chance: ' + p.name + ', type the civilians\' word. Nobody else should see it yet.'), inp, h('div', { class: 'gap' }), h('button', { class: 'btn', type: 'button', onclick: submit }, 'Submit guess'));
+      });
+      return h('div', null,
+        h('div', { class: 'card result' }, h('div', { class: 'mute' }, 'Kicked out'),
+          ids.map(function (i) { var p = L.players[i]; return h('div', null, h('div', { class: 'who' }, p.name), h('div', { class: 'what' }, 'was ' + roleLabel(p.role))); })),
+        cards, cont);
+    };
+
+    views.over = function () {
+      var w = L.winner;
+      var ban = h('div', { class: 'banner center ' + (w === 'civilians' ? 'ok' : 'bad') }, w === 'civilians' ? '🎉 Civilians win!' : w === 'impostors' ? '🕵️ Undercover team wins!' : '⬜ Mr. White wins. They guessed the word!');
+      return h('div', null, ban,
+        h('div', { class: 'card' }, h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Civilian word'), h('b', null, L.pair.civilian)), h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Undercover word'), h('b', null, L.pair.undercover))),
+        h('div', { class: 'card' }, h('h2', null, 'Everyone\'s role'), L.players.map(function (p) {
+          return h('div', { class: 'sup-row' }, h('div', null, h('b', null, p.name), p.alive ? '' : h('span', { class: 'tag' }, 'out')), h('div', null, roleTag(p.role), ' ', h('span', { class: 'w' }, p.role === 'white' ? '—' : p.word)));
+        })),
+        h('button', { class: 'btn primary', type: 'button', onclick: function () { dealRoles(); saveSolo(); draw(); window.scrollTo(0, 0); } }, 'Play again (same players, new words)'),
+        h('div', { class: 'gap' }),
+        h('button', { class: 'btn', type: 'button', onclick: function () { var cfg = L.cfg; L = newSolo(); L.cfg = cfg; saveSolo(); draw(); window.scrollTo(0, 0); } }, 'New setup'));
+    };
+
+    draw();
+    return { root: root, update: function () {} };
+  };
+
   /* ---------- render loop ---------- */
   var app = document.getElementById('app'), cur = null, curKey = null;
   function keyFor() {
-    if (!S) return 'home';
+    if (!S) return mode === 'menu' ? 'menu' : mode === 'solo' ? 'solo' : 'home';
     if (S.phase === 'lobby') return S.me.host ? 'lobby-host' : 'lobby';
     return S.phase;
   }
