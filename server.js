@@ -22,6 +22,35 @@ const htmlRaw = Buffer.from(fs.readFileSync(htmlPath, 'utf8').replace('/*__WORDS
 const htmlGz = zlib.gzipSync(htmlRaw, { level: 9 });
 const etag = '"' + crypto.createHash('sha1').update(htmlRaw).digest('hex').slice(0, 16) + '"';
 
+// Service worker: keeps a copy of the page on the phone so it opens instantly (even while the free
+// server is still waking up) and one-phone mode works offline. New versions download in the background.
+const SW_JS = `const C = 'uc-page';
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
+self.addEventListener('fetch', (e) => {
+  const u = new URL(e.request.url);
+  if (e.request.method !== 'GET') return;
+  if (u.hostname === 'fonts.googleapis.com' || u.hostname === 'fonts.gstatic.com') { // keep fonts for offline play
+    e.respondWith(caches.open('uc-fonts').then(async (c) => (await c.match(e.request)) || fetch(e.request).then((r) => { c.put(e.request, r.clone()); return r; })));
+    return;
+  }
+  if (u.origin !== location.origin || u.pathname !== '/') return;
+  e.respondWith(caches.open(C).then(async (c) => {
+    const cached = await c.match('/');
+    const net = fetch('/', { cache: 'no-cache' }).then(async (r) => {
+      if (r.ok) {
+        const before = cached && cached.headers.get('ETag');
+        await c.put('/', r.clone());
+        if (cached && before !== r.headers.get('ETag')) (await self.clients.matchAll()).forEach((cl) => cl.postMessage({ t: 'updated' }));
+      }
+      return r;
+    });
+    if (cached) { e.waitUntil(net.catch(() => {})); return cached; }
+    return net;
+  }));
+});
+`;
+
 const server = http.createServer((req, res) => {
   const url = (req.url || '/').split('?')[0];
   if (url === '/' || url === '/index.html') {
@@ -31,6 +60,10 @@ const server = http.createServer((req, res) => {
     if (gz) headers['Content-Encoding'] = 'gzip';
     res.writeHead(200, headers);
     return res.end(gz ? htmlGz : htmlRaw);
+  }
+  if (url === '/sw.js') {
+    res.writeHead(200, { 'Content-Type': 'application/javascript; charset=utf-8', 'Cache-Control': 'no-cache' });
+    return res.end(SW_JS);
   }
   if (url === '/healthz') { res.writeHead(200, { 'Content-Type': 'text/plain' }); return res.end('ok'); }
   if (url === '/favicon.ico') { res.writeHead(204); return res.end(); }
@@ -72,7 +105,7 @@ function makeRoom() {
   const room = {
     code: newCode(), hostId: null, supervisorId: null, players: new Map(),
     phase: 'lobby', round: 0, seq: 0, timer: null, endsAt: 0,
-    settings: { describeSecs: 30, autoRoles: true, undercover: 1, white: 1, whiteGuess: true },
+    settings: { describeSecs: 30, autoRoles: true, undercover: 1, white: 1, whiteGuess: false },
     deck: [], pair: null, nextPair: null,
     descs: {}, order: [], turn: 0, history: [], votes: {}, tie: false,
     lastElim: null, guess: null, whiteId: null, winner: null, touched: Date.now(),
@@ -381,7 +414,7 @@ function handle(ws, m) {
       if ('autoRoles' in m) s.autoRoles = !!m.autoRoles;
       if ('undercover' in m) s.undercover = clamp(m.undercover, 0, 10);
       if ('white' in m) s.white = clamp(m.white, 0, 5);
-      if ('whiteGuess' in m) s.whiteGuess = !!m.whiteGuess;
+      // Mr. White's final guess is switched off (not used by this group)
       if ('supervisor' in m) room.supervisorId = m.supervisor ? room.hostId : null;
       return broadcast(room);
     }
