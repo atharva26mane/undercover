@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#FFF8E7">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <title>Undercover</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -413,6 +417,27 @@ input.code{font-family:var(--f-mono)}
 .vs.yes{background:var(--green-l)}.vs.yes b{color:var(--green)}
 .vs.no{background:#fff;border-style:dashed;color:var(--mute)}.vs.no b{animation:pulse 1.2s ease-in-out infinite}
 .wtimer{font-family:var(--f-mono);font-weight:800;font-size:30px;color:var(--yellow);margin:2px 0 14px}
+
+.tdots{display:inline-flex;gap:3px;vertical-align:middle;margin-left:2px}
+.tdots i{width:7px;height:7px;border-radius:50%;background:currentColor;animation:dot 1s infinite}
+.tdots i:nth-child(2){animation-delay:.15s}.tdots i:nth-child(3){animation-delay:.3s}
+.wstat{padding:8px 0;font-weight:800}
+.hostbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--ink);color:var(--yellow);border-radius:12px;padding:6px 8px;margin:-4px 0 12px}
+.hostbar .hb-l{font-family:var(--f-mono);font-size:11px;font-weight:800;letter-spacing:.1em;padding:0 4px}
+.hostbar .btn.small{min-height:34px;font-size:13px;box-shadow:none;border-width:2px;background:var(--yellow)}
+.modal{position:fixed;inset:0;z-index:45;background:rgba(18,18,18,.65);display:flex;align-items:center;justify-content:center;padding:18px;animation:fade .15s}
+.modal-in{background:var(--bg);border:3px solid var(--ink);border-radius:20px;box-shadow:6px 6px 0 var(--yellow);padding:18px;width:100%;max-width:420px;animation:slam .35s var(--spring) both}
+.reactbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom));z-index:25;display:flex;gap:2px;background:#fff;border:3px solid var(--ink);border-radius:999px;box-shadow:var(--sh-s);padding:3px 6px}
+.reactbar button{font-size:22px;width:42px;height:40px;border:0;background:none;border-radius:50%;padding:0}
+.reactbar button:active{transform:scale(1.35);background:var(--yellow-l)}
+body.has-reacts #wrap{padding-bottom:84px}
+.floater{position:fixed;bottom:70px;z-index:26;pointer-events:none;display:flex;flex-direction:column;align-items:center;animation:floatup 2.2s ease-out forwards}
+.floater .fe{font-size:40px;line-height:1}
+.floater .fn{font-size:11px;font-weight:800;background:var(--ink);color:#fff;border-radius:999px;padding:1px 7px;margin-top:2px}
+@keyframes floatup{0%{transform:translateY(20px) scale(.5);opacity:0}15%{transform:translateY(0) scale(1.15);opacity:1}100%{transform:translateY(-320px) scale(1);opacity:0}}
+.brow{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px dashed var(--line)}
+.brow:first-of-type{border-top:0}
+.rank{width:26px;text-align:center;font-family:var(--f-mono);font-weight:800}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -502,6 +527,12 @@ input.code{font-family:var(--f-mono)}
       render();
     }
     else if (m.t === 'err') toast(m.msg);
+    else if (m.t === 'notice') toast(m.msg);
+    else if (m.t === 'react') floatReact(m.e, m.from);
+    else if (m.t === 'words') { // the lobby's "already played" memory, kept on this phone
+      if (Array.isArray(m.used)) store('uc.used', JSON.stringify(m.used));
+      if (Array.isArray(m.recent)) store('uc.recent', JSON.stringify(m.recent));
+    }
     else if (m.t === 'norejoin') { session = null; store('uc.session', null); S = null; render(); }
     else if (m.t === 'kicked' || m.t === 'left') {
       if (m.t === 'kicked') toast('The host removed you from the lobby');
@@ -517,6 +548,7 @@ input.code{font-family:var(--f-mono)}
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && S) wakeLock(); });
 
   /* ---------- shared components ---------- */
+  function loadList(k) { try { var v = JSON.parse(load(k) || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } }
   function secsLeft() { return S && S.endsAt ? Math.max(0, Math.ceil((S.endsAt - (Date.now() + offset)) / 1000)) : 0; }
   function timerBox(total) {
     var num = h('b', null, '0'), fillBar = h('div'), root = h('div', { class: 'timer' }, num, h('div', { class: 'bar' }, fillBar));
@@ -535,7 +567,7 @@ input.code{font-family:var(--f-mono)}
       btn.style.display = '';
       btn.className = 'word' + (shown ? ' show' : '');
       if (!shown) fill(btn, 'Tap to see your word');
-      else if (me.white) fill(btn, 'You are Mr. White', h('span', { class: 'big' }, 'No word'), h('small', null, 'Blend in and work out the word'));
+      else if (me.white) fill(btn, 'You are Mr. White', h('span', { class: 'big' }, 'No word'), h('small', null, me.hint ? '💡 Hint: ' + me.hint : 'Blend in and work out the word'));
       else fill(btn, 'Your word', h('span', { class: 'big' }, me.word));
     }
     function hide() { shown = false; clearTimeout(tm); paint(); }
@@ -605,7 +637,7 @@ input.code{font-family:var(--f-mono)}
       h('p', { class: 'sub' }, 'Everyone gets a word. Find who has a different one.'),
       wakeCard,
       h('div', { class: 'card' }, nameIn, h('div', { class: 'gap' }),
-        h('button', { class: 'btn primary', type: 'button', onclick: function () { var n = nm(); if (n) send({ t: 'create', name: n }); } }, 'Create lobby')),
+        h('button', { class: 'btn primary', type: 'button', onclick: function () { var n = nm(); if (n) send({ t: 'create', name: n, used: loadList('uc.used'), recent: loadList('uc.recent') }); } }, 'Create lobby')),
       h('div', { class: 'card' }, h('h2', null, 'Join a lobby'), codeIn, h('div', { class: 'gap' }),
         h('button', { class: 'btn', type: 'button', onclick: function () { var n = nm(); if (!n) return; if (codeIn.value.trim().length < 4) { toast('Enter the 4-letter code'); return; } send({ t: 'join', name: n, code: codeIn.value.trim() }); } }, 'Join')),
       h('details', { class: 'card' }, h('summary', null, 'How to play'),
@@ -614,24 +646,64 @@ input.code{font-family:var(--f-mono)}
     return { root: root, update: function () {}, tick: function () { wakeCard.style.display = !open && Date.now() - since > 800 ? '' : 'none'; } };
   };
 
+  /* supervisor's word panel: the host or an approved player */
+  function supWords() {
+    var preview = h('div');
+    var cw = h('input', { type: 'text', maxlength: 24, placeholder: 'Civilian word' }), uw = h('input', { type: 'text', maxlength: 24, placeholder: 'Undercover word' });
+    var box = h('div', { class: 'card', style: 'background:var(--violet-l)' }, h('h2', null, '🕵️ You are the supervisor'),
+      h('p', { class: 'mute small', style: 'margin-top:0' }, 'You won\'t play. You choose the words and see everyone\'s role and word.'),
+      preview,
+      h('div', { class: 'tools' },
+        h('button', { class: 'btn small', type: 'button', onclick: function () { send({ t: 'reroll' }); } }, '🎲 Another random pair'),
+        h('button', { class: 'btn small danger', type: 'button', onclick: function () { send({ t: 'supDrop' }); } }, 'Stop supervising')),
+      h('p', { class: 'mute small' }, 'Or type your own pair:'), cw, h('div', { class: 'gap' }), uw, h('div', { class: 'gap' }),
+      h('div', { class: 'tools' },
+        h('button', { class: 'btn small', type: 'button', onclick: function () { send({ t: 'setWords', civilian: cw.value, undercover: uw.value }); } }, '✓ Use my words'),
+        h('button', { class: 'btn small', type: 'button', onclick: function () { cw.value = uw.value = ''; send({ t: 'setWords', civilian: '', undercover: '' }); } }, 'Use random words')));
+    return { root: box, update: function () {
+      box.style.display = S.me.sup ? '' : 'none';
+      var pr = S.customPair || S.nextPair;
+      fill(preview, pr ? h('div', { class: 'tiles', style: 'margin:6px 0' },
+        h('div', { class: 'tile' }, h('small', null, S.customPair ? 'CIVILIANS (YOUR WORD)' : 'CIVILIANS GET'), h('b', null, pr.civilian)),
+        h('div', { class: 'tile' }, h('small', null, S.customPair ? 'UNDERCOVER (YOUR WORD)' : 'UNDERCOVER GETS'), h('b', null, pr.undercover))) : null);
+    } };
+  }
+  /* leaderboard (host can switch it off) */
+  function boardCard() {
+    var b = S.board;
+    if (!b || !b.length) return null;
+    return h('div', { class: 'card tight' }, h('h2', null, '🏆 Leaderboard (this lobby)'), b.map(function (r, i) {
+      var p = S.players.filter(function (x) { return normW(x.name) === normW(r.name); })[0];
+      return h('div', { class: 'brow' }, h('span', { class: 'rank r' + Math.min(i + 1, 4) }, i === 0 ? '👑' : String(i + 1)), avatar(r.name, p ? pidx(p.id) : i, 'sm'),
+        h('span', { class: 'pname' }, r.name), h('span', { class: 'mute small', style: 'white-space:nowrap' }, r.wins + 'W · ' + r.games + 'G'), h('span', { class: 'pts' }, r.pts + ' PTS'));
+    }));
+  }
+
   screens.lobby = function () {
     var isHost = S.me.host;
     var list = h('ul', { class: 'plist' });
     var count = h('h2');
     var root = h('div');
+    var sw = supWords(), board = h('div');
     if (!isHost) {
-      var summary = h('div', { class: 'mute' });
+      var summary = h('div', { class: 'mute' }), supArea = h('div');
       fill(root, h('div', { class: 'card' }, h('div', { class: 'mute center' }, 'Lobby code'), h('div', { class: 'bigcode' }, S.code)),
         h('div', { class: 'card' }, count, list),
         h('div', { class: 'card' }, h('h2', null, 'Game settings'), summary),
+        supArea, sw.root, board,
         h('div', { class: 'banner center' }, 'Waiting for the host to start…'));
       return { root: root, update: function () {
         fill(count, 'Players (' + S.players.length + ')');
         fill(list, S.players.map(function (p) { return playerRow(p); }));
-        var s = S.settings, pl = S.plan;
+        var s = S.settings, pl = S.plan, supP = S.players.filter(function (p) { return p.sup; })[0];
         fill(summary, h('p', null, 'Time per clue: ' + s.describeSecs + 's'),
           h('p', null, 'Roles for ' + pl.n + ' players: ' + pl.c + ' Civilian · ' + pl.u + ' Undercover · ' + pl.w + ' Mr. White'),
-          S.players.some(function (p) { return p.sup; }) ? h('p', null, 'The host is supervising (not playing).') : null);
+          h('p', null, 'Mr. White hint: ' + (s.hint ? 'on' : 'off') + ' · Reactions: ' + (s.reacts ? 'on' : 'off') + ' · Leaderboard: ' + (s.board ? 'on' : 'off')));
+        fill(supArea, S.me.sup ? null
+          : supP ? h('div', { class: 'banner' }, '🕵️ ' + supP.name + ' is the supervisor (not playing)')
+          : S.mySupReq ? h('div', { class: 'banner' }, '⏳ Asked the host to make you supervisor… ', h('button', { class: 'link', type: 'button', onclick: function () { send({ t: 'supReq', cancel: true }); } }, 'Cancel'))
+          : h('button', { class: 'btn small', type: 'button', onclick: function () { send({ t: 'supReq' }); toast('Asked the host'); } }, '🕵️ Ask to be the supervisor'));
+        sw.update(); fill(board, boardCard());
       } };
     }
     /* host */
@@ -642,16 +714,12 @@ input.code{font-family:var(--f-mono)}
     var uRow = h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Undercover'), uStep.root);
     var wRow = h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Mr. White'), wStep.root);
     var planTxt = h('p', { class: 'mute' });
-    var sup = toggle('I\'ll be the supervisor', 'You won\'t get a word. You see everyone\'s role and word', function (v) { send({ t: 'settings', supervisor: v }); });
-    var preview = h('div'), cw = h('input', { type: 'text', maxlength: 24, placeholder: 'Civilian word (optional)' }), uw = h('input', { type: 'text', maxlength: 24, placeholder: 'Undercover word (optional)' });
-    var supBox = h('div', { class: 'card' }, h('h2', null, 'Words (supervisor)'), preview,
-      h('div', { class: 'gap' }), h('button', { class: 'btn small', type: 'button', onclick: function () { send({ t: 'reroll' }); } }, '🎲 Pick another random pair'),
-      h('p', { class: 'mute' }, 'Or type your own pair. Both boxes filled = used instead of the random pair.'), cw, h('div', { class: 'gap' }), uw);
-    var startBtn = h('button', { class: 'btn primary', type: 'button', onclick: function () {
-      var m = { t: 'start' };
-      if (S.me.sup && (cw.value.trim() || uw.value.trim())) m.custom = { civilian: cw.value, undercover: uw.value };
-      send(m);
-    } }, 'Start game');
+    var hint = toggle('Mr. White gets a hint', 'Shows him the category, e.g. "Food" or "Film villain"', function (v) { send({ t: 'settings', hint: v }); });
+    var reacts = toggle('Emoji reactions', 'Everyone can throw 😂 🤨 🤡 during the game', function (v) { send({ t: 'settings', reacts: v }); });
+    var boardT = toggle('Leaderboard', 'Points and wins for each player in this lobby', function (v) { send({ t: 'settings', board: v }); });
+    var sup = toggle('I\'ll be the supervisor', 'You won\'t get a word. You choose the words and see everyone\'s role', function (v) { send({ t: 'settings', supervisor: v }); });
+    var otherSup = h('div');
+    var startBtn = h('button', { class: 'btn primary', type: 'button', onclick: function () { send({ t: 'start' }); } }, 'Start game');
     var why = h('p', { class: 'err center' });
     fill(root,
       h('div', { class: 'card' }, h('div', { class: 'mute center' }, 'Lobby code. Share it with the players'), h('div', { class: 'bigcode' }, S.code),
@@ -659,25 +727,76 @@ input.code{font-family:var(--f-mono)}
       h('div', { class: 'card' }, count, list),
       h('div', { class: 'card' }, h('h2', null, 'Settings'),
         h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Time per clue', h('small', null, 'seconds for each player\'s turn')), secsStep.root),
-        autoRoles.root, uRow, wRow, planTxt, sup.root),
-      supBox, startBtn, why);
+        autoRoles.root, uRow, wRow, planTxt, hint.root, reacts.root, boardT.root, sup.root, otherSup),
+      sw.root, board, startBtn, why);
     return { root: root, update: function () {
-      var s = S.settings, pl = S.plan;
+      var s = S.settings, pl = S.plan, supP = S.players.filter(function (p) { return p.sup && p.id !== S.me.id; })[0];
       fill(count, 'Players (' + S.players.length + ')');
       fill(list, S.players.map(function (p) {
         return playerRow(p, p.id !== S.me.id ? h('button', { class: 'btn small danger', type: 'button', onclick: function () { if (confirm('Remove ' + p.name + '?')) send({ t: 'kick', id: p.id }); } }, 'Kick') : null);
       }));
       secsStep.set(s.describeSecs);
       autoRoles.inp.checked = s.autoRoles; sup.inp.checked = S.me.sup;
+      hint.inp.checked = s.hint; reacts.inp.checked = s.reacts; boardT.inp.checked = s.board;
       uStep.set(s.undercover); wStep.set(s.white);
       uRow.style.display = wRow.style.display = s.autoRoles ? 'none' : '';
+      sup.root.style.display = supP ? 'none' : '';
+      fill(otherSup, supP ? h('div', { class: 'set' }, h('div', { class: 'lbl' }, '🕵️ ' + supP.name + ' is the supervisor', h('small', null, 'Not playing; picks the words')),
+        h('button', { class: 'btn small danger', type: 'button', onclick: function () { send({ t: 'supDrop' }); } }, 'Remove')) : null);
       fill(planTxt, pl.n + ' playing → ' + pl.c + ' Civilian · ' + pl.u + ' Undercover · ' + pl.w + ' Mr. White');
-      supBox.style.display = S.me.sup ? '' : 'none';
-      if (S.nextPair) fill(preview, h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Civilians get'), h('b', null, S.nextPair.civilian)), h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Undercover gets'), h('b', null, S.nextPair.undercover)));
+      sw.update(); fill(board, boardCard());
       startBtn.disabled = !!S.startErr;
       fill(why, S.startErr || '');
     } };
   };
+
+  /* host's popup when a player asks to be the supervisor */
+  var supModal = null, supModalFor = null;
+  function syncSupModal() {
+    var want = S && S.me.host && S.phase === 'lobby' && S.supReq ? S.supReq : null;
+    if (want && supModalFor === want.id) return;
+    if (supModal && supModal.parentNode) supModal.parentNode.removeChild(supModal);
+    supModal = null; supModalFor = null;
+    if (!want) return;
+    supModalFor = want.id; buzz(80);
+    supModal = h('div', { class: 'modal' }, h('div', { class: 'modal-in' },
+      h('div', { class: 'spot', style: 'margin:0 auto 8px' }, avatar(want.name, pidx(want.id), 'xl')),
+      h('h1', { class: 'center', style: 'font-size:24px' }, want.name + ' wants to be the supervisor'),
+      h('p', { class: 'mute center small' }, 'They won\'t play this game. They\'ll choose the words and see everyone\'s role and word.'),
+      h('div', { class: 'yn' },
+        h('button', { class: 'btn green', type: 'button', onclick: function () { send({ t: 'supAnswer', ok: true }); } }, '✓ Approve'),
+        h('button', { class: 'btn danger', type: 'button', onclick: function () { send({ t: 'supAnswer', ok: false }); } }, '✗ Deny'))));
+    document.body.appendChild(supModal);
+  }
+
+  /* host tools during a game: new word / undo last kick */
+  var hostbar = h('div', { class: 'hostbar' });
+  document.getElementById('wrap').insertBefore(hostbar, document.getElementById('app'));
+  function syncHostbar() {
+    var inGame = S && ['describe', 'vote', 'whiteguess', 'elim', 'over'].indexOf(S.phase) >= 0;
+    if (!S || !S.me.host || !inGame) { hostbar.style.display = 'none'; return; }
+    hostbar.style.display = '';
+    fill(hostbar, h('span', { class: 'hb-l' }, 'HOST'),
+      S.phase !== 'over' ? h('button', { class: 'btn small', type: 'button', onclick: function () { if (confirm('Scrap this round and deal a new word to everyone? Nobody gets points for it.')) send({ t: 'restart' }); } }, '🔄 New word') : null,
+      S.canUndo ? h('button', { class: 'btn small', type: 'button', onclick: function () { if (confirm('Undo the last kick and vote again?')) send({ t: 'undo' }); } }, '↩ Undo kick') : null);
+  }
+
+  /* emoji reactions */
+  var reactBar = h('div', { class: 'reactbar' }, ['😂', '🤨', '🤡', '🔥', '😱', '👀'].map(function (e) {
+    return h('button', { type: 'button', 'aria-label': 'React ' + e, onclick: function () { send({ t: 'react', e: e }); } }, e);
+  }));
+  document.body.appendChild(reactBar);
+  function syncReactBar() {
+    var on = S && S.settings && S.settings.reacts && S.phase !== 'lobby' && !(S.phase === 'whiteguess');
+    reactBar.style.display = on ? '' : 'none';
+    document.body.classList.toggle('has-reacts', !!on);
+  }
+  function floatReact(e, from) {
+    if (RM) return toast(from + ' ' + e);
+    var el = h('div', { class: 'floater', style: 'left:' + (10 + Math.random() * 75) + '%' }, h('span', { class: 'fe' }, e), h('span', { class: 'fn' }, from));
+    document.body.appendChild(el);
+    setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 2300);
+  }
 
   function supPanel(liveFn) {
     var box = h('div', { class: 'card' }, h('h2', null, 'Supervisor view'));
@@ -742,6 +861,8 @@ input.code{font-family:var(--f-mono)}
     var inp = h('input', { type: 'text', maxlength: 40, placeholder: 'Your clue (1–3 words)', autocomplete: 'off', enterkeyhint: 'send' });
     function submit() { var t = inp.value.trim(); if (!t) return toast('Type a clue first'); send({ t: 'describe', text: t }); }
     inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
+    var lastPing = 0;
+    inp.addEventListener('input', function () { var t = Date.now(); if (inp.value.trim() && t - lastPing > 1500) { lastPing = t; send({ t: 'typing' }); } });
     var hint = h('p', { class: 'mute small' });
     var form = h('div', { class: 'card' }, h('h2', null, 'Your clue'), inp, h('div', { class: 'gap' }),
       h('button', { class: 'btn primary', type: 'button', onclick: submit }, 'Send clue'), hint);
@@ -756,7 +877,7 @@ input.code{font-family:var(--f-mono)}
       if (!mine) inp.value = '';
       wasMine = mine;
       turnBox.className = 'banner' + (mine ? ' ok' : '');
-      fill(turnBox, mine ? '🎤 Your turn. Give a clue!' : nameOf(S.turnId) + ' is giving a clue…');
+      fill(turnBox, mine ? '🎤 Your turn. Give a clue!' : S.typing === S.turnId ? [nameOf(S.turnId) + ' is typing ', h('span', { class: 'tdots' }, h('i'), h('i'), h('i'))] : nameOf(S.turnId) + ' is giving a clue…');
       form.style.display = mine ? '' : 'none';
       fill(hint, S.me.white ? 'You have no word. Use the clues already given to blend in.' : 'Hint about your word without saying it. Others will see it right away.');
       fill(table, cluesTable(true));
@@ -802,7 +923,9 @@ input.code{font-family:var(--f-mono)}
     var inp = h('input', { type: 'text', maxlength: 40, placeholder: 'The civilians\' word…', autocomplete: 'off', enterkeyhint: 'send' });
     function go() { if (!inp.value.trim()) return toast('Type your guess'); send({ t: 'guess', text: inp.value.trim() }); }
     inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
-    var box = h('div', { class: 'q' }), head = h('div');
+    var lastPing = 0;
+    inp.addEventListener('input', function () { var t = Date.now(); if (inp.value.trim() && t - lastPing > 1500) { lastPing = t; send({ t: 'typing' }); } });
+    var box = h('div', { class: 'q' }), head = h('div'), stat = h('div', { class: 'wstat' });
     var root = h('div', { class: 'wscene' }, RM ? null : h('div', { class: 'flash' }), h('div', { class: 'wscene-in' }, head, num, box));
     var built = false, wasMe = null;
     return { root: root, tick: function () { num.textContent = secsLeft() + 's'; }, update: function () {
@@ -815,10 +938,11 @@ input.code{font-family:var(--f-mono)}
       if (wasMe !== me) {
         wasMe = me;
         fill(box, me ? [h('h2', null, 'Ek last chance! Guess the civilians\' word'), h('p', { class: 'mute small', style: 'margin:2px 0 8px' }, 'Get it right and you win the game.'), inp, h('div', { class: 'gap' }), h('button', { class: 'btn primary', type: 'button', onclick: go }, 'Submit guess')]
-          : [h('h2', null, nm + ' is guessing the word'), h('div', { class: 'dots' }, h('span'), h('span'), h('span')), h('p', { class: 'mute small', style: 'margin:0' }, 'If ' + nm + ' gets the civilians\' word, Mr. White wins.')]);
+          : [h('h2', null, nm + ' is guessing the word'), stat, h('p', { class: 'mute small', style: 'margin:0' }, 'If ' + nm + ' gets the civilians\' word, Mr. White wins.')]);
         if (me) setTimeout(function () { try { inp.focus(); } catch (e) {} }, 300);
       }
       num.textContent = secsLeft() + 's';
+      fill(stat, S.typing === S.whiteId ? [h('b', null, nm + ' is typing '), h('span', { class: 'tdots' }, h('i'), h('i'), h('i'))] : h('div', { class: 'dots' }, h('span'), h('span'), h('span')));
     } };
   };
 
@@ -906,13 +1030,15 @@ input.code{font-family:var(--f-mono)}
   /* ---------- one-phone (pass-and-play) mode ---------- */
   var L = null;
   function newSolo(names) {
-    return { roster: (names || []).filter(Boolean).map(function (n) { return { name: String(n).slice(0, 14), score: 0 }; }), cfg: { u: 1, w: 0, manual: false },
+    return { roster: (names || []).filter(Boolean).map(function (n) { return { name: String(n).slice(0, 14), score: 0 }; }), cfg: { u: 1, w: 0, manual: false, hint: false, board: true },
       players: [], pair: null, step: 'roster', starter: 0, winner: null, last: null, gain: null, scored: false };
   }
   try { L = JSON.parse(load('uc.solo') || 'null'); } catch (e) { L = null; }
   if (!L || !L.step) L = newSolo();
   else if (!Array.isArray(L.roster)) L = newSolo(L.names); // saved by an older version: keep the names
   if (typeof L.starter !== 'number') L.starter = 0;
+  if (!('board' in L.cfg)) L.cfg.board = true;
+  if (!('hint' in L.cfg)) L.cfg.hint = false;
   function saveSolo() { store('uc.solo', JSON.stringify(L)); }
   var mode = (session || /[?&]c=/.test(location.search)) ? 'online' : (L.step !== 'roster' ? 'solo' : 'menu');
   var IN_ROUND = { spin: 1, reveal: 1, play: 1, result: 1 };
@@ -926,22 +1052,41 @@ input.code{font-family:var(--f-mono)}
   function rnd(n) { try { var a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; } catch (e) { return Math.floor(Math.random() * n); } }
   function shuf(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = rnd(i + 1), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
   function normW(s) { return String(s).toLowerCase().normalize('NFKD').replace(/[^\p{L}\p{N}]+/gu, ' ').trim(); }
-  // A word that was just played stays out for the next 30 pairs, then goes back into the random pool.
-  // About half the rounds use a pair tagged 'meme' (memes + Hindi slang); the rest use everyday words.
+  // Word picking (same rules as the server):
+  // - about half the rounds use a 'meme' pair (memes + Hindi slang), the rest everyday words;
+  // - a pair is not used again until every pair in its group has been played, then that group starts over;
+  // - a word just played stays out for the next 30 pairs. The memory (hashed) lives on this phone and is
+  //   shared with online lobbies created from this phone.
   var COOLDOWN = 30, MEME_SHARE = 0.5;
+  function pairKey(a, b) {
+    var t = [normW(a), normW(b)].sort().join('|'), hh = 0x811c9dc5;
+    for (var i = 0; i < t.length; i++) { hh ^= t.charCodeAt(i); hh = Math.imul(hh, 0x01000193) >>> 0; }
+    return hh.toString(36);
+  }
+  var KEYS = null;
   function drawPair() {
-    var recent = null; try { recent = JSON.parse(load('uc.recent') || '[]'); } catch (e) { recent = null; }
-    if (!Array.isArray(recent)) recent = [];
+    if (!KEYS) KEYS = PAIRS.map(function (p) { return pairKey(p[0], p[1]); });
+    var usedArr = loadList('uc.used'), recent = loadList('uc.recent'), used = {};
+    usedArr.forEach(function (k) { used[k] = 1; });
+    var idx = PAIRS.map(function (_, i) { return i; }), isMeme = function (i) { return PAIRS[i][2] === 'meme'; };
+    [true, false].forEach(function (m) {
+      var g = idx.filter(function (i) { return isMeme(i) === m; });
+      if (g.every(function (i) { return used[KEYS[i]]; })) g.forEach(function (i) { delete used[KEYS[i]]; });
+    });
     var block = {}; recent.forEach(function (w) { block[w] = 1; });
-    var free = PAIRS.filter(function (pr) { return !block[normW(pr[0])] && !block[normW(pr[1])]; });
-    var wantMeme = rnd(1000) < MEME_SHARE * 1000;
-    var pool = free.filter(function (pr) { return (pr[2] === 'meme') === wantMeme; });
-    if (!pool.length) pool = free.length ? free : PAIRS;
-    var pr = pool[rnd(pool.length)];
+    var fresh = idx.filter(function (i) { return !used[KEYS[i]]; });
+    var ok = fresh.filter(function (i) { return !block[normW(PAIRS[i][0])] && !block[normW(PAIRS[i][1])]; });
+    var want = rnd(1000) < MEME_SHARE * 1000;
+    var pool = ok.filter(function (i) { return isMeme(i) === want; });
+    if (!pool.length) pool = ok.length ? ok : fresh.filter(function (i) { return isMeme(i) === want; });
+    if (!pool.length) pool = fresh.length ? fresh : idx;
+    var i = pool[rnd(pool.length)], pr = PAIRS[i];
+    used[KEYS[i]] = 1;
     recent.push(normW(pr[0]), normW(pr[1]));
     while (recent.length > COOLDOWN * 2) recent.shift();
+    store('uc.used', JSON.stringify(Object.keys(used).filter(function (k) { return used[k]; })));
     store('uc.recent', JSON.stringify(recent)); store('uc.deck', null);
-    return rnd(2) ? { civilian: pr[0], undercover: pr[1] } : { civilian: pr[1], undercover: pr[0] };
+    return rnd(2) ? { civilian: pr[0], undercover: pr[1], cat: pr[3] } : { civilian: pr[1], undercover: pr[0], cat: pr[3] };
   }
   function autoCounts(n) { return { u: Math.max(1, Math.floor((n - 1) / 4)), w: n >= 6 ? (n >= 12 ? 2 : 1) : 0 }; }
   function syncCounts() { if (!L.cfg.manual) { var a = autoCounts(L.roster.length); L.cfg.u = a.u; L.cfg.w = a.w; } }
@@ -966,7 +1111,7 @@ input.code{font-family:var(--f-mono)}
     // random first player each round (not the same person as last round); everything else follows the seats clockwise
     var starters = L.players.map(function (_, i) { return i; }).filter(function (i) { return L.players[i].name !== prevStarter; });
     L.starter = starters.length ? starters[rnd(starters.length)] : rnd(L.players.length);
-    L.last = null; L.winner = null; L.gain = null; L.scored = false; L.step = 'spin';
+    L.last = null; L.winner = null; L.gain = null; L.scored = false; L.undo = null; L.step = 'spin';
   }
   // Shuffle roles over the seats so impostors don't sit next to each other (when possible), and people who
   // were impostors last game get a much smaller chance of being one again.
@@ -1004,7 +1149,12 @@ input.code{font-family:var(--f-mono)}
       if (w === 'white') return g[i] ? 6 : 0;
       return w === 'civilians' ? (p.role === 'civilian' ? 2 : 0) : (p.role === 'civilian' ? 0 : 4);
     });
-    L.gain.forEach(function (n, i) { if (L.roster[i]) L.roster[i].score += n; });
+    L.gain.forEach(function (n, i) { var r = L.roster[i]; if (!r) return; r.score += n; r.games = (r.games || 0) + 1; r.wins = (r.wins || 0) + (n > 0 ? 1 : 0); });
+  }
+  function unscoreGame() { // reverse the last game's points (used by Undo)
+    if (!L.scored || !L.gain) return;
+    L.gain.forEach(function (n, i) { var r = L.roster[i]; if (!r) return; r.score -= n; r.games = Math.max(0, (r.games || 1) - 1); r.wins = Math.max(0, (r.wins || 0) - (n > 0 ? 1 : 0)); });
+    L.scored = false; L.gain = null; L.winner = null;
   }
   function rcls(role) { return role === 'civilian' ? 'civ' : role === 'undercover' ? 'und' : 'wht'; }
   function dock() { var d = h('div', { class: 'dock' }); for (var i = 0; i < arguments.length; i++) add(d, arguments[i]); return d; }
@@ -1037,7 +1187,7 @@ input.code{font-family:var(--f-mono)}
       var stage = h('div', { class: 'stage' },
         h('div', { class: 's-lbl' }, 'SECRET ASSIGNMENT'),
         h('div', { class: 's-word', style: 'font-size:' + size + 'px' }, w),
-        h('div', { class: 's-note' }, p.role === 'white' ? 'You are Mr. White — listen and bluff' : 'Give one subtle clue on your turn'),
+        h('div', { class: 's-note' }, p.role === 'white' ? (L.cfg.hint && L.pair && L.pair.cat ? 'Mr. White · hint: ' + L.pair.cat : 'You are Mr. White — listen and bluff') : 'Give one subtle clue on your turn'),
         h('div', { class: 'shutter' }, h('div', { class: 'plaque' }, h('b', null, 'Top secret chit'), h('span', null, 'Hold the orange button to peek'))));
       var done = h('button', { class: 'btn green', type: 'button', disabled: true, onclick: function () { open(false); opts.onDone(); } }, opts.doneText);
       var hold = h('button', { class: 'btn primary hold', type: 'button' }, 'Hold thumb here to see word');
@@ -1068,6 +1218,25 @@ input.code{font-family:var(--f-mono)}
     var views = {};
 
     /* ---- players: add / rename / remove, drag ☰ into seating order, role counts ---- */
+    function soloToggle(label, hint, key) {
+      var t = toggle(label, hint, function (v) { L.cfg[key] = v; saveSolo(); draw(); });
+      t.inp.checked = !!L.cfg[key];
+      return t.root;
+    }
+    // "New word" (scrap this round) and "Undo kick", available during a round
+    function roundTools(withUndo) {
+      return h('div', { class: 'hostbar' }, h('span', { class: 'hb-l' }, 'ROUND'),
+        h('button', { class: 'btn small', type: 'button', onclick: function () {
+          if (!confirm('Scrap this round and deal a new word to everyone? Nobody gets points for it.')) return;
+          dealRoles(); toast('🔄 Fresh round with a new word'); go('spin');
+        } }, '🔄 New word'),
+        withUndo && L.undo ? h('button', { class: 'btn small', type: 'button', onclick: function () {
+          if (!confirm('Undo the last kick?')) return;
+          unscoreGame();
+          L.undo.forEach(function (i) { L.players[i].alive = true; });
+          L.undo = null; L.last = null; toast('↩ Kick undone'); go('play');
+        } }, '↩ Undo kick') : null);
+    }
     views.roster = function () {
       var R = L.roster, cfg = L.cfg, editing = -1, justAdded = -1, busy = false;
       var list = h('div'), addIn = h('input', { type: 'text', maxlength: 14, autocomplete: 'off', enterkeyhint: 'done' });
@@ -1122,7 +1291,7 @@ input.code{font-family:var(--f-mono)}
         hdl.addEventListener('pointermove', mv); hdl.addEventListener('pointerup', up); hdl.addEventListener('pointercancel', up);
       }
       function paint() {
-        var anyScore = R.some(function (r) { return r.score > 0; });
+        var anyScore = L.cfg.board && R.some(function (r) { return r.score > 0; });
         addIn.placeholder = 'Name (e.g. ' + nextDefault() + ')';
         fill(list, R.length ? R.map(function (r, i) {
           var row = h('div', { class: 'rrow' + (i === justAdded ? ' enter' : '') });
@@ -1164,12 +1333,15 @@ input.code{font-family:var(--f-mono)}
         list,
         h('div', { class: 'tools' },
           h('button', { class: 'btn small', type: 'button', onclick: function () { if (R.length < 2) return; L.roster = R = shuf(R); saveSolo(); refresh(); toast('Seats shuffled'); } }, '🔀 Shuffle'),
-          h('button', { class: 'btn small', type: 'button', onclick: function () { if (R.some(function (r) { return r.score; }) && confirm('Reset everyone\'s points to 0?')) { R.forEach(function (r) { r.score = 0; }); refresh(); } } }, 'Reset points'),
+          h('button', { class: 'btn small', type: 'button', onclick: function () { if (R.some(function (r) { return r.score || r.games; }) && confirm('Reset everyone\'s points to 0?')) { R.forEach(function (r) { r.score = 0; r.games = 0; r.wins = 0; }); refresh(); } } }, 'Reset points'),
           h('button', { class: 'btn small danger', type: 'button', onclick: function () { if (R.length && confirm('Remove all players?')) { R.length = 0; cfg.manual = false; refresh(); } } }, 'Clear all')),
         h('div', { class: 'gap' }),
         h('div', { class: 'roles' },
           h('div', { class: 'role-box' }, h('div', { class: 'lbl' }, 'UNDERCOVER'), uS.root),
           h('div', { class: 'role-box' }, h('div', { class: 'lbl' }, 'MR. WHITE (NO WORD)'), wS.root)), info, autoRow,
+        h('div', { class: 'card tight' },
+          soloToggle('Mr. White gets a hint', 'Shows him the category, e.g. "Food" or "Film villain"', 'hint'),
+          soloToggle('Leaderboard', 'Points and wins for each player', 'board')),
         err, dock(start));
       refresh(); return node;
     };
@@ -1204,7 +1376,7 @@ input.code{font-family:var(--f-mono)}
       var pos = 0; while (pos < n && P[order[pos]].seen) pos++;
       if (pos >= n) { L.step = 'play'; saveSolo(); return views.play(); }
       var p = P[order[pos]], next = pos + 1 < n ? P[order[pos + 1]] : null;
-      return h('div', null,
+      return h('div', null, roundTools(false),
         h('div', { class: 'row', style: 'justify-content:space-between' }, h('h1', null, 'Secret word pass'), h('span', { class: 'pill', style: 'flex:none' }, (pos + 1) + ' OF ' + n)),
         passAndPeek(p, {
           top: h('div', null, h('h2', null, 'Clockwise circle progress'), orderChips(order, pos, { done: true })),
@@ -1242,7 +1414,7 @@ input.code{font-family:var(--f-mono)}
         if (!confirm('Kick out ' + ids.map(function (i) { return P[i].name; }).join(', ') + '?')) return;
         btn.disabled = true;
         ids.forEach(function (i) { P[i].alive = false; cards[i].classList.add('leave'); });
-        L.last = { ids: ids, shown: false };
+        L.last = { ids: ids, shown: false }; L.undo = ids;
         later(function () { go('result'); }, 260);
       }
       function forgot() {
@@ -1256,7 +1428,7 @@ input.code{font-family:var(--f-mono)}
           })), h('div', { class: 'grow' }), dock(h('button', { class: 'btn yellow', type: 'button', onclick: close }, 'Cancel'))));
         root.appendChild(sheet);
       }
-      return h('div', null,
+      return h('div', null, roundTools(false),
         h('div', { class: 'row', style: 'justify-content:space-between' }, h('h1', null, 'Clues & vote'), h('span', { class: 'pill', style: 'flex:none' }, alive.length + ' ALIVE')),
         h('div', { class: 'card tight', style: 'background:var(--yellow-l)' }, h('h2', null, 'Speaking order (one clue each)'), orderChips(order, order.indexOf(firstAlive), { flat: true, out: true })),
         h('h2', null, 'Tap one or more suspects to kick out'),
@@ -1304,7 +1476,7 @@ input.code{font-family:var(--f-mono)}
       var status = w === 'civilians' ? 'All the Undercover & Mr. White players have been caught!'
         : w === 'impostors' ? 'The impostors (' + c.imp + ') now equal or outnumber the civilians (' + c.civ + ')!'
         : c.imp + ' impostor' + (c.imp === 1 ? '' : 's') + ' still hiding among ' + c.civ + ' civilians!';
-      return h('div', { class: first ? '' : 'still' },
+      return h('div', { class: first ? '' : 'still' }, roundTools(true),
         h('h1', null, 'Verdict'), h('div', { class: 'gap' }),
         ids.map(function (i, k) {
           var p = P[i];
@@ -1318,6 +1490,15 @@ input.code{font-family:var(--f-mono)}
     };
 
     /* ---- game over: winner, both words, roles, scoreboard ---- */
+    function soloBoard() {
+      var rows = L.roster.map(function (r, i) { return { r: r, i: i }; }).filter(function (x) { return x.r.games; })
+        .sort(function (a, b) { return b.r.score - a.r.score || (b.r.wins || 0) - (a.r.wins || 0); });
+      if (!rows.length) return null;
+      return h('div', { class: 'card tight', style: 'margin-top:12px' }, h('h2', null, '🏆 Leaderboard'), rows.map(function (x, k) {
+        return h('div', { class: 'brow' }, h('span', { class: 'rank' }, k === 0 ? '👑' : String(k + 1)), avatar(x.r.name, x.i, 'sm'), h('span', { class: 'pname' }, x.r.name),
+          h('span', { class: 'mute small', style: 'white-space:nowrap' }, (x.r.wins || 0) + 'W · ' + (x.r.games || 0) + 'G'), h('span', { class: 'pts' }, x.r.score + ' PTS'));
+      }));
+    }
     views.over = function () {
       var w = L.winner, key = L.pair.civilian + '|' + L.pair.undercover + '|' + w;
       if (!celebrated[key]) { celebrated[key] = 1; later(confetti, 150); buzz([80, 50, 80]); }
@@ -1326,14 +1507,19 @@ input.code{font-family:var(--f-mono)}
           h('p', null, w === 'civilians' ? 'Every impostor was kicked out of the tapri! +2 each' : w === 'white' ? 'Caught, but guessed the word! +6' : 'The impostors took over the adda! +4 each')),
         h('h2', null, 'The secret word pair'),
         h('div', { class: 'tiles' }, h('div', { class: 'tile' }, h('small', null, 'CIVILIAN WORD'), h('b', null, L.pair.civilian)), h('div', { class: 'tile' }, h('small', null, 'UNDERCOVER WORD'), h('b', null, L.pair.undercover))),
-        h('h2', null, 'Everyone\'s role & scoreboard'),
+        h('h2', null, L.cfg.board ? 'Everyone\'s role & scoreboard' : 'Everyone\'s role'),
         L.players.map(function (p, i) {
           var g = L.gain && L.gain[i] || 0, score = L.roster[i] ? L.roster[i].score : 0;
-          var pts = h('span', { class: 'pts', 'data-final': String(score) });
-          countUp(pts, score - g, score, g ? ' (+' + g + ')' : '');
+          var pts = null;
+          if (L.cfg.board) { pts = h('span', { class: 'pts', 'data-final': String(score) }); countUp(pts, score - g, score, g ? ' (+' + g + ')' : ''); }
           return h('div', { class: 'srow' + (p.alive ? '' : ' dead') }, avatar(p.name, i, 'sm'), h('span', { class: 'pname' }, p.name),
             h('span', { class: 'rchip ' + rcls(p.role) }, roleLabel(p.role).toUpperCase() + (p.role === 'white' ? '' : ' · ' + p.word)), pts);
         }),
+        L.cfg.board ? soloBoard() : null,
+        L.undo ? h('div', { class: 'center' }, h('button', { class: 'link', type: 'button', onclick: function () {
+          if (!confirm('Undo the last kick? The game continues and these points are taken back.')) return;
+          unscoreGame(); L.undo.forEach(function (i) { L.players[i].alive = true; }); L.undo = null; L.last = null; go('play');
+        } }, '↩ Undo last kick')) : null,
         dock(h('button', { class: 'btn primary', type: 'button', onclick: function () { dealRoles(); go('spin'); } }, 'Play next round (new words) →'),
           h('div', { class: 'gap' }),
           h('button', { class: 'btn yellow', type: 'button', onclick: function () { go('roster'); } }, 'Edit players / seating')));
@@ -1362,6 +1548,7 @@ input.code{font-family:var(--f-mono)}
     }
     if (S && S.phase !== 'lobby' && S.phase !== 'over') wakeLock();
     cur.update();
+    syncSupModal(); syncHostbar(); syncReactBar();
   }
   setInterval(function () { if (cur && cur.tick) cur.tick(); }, 250);
 
