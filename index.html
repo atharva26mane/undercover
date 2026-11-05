@@ -827,10 +827,18 @@ input.code{font-family:var(--f-mono)}
   function rnd(n) { try { var a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; } catch (e) { return Math.floor(Math.random() * n); } }
   function shuf(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = rnd(i + 1), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
   function normW(s) { return String(s).toLowerCase().normalize('NFKD').replace(/[^\p{L}\p{N}]+/gu, ' ').trim(); }
+  // A word that was just played stays out for the next 30 pairs, then goes back into the random pool.
+  var COOLDOWN = 30;
   function drawPair() {
-    var d = null; try { d = JSON.parse(load('uc.deck') || 'null'); } catch (e) { d = null; }
-    if (!Array.isArray(d) || !d.length || d.some(function (x) { return !(x < PAIRS.length); })) d = shuf(PAIRS.map(function (_, i) { return i; }));
-    var pr = PAIRS[d.pop()]; store('uc.deck', JSON.stringify(d));
+    var recent = null; try { recent = JSON.parse(load('uc.recent') || '[]'); } catch (e) { recent = null; }
+    if (!Array.isArray(recent)) recent = [];
+    var block = {}; recent.forEach(function (w) { block[w] = 1; });
+    var pool = PAIRS.filter(function (pr) { return !block[normW(pr[0])] && !block[normW(pr[1])]; });
+    if (!pool.length) pool = PAIRS;
+    var pr = pool[rnd(pool.length)];
+    recent.push(normW(pr[0]), normW(pr[1]));
+    while (recent.length > COOLDOWN * 2) recent.shift();
+    store('uc.recent', JSON.stringify(recent)); store('uc.deck', null);
     return rnd(2) ? { civilian: pr[0], undercover: pr[1] } : { civilian: pr[1], undercover: pr[0] };
   }
   function autoCounts(n) { return { u: Math.max(1, Math.floor((n - 1) / 4)), w: n >= 6 ? (n >= 12 ? 2 : 1) : 0 }; }

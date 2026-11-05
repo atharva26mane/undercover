@@ -96,9 +96,19 @@ function newCode() {
     if (!rooms.has(c)) return c;
   }
 }
+// A word that was just played stays out for the next COOLDOWN pairs, then goes back into the random pool.
+const COOLDOWN = 30;
+function pickPair(recent, rand) {
+  const block = new Set(recent);
+  let pool = PAIRS.filter(([a, b]) => !block.has(norm(a)) && !block.has(norm(b)));
+  if (!pool.length) pool = PAIRS;
+  const pair = pool[rand(pool.length)];
+  recent.push(norm(pair[0]), norm(pair[1]));
+  while (recent.length > COOLDOWN * 2) recent.shift();
+  return pair;
+}
 function drawPair(room) {
-  if (!room.deck.length) room.deck = shuffle(PAIRS.map((_, i) => i));
-  const [a, b] = PAIRS[room.deck.pop()];
+  const [a, b] = pickPair(room.recent, (n) => crypto.randomInt(n));
   return Math.random() < 0.5 ? { civilian: a, undercover: b } : { civilian: b, undercover: a };
 }
 function makeRoom() {
@@ -106,7 +116,7 @@ function makeRoom() {
     code: newCode(), hostId: null, supervisorId: null, players: new Map(),
     phase: 'lobby', round: 0, seq: 0, timer: null, endsAt: 0,
     settings: { describeSecs: 30, autoRoles: true, undercover: 1, white: 1, whiteGuess: false },
-    deck: [], pair: null, nextPair: null,
+    recent: [], pair: null, nextPair: null,
     descs: {}, order: [], turn: 0, history: [], votes: {}, tie: false,
     lastElim: null, guess: null, whiteId: null, winner: null, touched: Date.now(),
   };
@@ -531,4 +541,4 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log('');
 });
 
-module.exports = { server, rooms };
+module.exports = { server, rooms, pickPair, COOLDOWN };

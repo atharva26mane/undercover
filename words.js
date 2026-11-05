@@ -80,4 +80,63 @@ module.exports = [
   ['yoga', 'meditation'], ['guitar', 'violin'], ['drum', 'tabla'], ['movie', 'series'],
   ['song', 'poem'], ['cartoon', 'comic'], ['cards', 'dice'], ['kite', 'balloon'],
   ['camping', 'trekking'], ['fishing', 'hunting'], ['magic', 'illusion'], ['circus', 'carnival'],
+
+  // ---- Desi memes & internet culture (researched Nov 2026) ----
+  ['Jaldi the late', 'Home from work'],        // Ravi Kishan's viral slips
+  ['Ravi Kishan', 'Pankaj Tripathi'],
+  ['Binod', 'Bhupendra Jogi'],                 // random names the internet made famous
+  ['Moye Moye', 'Bado Badi'],                  // viral meme songs
+  ['Chin Tapak Dum Dum', 'Abra Ka Dabra'],     // magic spells (Chhota Bheem villain meme)
+  ['Mogambo', 'Gabbar'],
+  ['Jethalal', 'Babu Bhaiya'],
+  ['Kokilaben', 'Gopi Bahu'],                  // "Rasode mein kaun tha"
+  ['Munna Bhaiya', 'Kaleen Bhaiya'],           // Mirzapur
+  ['Sachiv ji', 'Pradhan ji'],                 // Panchayat
+  ['Panchayat', 'Gullak'],
+  ['Hera Pheri', 'Golmaal'],
+  ['Waah Shampy Waah', 'Malik galti ho gayi'], // 2025 viral clips
+  ['6-7', 'Skibidi'],                          // Gen Alpha nonsense
+  ['Vishal Mega Mart', 'D-Mart'],              // + the "guard exam" meme
+  ['Studio Ghibli', 'Nano Banana'],            // AI photo trends
+  ["India's Got Latent", 'Shark Tank India'],
+  ['Dhurandhar', 'Animal'],
+  ['Pushpa', 'Rocky Bhai'],
+  ['Shaktimaan', 'Chhota Bheem'],
+  ['Doraemon', 'Shinchan'],
+  ['CarryMinati', 'BB Ki Vines'],
+  ['Sigma', 'Alpha'],
+  ['Rizz', 'Aura'],
+  ['Delulu', 'Main character'],
+  ['Pookie', 'Babu Shona'],
+
+  // ---- Hindi / Hinglish slang ----
+  ['Chapri', 'Tapori'],
+  ['Kalesh', 'Lafda'],
+  ['Bawaal', 'Bhasad'],
+  ['Jugaad', 'Setting'],
+  ['Jhakaas', 'Kadak'],
+  ['Bindaas', 'Mast'],
+  ['Faltu', 'Bakwaas'],
+  ['Bakaiti', 'Gappe'],
+  ['Ghanta', 'Thenga'],
+  ['Bhai', 'Yaar'],
+  ['Jalwa', 'Swag'],
+  ['Chillar', 'Note'],
+  ['Nalla', 'Berozgaar'],
+  ['Jhol', 'Ghotala'],
+  ['Ullu', 'Gadha'],
+  ['Lukkha', 'Awaara'],
+  ['Senti', 'Drama'],
+  ['Panga', 'Jhagda'],
+
+  // ---- Desi everyday & college life ----
+  ['Chai tapri', 'Dhaba'], ['Cutting chai', 'Masala chai'], ['Vada pav', 'Pav bhaji'], ['Pani puri', 'Bhel puri'],
+  ['Lassi', 'Chaas'], ['Imarti', 'Jalebi'], ['Uttapam', 'Dosa'], ['Rajma chawal', 'Chole bhature'],
+  ['Maggi', 'Cup noodles'], ['E-rickshaw', 'Auto rickshaw'], ['Hostel', 'PG'], ['Canteen', 'Mess'],
+  ['Attendance', 'Proxy'], ['Viva', 'Practical'], ['Assignment', 'Journal'], ['Placement', 'Internship'],
+  ['Holi', 'Diwali'], ['Garba', 'Dandiya'], ['Rangoli', 'Mehendi'], ['Ganpati', 'Navratri'],
+  ['IPL', 'World Cup'], ['Dhoni', 'Kohli'], ['Shah Rukh', 'Salman'], ['Bollywood', 'Tollywood'],
+  ['Jio', 'Airtel'], ['UPI', 'Cash'], ['Swiggy', 'Zomato'], ['Blinkit', 'Zepto'],
+  ['Instagram', 'Snapchat'], ['Reels', 'Shorts'], ['WhatsApp', 'Telegram'], ['Netflix', 'Hotstar'],
+  ['Ola', 'Uber'], ['Flipkart', 'Amazon'], ['Pressure cooker', 'Tiffin'], ['Chappal', 'Joota'],
 ];
