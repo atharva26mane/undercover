@@ -377,6 +377,42 @@ input.code{font-family:var(--f-mono)}
 .yn{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 .flash{position:fixed;inset:0;background:#fff;pointer-events:none;animation:flash .5s ease-out forwards;z-index:31}
 @keyframes flash{from{opacity:.9}to{opacity:0}}
+
+.av.xs{width:22px;height:22px;font-size:11px;border-width:2px}
+.ctable-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px}
+.ctable{border-collapse:separate;border-spacing:0;width:100%;font-size:14px}
+.ctable th{font-family:var(--f-mono);font-size:11px;font-weight:800;text-align:left;padding:6px 8px;border-bottom:2px solid var(--ink);white-space:nowrap;color:var(--mute)}
+.ctable td{padding:7px 8px;border-bottom:1px dashed var(--line);font-weight:700;min-width:70px;max-width:130px;word-break:break-word;vertical-align:middle}
+.ctable td.who,.ctable th:first-child{position:sticky;left:0;background:#fff;z-index:1;min-width:0;max-width:none}
+.ctable td.who{white-space:nowrap}
+.ctable .cw{display:inline-flex;align-items:center;gap:6px;font-weight:800}
+.ctable .cn{max-width:84px;overflow:hidden;text-overflow:ellipsis}
+.ctable td.who .tag{margin-left:4px;font-size:9px;padding:1px 6px}
+.ctable .now{background:var(--yellow-l)}
+.ctable th.now{color:var(--ink)}
+.ctable td.empty{color:#b9b2a2}
+.ctable tr.out td{opacity:.55}
+.ctable tr.out td.who{opacity:1}.ctable tr.out .cn{text-decoration:line-through;color:var(--mute)}
+.vbars{display:flex;flex-direction:column;gap:10px}
+.vrow{background:#fff;border:2px solid var(--ink);border-radius:12px;box-shadow:var(--sh-s);padding:8px 10px}
+.vrow.out{background:var(--red-l)}
+.vtop{display:flex;align-items:center;gap:8px}
+.vtop b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vcount{font-family:var(--f-mono);font-size:12px;font-weight:800;white-space:nowrap}
+.vbar{height:12px;background:var(--bg2);border:2px solid var(--ink);border-radius:99px;overflow:hidden;margin:7px 0}
+.vbar i{display:block;height:100%;background:var(--orange);animation:grow .7s var(--snap) both;transform-origin:left}
+.vrow.out .vbar i{background:var(--red)}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.voters{display:flex;flex-wrap:wrap;gap:5px}
+.vchip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:800;background:var(--bg);border:1.5px solid var(--ink);border-radius:999px;padding:2px 8px 2px 2px;animation:popin .3s var(--spring) both}
+.vprog{height:10px;background:var(--bg2);border:2px solid var(--ink);border-radius:99px;overflow:hidden;margin-bottom:10px}
+.vprog i{display:block;height:100%;background:var(--green);transition:width .3s var(--snap)}
+.vstat{display:flex;flex-wrap:wrap;gap:6px}
+.vs{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:800;border:2px solid var(--ink);border-radius:999px;padding:2px 9px 2px 2px}
+.vs b{font-size:13px}
+.vs.yes{background:var(--green-l)}.vs.yes b{color:var(--green)}
+.vs.no{background:#fff;border-style:dashed;color:var(--mute)}.vs.no b{animation:pulse 1.2s ease-in-out infinite}
+.wtimer{font-family:var(--f-mono);font-weight:800;font-size:30px;color:var(--yellow);margin:2px 0 14px}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -660,6 +696,44 @@ input.code{font-family:var(--f-mono)}
     } };
   }
 
+  /* ---------- online: shared pieces ---------- */
+  // One table of every clue so far: a row per player, a column per round that actually had clues
+  // (rounds where nobody gave a clue are left out), plus the live round while clues are coming in.
+  function cluesTable(live) {
+    var cols = (S.history || []).filter(function (r) { return r.items.some(function (it) { return it[1]; }); })
+      .map(function (r) { var m = {}; r.items.forEach(function (it) { m[it[0]] = it[1]; }); return { m: m, live: false }; });
+    if (live) cols.push({ m: S.clues || {}, live: true });
+    if (!cols.length) return null;
+    var order = (live && S.order) ? S.order.slice() : [];
+    S.players.forEach(function (p) { if (p.in && order.indexOf(p.id) < 0) order.push(p.id); });
+    var pl = function (id) { return S.players.filter(function (x) { return x.id === id; })[0]; };
+    order.sort(function (a, b) { var A = pl(a), B = pl(b); return (B && B.alive ? 1 : 0) - (A && A.alive ? 1 : 0); });
+    return h('div', { class: 'card tight' }, h('h2', null, 'All clues'),
+      h('div', { class: 'ctable-wrap' }, h('table', { class: 'ctable' },
+        h('thead', null, h('tr', null, h('th', null, 'Player'), cols.map(function (c, k) { return h('th', { class: c.live ? 'now' : '' }, c.live ? 'Now' : 'R' + (k + 1)); }))),
+        h('tbody', null, order.map(function (id) {
+          var p = pl(id); if (!p) return null;
+          return h('tr', { class: p.alive ? '' : 'out' },
+            h('td', { class: 'who' }, h('span', { class: 'cw' }, avatar(p.name, pidx(id), 'xs'), h('span', { class: 'cn' }, p.name)), !p.alive && p.role ? roleTag(p.role) : null),
+            cols.map(function (c) { var v = c.m[id]; return h('td', { class: (c.live ? 'now' : '') + (v ? '' : ' empty') }, v || (c.live && id === S.turnId ? '…' : '—')); }));
+        })))));
+  }
+  // Who voted for whom, as bars with the voters' faces
+  function voteBars(bd, outId) {
+    bd = bd || {};
+    var ids = Object.keys(bd).sort(function (a, b) { return bd[b].length - bd[a].length; });
+    var max = Math.max.apply(null, [1].concat(ids.map(function (t) { return bd[t].length; })));
+    if (!ids.length) return h('p', { class: 'mute small' }, 'No votes.');
+    return h('div', { class: 'vbars' }, ids.map(function (t, k) {
+      var n = bd[t].length;
+      return h('div', { class: 'vrow' + (t === outId ? ' out' : '') },
+        h('div', { class: 'vtop' }, avatar(nameOf(t), pidx(t), 'sm'), h('b', null, nameOf(t)), t === outId ? h('span', { class: 'pill ink' }, 'OUT') : null,
+          h('span', { class: 'vcount' }, n + (n === 1 ? ' vote' : ' votes'))),
+        h('div', { class: 'vbar' }, h('i', { style: 'width:' + Math.round(n / max * 100) + '%;animation-delay:' + (k * 0.12) + 's' })),
+        h('div', { class: 'voters' }, bd[t].map(function (v) { return h('span', { class: 'vchip' }, avatar(nameOf(v), pidx(v), 'xs'), nameOf(v)); })));
+    }));
+  }
+
   screens.describe = function () {
     var tm = timerBox(function () { return S.settings.describeSecs; });
     var wc = wordCard();
@@ -668,13 +742,13 @@ input.code{font-family:var(--f-mono)}
     var inp = h('input', { type: 'text', maxlength: 40, placeholder: 'Your clue (1–3 words)', autocomplete: 'off', enterkeyhint: 'send' });
     function submit() { var t = inp.value.trim(); if (!t) return toast('Type a clue first'); send({ t: 'describe', text: t }); }
     inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
-    var hint = h('p', { class: 'mute' });
+    var hint = h('p', { class: 'mute small' });
     var form = h('div', { class: 'card' }, h('h2', null, 'Your clue'), inp, h('div', { class: 'gap' }),
       h('button', { class: 'btn primary', type: 'button', onclick: submit }, 'Send clue'), hint);
-    var list = h('ul', { class: 'plist' }), listCard = h('div', { class: 'card' }, h('h2', null, 'Clues so far'), list);
-    var hostRow = h('div', { class: 'row' }, hostBtn('Skip this player', { t: 'skipTurn' }, ''), hostBtn('Go to voting now', { t: 'endDescribe' }, 'danger', 'End the clue round and go to voting?'));
+    var table = h('div');
+    var hostRow = h('div', { class: 'row' }, hostBtn('Skip this player', { t: 'skipTurn' }, 'small'), hostBtn('Go to voting now', { t: 'endDescribe' }, 'small danger', 'End the clue round and go to voting?'));
     var wasMine = false;
-    var root = h('div', null, tm.root, wc.root, sp.root, turnBox, form, listCard, hostRow);
+    var root = h('div', null, tm.root, wc.root, sp.root, turnBox, form, table, hostRow);
     return { root: root, tick: tm.tick, update: function () {
       wc.update(); sp.update(); tm.tick();
       var mine = S.turnId === S.me.id && S.me.alive && !S.me.sup;
@@ -685,12 +759,7 @@ input.code{font-family:var(--f-mono)}
       fill(turnBox, mine ? '🎤 Your turn. Give a clue!' : nameOf(S.turnId) + ' is giving a clue…');
       form.style.display = mine ? '' : 'none';
       fill(hint, S.me.white ? 'You have no word. Use the clues already given to blend in.' : 'Hint about your word without saying it. Others will see it right away.');
-      fill(list, (S.order || []).map(function (id) {
-        var c = S.clues && S.clues[id], pl = S.players.filter(function (x) { return x.id === id; })[0];
-        return h('li', null, avatar(nameOf(id), pidx(id)), h('span', { class: 'dot' + (pl && pl.connected ? '' : ' off') }),
-          h('span', { class: 'pname' }, nameOf(id), id === S.me.id ? ' (you)' : ''),
-          c ? h('b', null, '“' + c + '”') : id === S.turnId ? h('span', { class: 'tag ok' }, 'Now') : h('span', { class: 'tag' }, 'waiting'));
-      }));
+      fill(table, cluesTable(true));
       hostRow.style.display = S.me.host ? '' : 'none';
     } };
   };
@@ -698,81 +767,96 @@ input.code{font-family:var(--f-mono)}
   screens.vote = function () {
     var wc = wordCard();
     var sp = supPanel(function (p) { var v = S.breakdown && Object.keys(S.breakdown).filter(function (t) { return S.breakdown[t].indexOf(p.id) >= 0; })[0]; return p.alive ? (v ? 'votes for ' + nameOf(v) : 'has not voted') : null; });
-    var tie = h('div', { class: 'banner bad' }, 'No majority. Votes are tied, so anyone can change their vote.');
-    var cur = h('div', { class: 'card' }), older = h('div');
-    var status = h('p', { class: 'mute center' });
-    var ballot = h('div', { class: 'card' }, h('h2', null, 'Vote someone out'));
-    var ballotBody = h('div'); ballot.appendChild(ballotBody);
-    var hostBox = h('div', null, h('div', { class: 'row' }, hostBtn('Close vote now', { t: 'closeVote' }, ''), hostBtn('Skip (nobody out)', { t: 'skipVote' }, 'danger', 'Skip the elimination and start a new round?')));
-    var root = h('div', null, wc.root, sp.root, cur, older, tie, ballot, status, hostBox);
+    var tie = h('div', { class: 'banner bad' }), tieBars = h('div');
+    var progress = h('div', { class: 'card tight' });
+    var ballot = h('div'), table = h('div');
+    var hostBox = h('div', { class: 'row' }, hostBtn('Close vote now', { t: 'closeVote' }, 'small'), hostBtn('Skip (nobody out)', { t: 'skipVote' }, 'small danger', 'Skip the elimination and start a new round?'));
+    var root = h('div', null, h('h1', null, 'Vote'), wc.root, sp.root, tie, tieBars, progress, ballot, table, hostBox);
     return { root: root, update: function () {
       wc.update(); sp.update();
-      var last = S.history[S.history.length - 1];
-      fill(cur, h('h2', null, 'Round ' + S.round + ' clues'), last ? last.items.map(function (it) { return h('div', { class: 'desc' }, h('b', null, nameOf(it[0])), h('span', null, it[1] || '—')); }) : null);
-      var prev = S.history.slice(0, -1).reverse();
-      fill(older, prev.length ? h('details', { class: 'card' }, h('summary', null, 'Earlier rounds (' + prev.length + ')'), prev.map(function (r) {
-        return h('div', null, h('p', { class: 'mute' }, 'Round ' + r.round), r.items.map(function (it) { return h('div', { class: 'desc' }, h('b', null, nameOf(it[0])), h('span', null, it[1] || '—')); }));
-      })) : null);
-      tie.style.display = S.tie ? '' : 'none';
       var alive = S.players.filter(function (p) { return p.in && p.alive; });
-      var canVote = S.me.alive && !S.me.sup;
-      ballot.style.display = canVote ? '' : 'none';
-      fill(ballotBody, alive.filter(function (p) { return p.id !== S.me.id; }).map(function (p) {
-        var voters = S.breakdown && S.breakdown[p.id];
-        return h('button', { class: 'vbtn' + (S.myVote === p.id ? ' sel' : ''), type: 'button', onclick: function () { send({ t: 'vote', target: S.myVote === p.id ? null : p.id }); } },
-          h('span', { class: 'vl' }, avatar(p.name, pidx(p.id)), h('span', null, p.name, S.myVote === p.id ? '  ✓' : '')),
-          S.tie && voters ? h('small', null, voters.length + ': ' + voters.map(nameOf).join(', ')) : null);
-      }));
       var votedN = alive.filter(function (p) { return p.voted; }).length;
-      fill(status, 'Voted ' + votedN + ' / ' + alive.length + (S.me.alive || S.me.sup ? '' : ' · you are out, just watching'));
+      tie.style.display = S.tie ? '' : 'none';
+      fill(tie, '⚖️ Tie! Nobody has a majority. Anyone can change their vote.');
+      fill(tieBars, S.tie && S.breakdown ? h('div', { class: 'card tight' }, h('h2', null, 'Votes so far'), voteBars(S.breakdown)) : null);
+      fill(progress, h('div', { class: 'row', style: 'justify-content:space-between;margin-bottom:8px' }, h('h2', { style: 'margin:0' }, 'Votes in · ' + votedN + ' / ' + alive.length), h('span', { class: 'mute small', style: 'flex:none' }, S.tie ? '' : '🔒 secret till everyone votes')),
+        h('div', { class: 'vprog' }, h('i', { style: 'width:' + Math.round(votedN / Math.max(1, alive.length) * 100) + '%' })),
+        h('div', { class: 'vstat' }, alive.map(function (p) {
+          return h('span', { class: 'vs ' + (p.voted ? 'yes' : 'no') }, avatar(p.name, pidx(p.id), 'xs'), p.name + (p.id === S.me.id ? ' (you)' : ''), h('b', null, p.voted ? '✓' : '…'));
+        })));
+      var canVote = S.me.alive && !S.me.sup;
+      fill(ballot, canVote ? [h('h2', null, S.myVote ? 'Your vote (tap again to undo)' : 'Tap who you think is the impostor'),
+        h('div', { class: 'suspects' }, alive.filter(function (p) { return p.id !== S.me.id; }).map(function (p) {
+          var mineSel = S.myVote === p.id, n = S.tie && S.breakdown && S.breakdown[p.id] ? S.breakdown[p.id].length : 0;
+          return h('button', { class: 'suspect' + (mineSel ? ' sel' : ''), type: 'button', onclick: function () { send({ t: 'vote', target: mineSel ? null : p.id }); } },
+            h('div', { class: 'top' }, h('span', { class: 'speaks' }, S.tie ? n + (n === 1 ? ' vote' : ' votes') : 'SUSPECT'), h('span', { class: 'mark' }, mineSel ? '☑ YOUR VOTE' : '☐')),
+            h('div', { class: 'nm' }, avatar(p.name, pidx(p.id), 'sm'), h('span', null, p.name)));
+        }))] : h('div', { class: 'banner' }, S.me.sup ? 'You are supervising. Watch the votes come in.' : 'You are out. Just watching now.'));
+      fill(table, cluesTable(false));
       hostBox.style.display = S.me.host ? '' : 'none';
     } };
   };
 
   screens.whiteguess = function () {
-    var tm = timerBox(function () { return 30; });
-    var inp = h('input', { type: 'text', maxlength: 40, placeholder: 'The civilians\' word…', autocomplete: 'off' });
-    function go() { send({ t: 'guess', text: inp.value.trim() }); }
+    var num = h('div', { class: 'wtimer' });
+    var inp = h('input', { type: 'text', maxlength: 40, placeholder: 'The civilians\' word…', autocomplete: 'off', enterkeyhint: 'send' });
+    function go() { if (!inp.value.trim()) return toast('Type your guess'); send({ t: 'guess', text: inp.value.trim() }); }
     inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
-    var mine = h('div', { class: 'card' }, h('h2', null, 'Last chance, Mr. White'), h('p', null, 'You were voted out. Guess the civilians\' word and you win.'), inp, h('div', { class: 'gap' }), h('button', { class: 'btn primary', type: 'button', onclick: go }, 'Submit guess'));
-    var other = h('div', { class: 'banner center' });
-    return { root: h('div', null, tm.root, mine, other), tick: tm.tick, update: function () {
-      tm.tick();
-      var me = S.me.id === S.whiteId;
-      mine.style.display = me ? '' : 'none'; other.style.display = me ? 'none' : '';
-      fill(other, nameOf(S.whiteId) + ' was Mr. White and is making a final guess…');
+    var box = h('div', { class: 'q' }), head = h('div');
+    var root = h('div', { class: 'wscene' }, RM ? null : h('div', { class: 'flash' }), h('div', { class: 'wscene-in' }, head, num, box));
+    var built = false, wasMe = null;
+    return { root: root, tick: function () { num.textContent = secsLeft() + 's'; }, update: function () {
+      var me = S.me.id === S.whiteId, i = pidx(S.whiteId), nm = nameOf(S.whiteId);
+      if (!built) {
+        built = true; buzz([60, 40, 60, 40, 200]);
+        fill(head, h('span', { class: 'pill', style: 'background:var(--yellow)' }, 'VOTED OUT'), h('div', { class: 'spot' }, avatar(nm, i, 'xl')),
+          h('div', { class: 'caught' }, 'Mr. White pakda gaya!'), h('div', { class: 'nm' }, nm));
+      }
+      if (wasMe !== me) {
+        wasMe = me;
+        fill(box, me ? [h('h2', null, 'Ek last chance! Guess the civilians\' word'), h('p', { class: 'mute small', style: 'margin:2px 0 8px' }, 'Get it right and you win the game.'), inp, h('div', { class: 'gap' }), h('button', { class: 'btn primary', type: 'button', onclick: go }, 'Submit guess')]
+          : [h('h2', null, nm + ' is guessing the word'), h('div', { class: 'dots' }, h('span'), h('span'), h('span')), h('p', { class: 'mute small', style: 'margin:0' }, 'If ' + nm + ' gets the civilians\' word, Mr. White wins.')]);
+        if (me) setTimeout(function () { try { inp.focus(); } catch (e) {} }, 300);
+      }
+      num.textContent = secsLeft() + 's';
     } };
   };
 
   screens.elim = function () {
-    var wc = wordCard();
-    var res = h('div', { class: 'card result' }), votes = h('div', { class: 'card' });
-    var nextBtn = hostBtn('Next round →', { t: 'next' }, 'primary'), wait = h('p', { class: 'mute center' }, 'Waiting for the host…');
-    return { root: h('div', null, wc.root, res, votes, nextBtn, wait), update: function () {
+    var wc = wordCard(), res = h('div'), votes = h('div', { class: 'card tight' });
+    var nextBtn = hostBtn('Next round →', { t: 'next' }, 'primary'), wait = h('p', { class: 'mute center' }, 'Waiting for the host to start the next round…');
+    var shownFor = null;
+    return { root: h('div', null, h('h1', null, 'Verdict'), h('div', { class: 'gap' }), res, votes, wc.root, nextBtn, wait), update: function () {
       wc.update();
       var e = S.lastElim;
-      fill(res, h('div', { class: 'mute' }, 'Eliminated'), h('div', { class: 'who' }, e ? e.name : '—'),
-        e ? h('div', { class: 'what' }, 'was ' + roleLabel(e.role)) : null,
-        S.guess ? h('div', { class: 'w' }, 'Mr. White guessed “' + (S.guess.text || '—') + '” (wrong)') : null);
-      var bd = e && e.breakdown || {};
-      fill(votes, h('h2', null, 'Votes'), Object.keys(bd).sort(function (a, b) { return bd[b].length - bd[a].length; }).map(function (t) {
-        return h('div', { class: 'desc' }, h('b', null, nameOf(t)), h('span', null, bd[t].length + ' ← ' + bd[t].map(nameOf).join(', ')));
-      }));
+      if (e && shownFor !== e.id) {
+        shownFor = e.id; buzz([40, 60, 40]);
+        var cls = e.role === 'civilian' ? 'civ' : e.role === 'undercover' ? 'und' : 'wht';
+        fill(res, h('div', { class: 'stampcard' }, h('h2', null, 'Voted out'), avatar(e.name, pidx(e.id), 'xl'), h('div', { class: 'kname' }, e.name),
+          h('div', { class: 'rstamp ' + cls }, roleLabel(e.role)),
+          S.guess ? h('p', { style: 'font-weight:800;margin:6px 0 0' }, 'Guessed “' + (S.guess.text || '—') + '” ✗ Wrong') : h('p', { class: 'mute small' }, 'The word stays secret until the game ends.')));
+      }
+      fill(votes, h('h2', null, 'Who voted for whom'), voteBars(e && e.breakdown, e && e.id));
       nextBtn.style.display = S.me.host ? '' : 'none'; wait.style.display = S.me.host ? 'none' : '';
     } };
   };
 
   screens.over = function () {
-    var ban = h('div', { class: 'banner ok center' }), words = h('div', { class: 'card' }), tbl = h('div', { class: 'card' });
-    var again = hostBtn('Play again (same players)', { t: 'playAgain' }, 'primary'), lobby = hostBtn('Back to lobby (change settings / kick)', { t: 'toLobby' }, '');
+    var top = h('div'), words = h('div'), roles = h('div'), votes = h('div');
+    var again = hostBtn('Play again (same players)', { t: 'playAgain' }, 'primary'), lobby = hostBtn('Back to lobby (settings / kick)', { t: 'toLobby' }, 'yellow');
     var wait = h('p', { class: 'mute center' }, 'Waiting for the host to pick what\'s next…');
-    return { root: h('div', null, ban, words, tbl, again, h('div', { class: 'gap' }), lobby, wait), update: function () {
-      var w = S.winner;
-      fill(ban, w === 'civilians' ? '🎉 Civilians win!' : w === 'impostors' ? '🕵️ Undercover team wins!' : '⬜ Mr. White wins. They guessed the word!');
-      ban.className = 'banner center ' + (w === 'civilians' ? 'ok' : 'bad');
-      fill(words, h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Civilian word'), h('b', null, S.pair ? S.pair.civilian : '')), h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Undercover word'), h('b', null, S.pair ? S.pair.undercover : '')));
-      fill(tbl, h('h2', null, 'Everyone\'s role'), S.players.filter(function (p) { return p.in; }).map(function (p) {
-        return h('div', { class: 'sup-row' }, h('div', null, h('b', null, p.name), p.id === S.me.id ? ' (you)' : '', p.alive ? '' : h('span', { class: 'tag' }, p.left ? 'left' : 'out')), h('div', null, roleTag(p.role), ' ', h('span', { class: 'w' }, p.role === 'white' ? '—' : p.word)));
+    var fired = false;
+    return { root: h('div', null, top, words, votes, roles, again, h('div', { class: 'gap' }), lobby, wait), update: function () {
+      var w = S.winner, g = S.guess;
+      if (!fired) { fired = true; if (typeof confetti === 'function') later(confetti, 150); buzz([80, 50, 80]); }
+      fill(top, h('div', { class: 'winner bounce ' + (w === 'civilians' ? 'civ' : w === 'white' ? 'wht' : 'imp') },
+        h('div', { class: 'big' }, w === 'civilians' ? 'Civilians win!' : w === 'white' ? 'Mr. White wins!' : 'Impostors win!'),
+        h('p', null, w === 'civilians' ? 'Every impostor was caught!' : w === 'white' ? nameOf(g && g.by) + ' guessed “' + (g && g.text) + '” ✓' : 'The impostors took over the adda!')));
+      fill(words, S.pair ? [h('h2', null, 'The secret word pair'), h('div', { class: 'tiles' }, h('div', { class: 'tile' }, h('small', null, 'CIVILIAN WORD'), h('b', null, S.pair.civilian)), h('div', { class: 'tile' }, h('small', null, 'UNDERCOVER WORD'), h('b', null, S.pair.undercover)))] : null);
+      fill(votes, S.lastElim && S.lastElim.breakdown ? h('div', { class: 'card tight' }, h('h2', null, 'Last vote'), voteBars(S.lastElim.breakdown, S.lastElim.id)) : null);
+      fill(roles, h('h2', null, 'Everyone\'s role'), S.players.filter(function (p) { return p.in; }).map(function (p) {
+        return h('div', { class: 'srow' + (p.alive ? '' : ' dead') }, avatar(p.name, pidx(p.id), 'sm'), h('span', { class: 'pname' }, p.name + (p.id === S.me.id ? ' (you)' : '')),
+          h('span', { class: 'rchip ' + (p.role === 'civilian' ? 'civ' : p.role === 'undercover' ? 'und' : 'wht') }, roleLabel(p.role).toUpperCase() + (p.role === 'white' ? '' : ' · ' + p.word)));
       }));
       again.style.display = lobby.style.display = S.me.host ? '' : 'none'; wait.style.display = S.me.host ? 'none' : '';
     } };
@@ -843,8 +927,8 @@ input.code{font-family:var(--f-mono)}
   function shuf(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = rnd(i + 1), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
   function normW(s) { return String(s).toLowerCase().normalize('NFKD').replace(/[^\p{L}\p{N}]+/gu, ' ').trim(); }
   // A word that was just played stays out for the next 30 pairs, then goes back into the random pool.
-  // About 8 in 10 rounds use a pair tagged 'meme' (memes + Hindi slang); the rest use everyday words.
-  var COOLDOWN = 30, MEME_SHARE = 0.8;
+  // About half the rounds use a pair tagged 'meme' (memes + Hindi slang); the rest use everyday words.
+  var COOLDOWN = 30, MEME_SHARE = 0.5;
   function drawPair() {
     var recent = null; try { recent = JSON.parse(load('uc.recent') || '[]'); } catch (e) { recent = null; }
     if (!Array.isArray(recent)) recent = [];
@@ -875,10 +959,35 @@ input.code{font-family:var(--f-mono)}
     for (k = 0; k < c.u; k++) roles.push('undercover');
     for (k = 0; k < c.w; k++) roles.push('white');
     while (roles.length < L.roster.length) roles.push('civilian');
-    roles = shuf(roles); L.pair = drawPair();
+    roles = spreadRoles(roles, (L.players || []).filter(function (p) { return p.role && p.role !== 'civilian'; }).map(function (p) { return p.name; }));
+    var prevStarter = L.players && L.players.length ? (L.players[L.starter % L.players.length] || {}).name : null;
+    L.pair = drawPair();
     L.players = L.roster.map(function (r, i) { var ro = roles[i]; return { name: r.name, role: ro, word: ro === 'civilian' ? L.pair.civilian : ro === 'undercover' ? L.pair.undercover : '', alive: true, seen: false }; });
-    L.starter = rnd(L.players.length); // random first player each round; everything else follows the seats clockwise
+    // random first player each round (not the same person as last round); everything else follows the seats clockwise
+    var starters = L.players.map(function (_, i) { return i; }).filter(function (i) { return L.players[i].name !== prevStarter; });
+    L.starter = starters.length ? starters[rnd(starters.length)] : rnd(L.players.length);
     L.last = null; L.winner = null; L.gain = null; L.scored = false; L.step = 'spin';
+  }
+  // Shuffle roles over the seats so impostors don't sit next to each other (when possible), and people who
+  // were impostors last game get a much smaller chance of being one again.
+  function spreadRoles(roles, prevNames) {
+    var n = roles.length, k = roles.filter(function (r) { return r !== 'civilian'; }).length;
+    var prev = {}; prevNames.forEach(function (nm) { prev[normW(nm)] = 1; });
+    var wasImp = L.roster.map(function (r) { return !!prev[normW(r.name)]; });
+    var best = null, bestScore = Infinity, allowRepeat = Math.random() < 0.15; // a repeat now and then keeps it unpredictable
+    for (var t = 0; t < 400; t++) {
+      var cand = shuf(roles), adj = 0, rep = 0;
+      for (var i = 0; i < n; i++) {
+        var imp = cand[i] !== 'civilian';
+        if (imp && cand[(i + 1) % n] !== 'civilian' && n > 2) adj++;
+        if (imp && wasImp[i]) rep++;
+      }
+      if (k * 2 > n) adj = 0; // too many impostors to keep them apart
+      var score = adj * 100 + (allowRepeat ? 0 : rep);
+      if (score < bestScore) { best = cand; bestScore = score; }
+      if (!score) break;
+    }
+    return best;
   }
   function seatOrder() { var n = L.players.length, s = L.starter % n, a = []; for (var k = 0; k < n; k++) a.push((s + k) % n); return a; }
   function counts() {

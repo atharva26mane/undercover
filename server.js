@@ -97,9 +97,9 @@ function newCode() {
   }
 }
 // A word that was just played stays out for the next COOLDOWN pairs, then goes back into the random pool.
-// About 8 in 10 rounds use a pair tagged 'meme' (memes + Hindi slang); the rest use everyday words.
+// About half the rounds use a pair tagged 'meme' (memes + Hindi slang); the rest use everyday words.
 const COOLDOWN = 30;
-const MEME_SHARE = 0.8;
+const MEME_SHARE = 0.5;
 function pickPair(recent, rand) {
   const block = new Set(recent);
   const free = PAIRS.filter(([a, b]) => !block.has(norm(a)) && !block.has(norm(b)));
@@ -119,7 +119,7 @@ function makeRoom() {
   const room = {
     code: newCode(), hostId: null, supervisorId: null, players: new Map(),
     phase: 'lobby', round: 0, seq: 0, timer: null, endsAt: 0,
-    settings: { describeSecs: 30, autoRoles: true, undercover: 1, white: 1, whiteGuess: false },
+    settings: { describeSecs: 30, autoRoles: true, undercover: 1, white: 1, whiteGuess: true },
     recent: [], pair: null, nextPair: null,
     descs: {}, order: [], turn: 0, history: [], votes: {}, tie: false,
     lastElim: null, guess: null, whiteId: null, winner: null, touched: Date.now(),
@@ -228,10 +228,14 @@ function startGame(room, custom) {
       pair = { civilian: a, undercover: b };
     }
   }
-  const ps = shuffle(parts(room));
+  const all = parts(room);
   const { u, w } = plan(room);
-  ps.forEach((p, i) => {
-    p.role = i < u ? 'undercover' : i < u + w ? 'white' : 'civilian';
+  const imps = pickImpostors(all, u + w, room.prevImp || new Set());
+  const impRoles = shuffle(Array.from({ length: u + w }, (_, i) => (i < u ? 'undercover' : 'white')));
+  room.prevImp = new Set(imps.map((p) => p.id));
+  all.forEach((p) => {
+    const k = imps.indexOf(p);
+    p.role = k >= 0 ? impRoles[k] : 'civilian';
     p.word = p.role === 'civilian' ? pair.civilian : p.role === 'undercover' ? pair.undercover : '';
     p.alive = true; p.revealed = false;
   });
@@ -242,11 +246,39 @@ function startGame(room, custom) {
   return null;
 }
 
+// Pick impostors at random, but people who were impostors last game get a much smaller chance,
+// so the same friends don't keep getting the role.
+function pickImpostors(players, k, prev) {
+  const pool = players.map((p) => ({ p, w: prev.has(p.id) ? 0.2 : 1 }));
+  const out = [];
+  while (out.length < k && pool.length) {
+    let r = Math.random() * pool.reduce((t, x) => t + x.w, 0), i = 0;
+    while (i < pool.length - 1 && (r -= pool[i].w) > 0) i++;
+    out.push(pool.splice(i, 1)[0].p);
+  }
+  return out;
+}
+// Random speaking order, re-shuffled until no two impostors speak back to back (when that's possible).
+function spreadOrder(list) {
+  const imp = (p) => p.role !== 'civilian';
+  const k = list.filter(imp).length;
+  let best = shuffle(list), bestBad = Infinity;
+  if (k * 2 > list.length) return best;
+  for (let t = 0; t < 200; t++) {
+    const o = t ? shuffle(list) : best;
+    let bad = 0;
+    for (let i = 0; i + 1 < o.length; i++) if (imp(o[i]) && imp(o[i + 1])) bad++;
+    if (bad < bestBad) { best = o; bestBad = bad; }
+    if (!bad) break;
+  }
+  return best;
+}
+
 const isActive = (room, id) => { const q = room.players.get(id); return !!q && !q.left && q.alive; };
 function startDescribe(room) {
   setPhase(room, 'describe');
   room.descs = {}; room.votes = {}; room.tie = false; room.guess = null; room.whiteId = null;
-  room.order = shuffle(alivePlayers(room).map((p) => p.id)); // fresh random speaking order every round
+  room.order = spreadOrder(alivePlayers(room)).map((p) => p.id); // fresh random speaking order every round
   room.turn = 0;
   startTurn(room);
 }
@@ -428,7 +460,6 @@ function handle(ws, m) {
       if ('autoRoles' in m) s.autoRoles = !!m.autoRoles;
       if ('undercover' in m) s.undercover = clamp(m.undercover, 0, 10);
       if ('white' in m) s.white = clamp(m.white, 0, 5);
-      // Mr. White's final guess is switched off (not used by this group)
       if ('supervisor' in m) room.supervisorId = m.supervisor ? room.hostId : null;
       return broadcast(room);
     }
@@ -545,4 +576,4 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log('');
 });
 
-module.exports = { server, rooms, pickPair, COOLDOWN, MEME_SHARE };
+module.exports = { server, rooms, pickPair, COOLDOWN, MEME_SHARE, pickImpostors, spreadOrder };
