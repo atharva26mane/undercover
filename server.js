@@ -97,11 +97,15 @@ function newCode() {
   }
 }
 // A word that was just played stays out for the next COOLDOWN pairs, then goes back into the random pool.
+// About 8 in 10 rounds use a pair tagged 'meme' (memes + Hindi slang); the rest use everyday words.
 const COOLDOWN = 30;
+const MEME_SHARE = 0.8;
 function pickPair(recent, rand) {
   const block = new Set(recent);
-  let pool = PAIRS.filter(([a, b]) => !block.has(norm(a)) && !block.has(norm(b)));
-  if (!pool.length) pool = PAIRS;
+  const free = PAIRS.filter(([a, b]) => !block.has(norm(a)) && !block.has(norm(b)));
+  const wantMeme = rand(1000) < MEME_SHARE * 1000;
+  let pool = free.filter((p) => (p[2] === 'meme') === wantMeme);
+  if (!pool.length) pool = free.length ? free : PAIRS;
   const pair = pool[rand(pool.length)];
   recent.push(norm(pair[0]), norm(pair[1]));
   while (recent.length > COOLDOWN * 2) recent.shift();
@@ -541,4 +545,4 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log('');
 });
 
-module.exports = { server, rooms, pickPair, COOLDOWN };
+module.exports = { server, rooms, pickPair, COOLDOWN, MEME_SHARE };

@@ -1,6 +1,7 @@
 'use strict';
 // Word pairs for Undercover. Each pair = two similar-but-different things.
 // One word goes to the Civilians, the other to the Undercover (randomly swapped each game).
+// Pairs tagged 'meme' (memes + Hindi slang) are picked in about 8 out of 10 rounds.
 // Basic -> intermediate difficulty. Add your own at the bottom; keep every pair "close but not identical".
 module.exports = [
   // Nature & weather
@@ -82,52 +83,92 @@ module.exports = [
   ['camping', 'trekking'], ['fishing', 'hunting'], ['magic', 'illusion'], ['circus', 'carnival'],
 
   // ---- Desi memes & internet culture (researched Nov 2026) ----
-  ['Jaldi the late', 'Home from work'],        // Ravi Kishan's viral slips
-  ['Ravi Kishan', 'Pankaj Tripathi'],
-  ['Binod', 'Bhupendra Jogi'],                 // random names the internet made famous
-  ['Moye Moye', 'Bado Badi'],                  // viral meme songs
-  ['Chin Tapak Dum Dum', 'Abra Ka Dabra'],     // magic spells (Chhota Bheem villain meme)
-  ['Mogambo', 'Gabbar'],
-  ['Jethalal', 'Babu Bhaiya'],
-  ['Kokilaben', 'Gopi Bahu'],                  // "Rasode mein kaun tha"
-  ['Munna Bhaiya', 'Kaleen Bhaiya'],           // Mirzapur
-  ['Sachiv ji', 'Pradhan ji'],                 // Panchayat
-  ['Panchayat', 'Gullak'],
-  ['Hera Pheri', 'Golmaal'],
-  ['Waah Shampy Waah', 'Malik galti ho gayi'], // 2025 viral clips
-  ['6-7', 'Skibidi'],                          // Gen Alpha nonsense
-  ['Vishal Mega Mart', 'D-Mart'],              // + the "guard exam" meme
-  ['Studio Ghibli', 'Nano Banana'],            // AI photo trends
-  ["India's Got Latent", 'Shark Tank India'],
-  ['Dhurandhar', 'Animal'],
-  ['Pushpa', 'Rocky Bhai'],
-  ['Shaktimaan', 'Chhota Bheem'],
-  ['Doraemon', 'Shinchan'],
-  ['CarryMinati', 'BB Ki Vines'],
-  ['Sigma', 'Alpha'],
-  ['Rizz', 'Aura'],
-  ['Delulu', 'Main character'],
-  ['Pookie', 'Babu Shona'],
+  ['Jaldi the late', 'Home from work', 'meme'],        // Ravi Kishan's viral slips
+  ['Ravi Kishan', 'Pankaj Tripathi', 'meme'],
+  ['Binod', 'Bhupendra Jogi', 'meme'],                 // random names the internet made famous
+  ['Moye Moye', 'Bado Badi', 'meme'],                  // viral meme songs
+  ['Chin Tapak Dum Dum', 'Abra Ka Dabra', 'meme'],     // magic spells (Chhota Bheem villain meme)
+  ['Mogambo', 'Gabbar', 'meme'],
+  ['Jethalal', 'Babu Bhaiya', 'meme'],
+  ['Kokilaben', 'Gopi Bahu', 'meme'],                  // "Rasode mein kaun tha"
+  ['Munna Bhaiya', 'Kaleen Bhaiya', 'meme'],           // Mirzapur
+  ['Sachiv ji', 'Pradhan ji', 'meme'],                 // Panchayat
+  ['Panchayat', 'Gullak', 'meme'],
+  ['Hera Pheri', 'Golmaal', 'meme'],
+  ['Waah Shampy Waah', 'Malik galti ho gayi', 'meme'], // 2025 viral clips
+  ['6-7', 'Skibidi', 'meme'],                          // Gen Alpha nonsense
+  ['Vishal Mega Mart', 'D-Mart', 'meme'],              // + the "guard exam" meme
+  ['Studio Ghibli', 'Nano Banana', 'meme'],            // AI photo trends
+  ["India's Got Latent", 'Shark Tank India', 'meme'],
+  ['Dhurandhar', 'Animal', 'meme'],
+  ['Pushpa', 'Rocky Bhai', 'meme'],
+  ['Shaktimaan', 'Chhota Bheem', 'meme'],
+  ['Doraemon', 'Shinchan', 'meme'],
+  ['CarryMinati', 'BB Ki Vines', 'meme'],
+  ['Sigma', 'Alpha', 'meme'],
+  ['Rizz', 'Aura', 'meme'],
+  ['Delulu', 'Main character', 'meme'],
+  ['Pookie', 'Babu Shona', 'meme'],
 
   // ---- Hindi / Hinglish slang ----
-  ['Chapri', 'Tapori'],
-  ['Kalesh', 'Lafda'],
-  ['Bawaal', 'Bhasad'],
-  ['Jugaad', 'Setting'],
-  ['Jhakaas', 'Kadak'],
-  ['Bindaas', 'Mast'],
-  ['Faltu', 'Bakwaas'],
-  ['Bakaiti', 'Gappe'],
-  ['Ghanta', 'Thenga'],
-  ['Bhai', 'Yaar'],
-  ['Jalwa', 'Swag'],
-  ['Chillar', 'Note'],
-  ['Nalla', 'Berozgaar'],
-  ['Jhol', 'Ghotala'],
-  ['Ullu', 'Gadha'],
-  ['Lukkha', 'Awaara'],
-  ['Senti', 'Drama'],
-  ['Panga', 'Jhagda'],
+  ['Chapri', 'Tapori', 'meme'],
+  ['Kalesh', 'Lafda', 'meme'],
+  ['Bawaal', 'Bhasad', 'meme'],
+  ['Jugaad', 'Setting', 'meme'],
+  ['Jhakaas', 'Kadak', 'meme'],
+  ['Bindaas', 'Mast', 'meme'],
+  ['Faltu', 'Bakwaas', 'meme'],
+  ['Bakaiti', 'Gappe', 'meme'],
+  ['Ghanta', 'Thenga', 'meme'],
+  ['Bhai', 'Yaar', 'meme'],
+  ['Jalwa', 'Swag', 'meme'],
+  ['Chillar', 'Note', 'meme'],
+  ['Nalla', 'Berozgaar', 'meme'],
+  ['Jhol', 'Ghotala', 'meme'],
+  ['Ullu', 'Gadha', 'meme'],
+  ['Lukkha', 'Awaara', 'meme'],
+  ['Senti', 'Drama', 'meme'],
+  ['Panga', 'Jhagda', 'meme'],
+
+
+  // ---- More memes, filmy lines & desi pop culture ----
+  ['Itna sannata kyun hai bhai', 'Kitne aadmi the', 'meme'],
+  ['Uthale re baba', 'Ye Baburao ka style hai', 'meme'],
+  ['Mere paas maa hai', 'Main jhukega nahi', 'meme'],
+  ["How's the josh", 'Picture abhi baaki hai', 'meme'],
+  ['Pawri ho rahi hai', 'Rasode mein kaun tha', 'meme'],
+  ['Just looking like a wow', 'Mujhe farak nahi padta', 'meme'],
+  ['Kuch toh gadbad hai', 'Daya darwaza tod do', 'meme'],
+  ['Lock kiya jaye', 'Audience poll', 'meme'],
+  ['Daya ben', 'Babita ji', 'meme'],
+  ['Uday bhai', 'Majnu bhai', 'meme'],
+  ['Chatur', 'Virus', 'meme'],
+  ['Jeetu bhaiya', 'Sandeep bhaiya', 'meme'],
+  ['Kota Factory', 'Aspirants', 'meme'],
+  ['Gangs of Wasseypur', 'Mirzapur', 'meme'],
+  ['3 Idiots', 'Chhichhore', 'meme'],
+  ['Housefull', 'Dhamaal', 'meme'],
+  ['Bhool Bhulaiyaa', 'Stree', 'meme'],
+  ['Motu Patlu', 'Oggy', 'meme'],
+  ['Nobita', 'Gian', 'meme'],
+  ['Bigg Boss', 'Roadies', 'meme'],
+  ['Sharma ji ka beta', 'Log kya kahenge', 'meme'],
+  ['Padosi aunty', 'Rishtedaar', 'meme'],
+  ['Samay Raina', 'Zakir Khan', 'meme'],
+  ['Sakht launda', 'Simp', 'meme'],
+  ['Abhinav Arora', 'Dolly Chaiwala', 'meme'],
+  ['Orry', 'Uorfi Javed', 'meme'],
+  ['Honey Singh', 'Badshah', 'meme'],
+  ['Diljit Dosanjh', 'AP Dhillon', 'meme'],
+  ['Coldplay tickets', 'Diljit concert', 'meme'],
+  ['Rajpal Yadav', 'Johnny Lever', 'meme'],
+  ['Bolo zubaan kesari', 'Daag achhe hain', 'meme'],
+  ['Red flag', 'Green flag', 'meme'],
+  ['Situationship', 'Talking stage', 'meme'],
+  ['NPC', 'Side character', 'meme'],
+  ['Ghosting', 'Seen zone', 'meme'],
+  ['Brainrot', 'Doomscrolling', 'meme'],
+  ['Gen Z', 'Millennial', 'meme'],
 
   // ---- Desi everyday & college life ----
   ['Chai tapri', 'Dhaba'], ['Cutting chai', 'Masala chai'], ['Vada pav', 'Pav bhaji'], ['Pani puri', 'Bhel puri'],

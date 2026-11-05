@@ -828,13 +828,16 @@ input.code{font-family:var(--f-mono)}
   function shuf(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = rnd(i + 1), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
   function normW(s) { return String(s).toLowerCase().normalize('NFKD').replace(/[^\p{L}\p{N}]+/gu, ' ').trim(); }
   // A word that was just played stays out for the next 30 pairs, then goes back into the random pool.
-  var COOLDOWN = 30;
+  // About 8 in 10 rounds use a pair tagged 'meme' (memes + Hindi slang); the rest use everyday words.
+  var COOLDOWN = 30, MEME_SHARE = 0.8;
   function drawPair() {
     var recent = null; try { recent = JSON.parse(load('uc.recent') || '[]'); } catch (e) { recent = null; }
     if (!Array.isArray(recent)) recent = [];
     var block = {}; recent.forEach(function (w) { block[w] = 1; });
-    var pool = PAIRS.filter(function (pr) { return !block[normW(pr[0])] && !block[normW(pr[1])]; });
-    if (!pool.length) pool = PAIRS;
+    var free = PAIRS.filter(function (pr) { return !block[normW(pr[0])] && !block[normW(pr[1])]; });
+    var wantMeme = rnd(1000) < MEME_SHARE * 1000;
+    var pool = free.filter(function (pr) { return (pr[2] === 'meme') === wantMeme; });
+    if (!pool.length) pool = free.length ? free : PAIRS;
     var pr = pool[rnd(pool.length)];
     recent.push(normW(pr[0]), normW(pr[1]));
     while (recent.length > COOLDOWN * 2) recent.shift();
