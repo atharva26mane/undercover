@@ -430,7 +430,8 @@ input.code{font-family:var(--f-mono)}
 .reactbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom));z-index:25;display:flex;gap:2px;background:#fff;border:3px solid var(--ink);border-radius:999px;box-shadow:var(--sh-s);padding:3px 6px}
 .reactbar button{font-size:22px;width:42px;height:40px;border:0;background:none;border-radius:50%;padding:0}
 .reactbar button:active{transform:scale(1.35);background:var(--yellow-l)}
-body.has-reacts #wrap{padding-bottom:84px}
+body.has-reacts #wrap,body.has-chat #wrap{padding-bottom:84px}
+@media (max-width:400px){.reactbar{left:10px;transform:none}.reactbar button{width:38px}}
 .floater{position:fixed;bottom:70px;z-index:26;pointer-events:none;display:flex;flex-direction:column;align-items:center;animation:floatup 2.2s ease-out forwards}
 .floater .fe{font-size:40px;line-height:1}
 .floater .fn{font-size:11px;font-weight:800;background:var(--ink);color:#fff;border-radius:999px;padding:1px 7px;margin-top:2px}
@@ -438,6 +439,92 @@ body.has-reacts #wrap{padding-bottom:84px}
 .brow{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px dashed var(--line)}
 .brow:first-of-type{border-top:0}
 .rank{width:26px;text-align:center;font-family:var(--f-mono);font-weight:800}
+
+/* ===== v8: modes, joker, chat, segmented controls, dark mode ===== */
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mode{position:relative;display:flex;align-items:center;gap:8px;min-height:50px;padding:6px 10px;border:2.5px solid var(--ink);border-radius:14px;background:var(--card);color:var(--ink);font:inherit;font-weight:800;font-size:14px;text-align:left;box-shadow:var(--sh-s);transition:transform .1s}
+.mode .mi{font-size:20px;flex:none}.mode .ml{flex:1;line-height:1.15}
+.mode .mc{font-family:var(--f-mono);font-size:10px;font-weight:800;color:var(--mute)}
+.mode.on{background:var(--yellow);transform:translate(-1px,-1px);box-shadow:var(--sh)}
+.mode.on .mc{color:var(--ink)}
+.mode .mk{position:absolute;top:-8px;right:-6px;background:var(--green);color:#fff;border:2px solid var(--ink);border-radius:50%;width:22px;height:22px;font-size:12px;display:flex;align-items:center;justify-content:center;animation:popin .25s var(--spring)}
+.mode[disabled]{opacity:1}
+.seg{display:inline-flex;border:2px solid var(--ink);border-radius:10px;overflow:hidden;flex:none}
+.seg button{border:0;background:var(--card);color:var(--ink);font:inherit;font-weight:800;font-size:13px;padding:7px 10px;min-width:42px}
+.seg button+button{border-left:2px solid var(--ink)}
+.seg button.on{background:var(--yellow);color:#121212}
+.rowbtns{display:inline-flex;gap:6px}
+.tag.jok{background:#ffe0f0}.rstamp.jok{background:var(--pink,#E6003D)}.rchip.jok{background:#ffe0f0}
+.winner.jok{background:linear-gradient(135deg,#ff4f9a,#7B2CBF)}
+.wscene.joker{background:radial-gradient(circle at 50% 15%,rgba(255,79,154,.55) 0,rgba(123,44,191,.25) 16%,rgba(18,18,18,0) 36%),#121212}
+.wscene.joker .caught{color:#ff8ac1;text-shadow:3px 3px 0 #7B2CBF}
+/* reaction cooldown bar */
+.reactbar{overflow:hidden}
+.reactbar .cdbar{position:absolute;left:0;bottom:0;height:4px;width:0;background:var(--orange)}
+.reactbar.cool button{opacity:.35}
+.reactbar.cool .cdbar{animation:cd var(--cd,3000ms) linear forwards}
+@keyframes cd{from{width:100%}to{width:0}}
+/* chat */
+.chatbtn{position:fixed;right:8px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:27;width:50px;height:50px;border-radius:50%;border:3px solid var(--ink);background:var(--yellow);font-size:24px;box-shadow:var(--sh-s)}
+.chatbtn .badge{position:absolute;top:-6px;right:-6px;min-width:22px;height:22px;padding:0 5px;border-radius:999px;background:var(--red);color:#fff;border:2px solid var(--ink);font:800 12px/18px var(--f-body);animation:popin .25s var(--spring)}
+.chatsheet{position:fixed;left:0;right:0;bottom:0;z-index:40;max-width:520px;margin:0 auto;height:62vh;background:var(--bg);border:3px solid var(--ink);border-bottom:0;border-radius:22px 22px 0 0;box-shadow:0 -6px 0 var(--ink);display:flex;flex-direction:column;transform:translateY(105%);transition:transform .25s var(--snap)}
+.chatsheet.open{transform:none}
+.chead{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:2px dashed var(--line)}
+.chead b{flex:1;font-family:var(--f-disp);text-transform:uppercase}
+.cinfo{font-family:var(--f-mono);font-size:11px;font-weight:800;color:var(--mute)}
+.cmsgs{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.cm{display:flex;align-items:flex-end;gap:6px;max-width:86%;animation:rise .2s ease-out}
+.cm .cb{background:var(--card);border:2px solid var(--ink);border-radius:14px 14px 14px 4px;padding:6px 10px;box-shadow:var(--sh-s);word-break:break-word;font-weight:700}
+.cm .cn{display:block;border:0;background:none;padding:0;font:800 11px var(--f-mono);color:var(--violet);margin-bottom:1px}
+.cm.me{align-self:flex-end}
+.cm.me .cb{background:var(--yellow);border-radius:14px 14px 4px 14px;color:#121212}
+.cm.sys{align-self:center;font-size:12px;font-weight:800;color:var(--mute);background:var(--bg2);border-radius:999px;padding:3px 10px}
+.cin{display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-top:2px dashed var(--line)}
+.cin input{flex:1;padding:10px 12px;font-size:16px}
+.cin .btn{width:auto;min-height:46px;padding:6px 16px}
+.themebtn{border:2px solid var(--ink);background:var(--card);border-radius:999px;width:36px;height:36px;font-size:16px;box-shadow:var(--sh-s);padding:0}
+/* ===== dark mode ===== */
+html[data-theme=dark]{--bg:#17141F;--bg2:#24202F;--card:#262233;--ink:#08070C;--mute:#B4ACC8;--line:#3A3450;--yellow-l:#3B3315;--green-l:#173B2B;--orange-l:#40261A;--red-l:#47192A;--violet-l:#2E2145;--lav:#2E2145;color-scheme:dark}
+html[data-theme=dark] body{background-color:var(--bg);background-image:radial-gradient(rgba(255,255,255,.05) 1.25px,transparent 1.25px);color:#F4EFE3}
+html[data-theme=dark] h1,html[data-theme=dark] .rname,html[data-theme=dark] .pname,html[data-theme=dark] .suspect,html[data-theme=dark] .seat,html[data-theme=dark] .vbtn,html[data-theme=dark] .chipbtn,html[data-theme=dark] .mode,html[data-theme=dark] .seg button,html[data-theme=dark] .link,html[data-theme=dark] summary,html[data-theme=dark] .ctable td,html[data-theme=dark] .vtop b,html[data-theme=dark] .step span,html[data-theme=dark] .lbl,html[data-theme=dark] .kname,html[data-theme=dark] .mode-title,html[data-theme=dark] .rx,html[data-theme=dark] .handle{color:#F4EFE3}
+html[data-theme=dark] .card,html[data-theme=dark] .suspect,html[data-theme=dark] .srow,html[data-theme=dark] .rrow,html[data-theme=dark] .vrow,html[data-theme=dark] .mode-card,html[data-theme=dark] .seat,html[data-theme=dark] .role-box,html[data-theme=dark] .chipbtn,html[data-theme=dark] .vbtn,html[data-theme=dark] .order,html[data-theme=dark] .stampcard,html[data-theme=dark] .step,html[data-theme=dark] .word,html[data-theme=dark] .plaque,html[data-theme=dark] .ctable td.who,html[data-theme=dark] .ctable th:first-child,html[data-theme=dark] .vchip,html[data-theme=dark] .onode,html[data-theme=dark] .vs,html[data-theme=dark] .btn,html[data-theme=dark] .rx,html[data-theme=dark] .modal-in,html[data-theme=dark] .reactbar,html[data-theme=dark] .ring-n{background-color:var(--card);color:#F4EFE3}
+html[data-theme=dark] .btn.primary{background:var(--orange)}html[data-theme=dark] .btn.yellow,html[data-theme=dark] .chip,html[data-theme=dark] .pill,html[data-theme=dark] .pts,html[data-theme=dark] .mode.on,html[data-theme=dark] .seg button.on,html[data-theme=dark] .seat.next,html[data-theme=dark] .onode.cur,html[data-theme=dark] .banner,html[data-theme=dark] .pass,html[data-theme=dark] .poster{background:var(--yellow);color:#121212}
+html[data-theme=dark] .btn.green{background:var(--green)}html[data-theme=dark] .btn.danger{background:var(--red);color:#fff}html[data-theme=dark] .btn.violet{background:var(--violet)}
+html[data-theme=dark] .btn.small.danger{background:var(--card);color:#ff6b8a}
+html[data-theme=dark] .banner.ok,html[data-theme=dark] .seat.done,html[data-theme=dark] .vs.yes,html[data-theme=dark] .onode.done{background:var(--green-l);color:#F4EFE3}
+html[data-theme=dark] .banner.bad,html[data-theme=dark] .suspect.sel,html[data-theme=dark] .vrow.out{background:var(--red-l);color:#F4EFE3}
+html[data-theme=dark] .status,html[data-theme=dark] .card[style*="yellow-l"]{background:var(--yellow-l)!important;color:#F4EFE3}
+html[data-theme=dark] .tag,html[data-theme=dark] .rchip{color:#121212}
+html[data-theme=dark] input[type=text],html[data-theme=dark] input[type=number]{background:var(--bg2);color:#F4EFE3;border-color:#5A5274}
+html[data-theme=dark] input:focus{background:var(--bg2);border-color:var(--yellow)}
+html[data-theme=dark] .card,html[data-theme=dark] .suspect,html[data-theme=dark] .srow,html[data-theme=dark] .rrow,html[data-theme=dark] .vrow,html[data-theme=dark] .mode-card,html[data-theme=dark] .seat,html[data-theme=dark] .mode,html[data-theme=dark] .stampcard,html[data-theme=dark] .role-box,html[data-theme=dark] .btn,html[data-theme=dark] .order,html[data-theme=dark] .step,html[data-theme=dark] .reactbar,html[data-theme=dark] .modal-in{border-color:#5A5274;box-shadow:3px 3px 0 #000}
+html[data-theme=dark] .dock{background:linear-gradient(to top,var(--bg) 70%,rgba(23,20,31,0))}
+html[data-theme=dark] .ctable .now{background:#3B3315}
+html[data-theme=dark] .chatsheet{border-color:#5A5274;box-shadow:0 -6px 0 #000}
+html[data-theme=dark] .cm .cb{background:var(--card);color:#F4EFE3;border-color:#5A5274}
+html[data-theme=dark] .cm.me .cb{background:var(--yellow);color:#121212}
+html[data-theme=dark] .word.show{background:#0E0C14}
+html[data-theme=dark] .logo{background:var(--yellow);color:#121212}
+html[data-theme=dark] .hostbar{background:#0E0C14}
+html[data-theme=dark] .modal{background:rgba(0,0,0,.7)}
+
+/* header must never push the page wider than the phone */
+html,body{overflow-x:clip} /* clip (not hidden) so the sticky bottom buttons keep working */
+header{flex-wrap:nowrap}
+.hdr-r{gap:6px;min-width:0}
+@media (max-width:420px){.logo{font-size:11.5px;padding:4px 9px;letter-spacing:.06em}.chip{padding:3px 9px;font-size:14px;letter-spacing:.1em}.themebtn{width:32px;height:32px;font-size:14px}.hdr-r .link{padding:6px 2px}}
+
+html[data-theme=dark] .poster h1,html[data-theme=dark] .poster p,html[data-theme=dark] .pass .who,html[data-theme=dark] .pass p,html[data-theme=dark] .pass .to{color:#121212}
+.stage .s-note{color:#FFF8E7}
+html[data-theme=dark] .tag.civ,html[data-theme=dark] .rchip.civ{background:#c8f6dc}
+html[data-theme=dark] .tag.und,html[data-theme=dark] .rchip.und{background:#ffd9c7}
+html[data-theme=dark] .tag.wht,html[data-theme=dark] .rchip.wht{background:#eadcff}
+html[data-theme=dark] .tag.jok,html[data-theme=dark] .rchip.jok{background:#ffd6ec}
+html[data-theme=dark] .tag.ok{background:#c8f6dc}
+html[data-theme=dark] .tag{background:#efe9ff}
+html[data-theme=dark] .wscene .q{background:#262233;color:#F4EFE3;border-color:#5A5274}
+html[data-theme=dark] .wscene .q h2{color:#F4EFE3}
+html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -477,6 +564,8 @@ body.has-reacts #wrap{padding-bottom:84px}
     return h('span', { class: 'av' + (cls ? ' ' + cls : ''), style: 'background:' + PAL[((i % PAL.length) + PAL.length) % PAL.length] }, ch.toUpperCase());
   }
   var PAIRS = /*__WORDS__*/[];
+  var MODES = /*__MODES__*/[];
+  if (!MODES.length) MODES = [{ id: 'mix', icon: '🎲', label: 'Mix everything' }];
   if (!PAIRS.length) PAIRS = [['tea', 'coffee']];
   var S = null, session = null, offset = 0, ws = null, retry = 0, queue = [], open = false;
   function store(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
@@ -529,12 +618,15 @@ body.has-reacts #wrap{padding-bottom:84px}
     else if (m.t === 'err') toast(m.msg);
     else if (m.t === 'notice') toast(m.msg);
     else if (m.t === 'react') floatReact(m.e, m.from);
+    else if (m.t === 'chatlog') { chatList = m.list || []; chatUnread = 0; paintChat(); }
+    else if (m.t === 'chat') { chatList.push(m.m); if (chatList.length > 60) chatList.shift(); if (!chatOpen && !(m.m.id && S && m.m.id === S.me.id)) chatUnread++; paintChat(); if (!chatOpen && !m.m.sys && navigator.vibrate) navigator.vibrate(20); }
     else if (m.t === 'words') { // the lobby's "already played" memory, kept on this phone
       if (Array.isArray(m.used)) store('uc.used', JSON.stringify(m.used));
       if (Array.isArray(m.recent)) store('uc.recent', JSON.stringify(m.recent));
     }
     else if (m.t === 'norejoin') { session = null; store('uc.session', null); S = null; render(); }
     else if (m.t === 'kicked' || m.t === 'left') {
+      chatList = []; chatOpen = false; chatUnread = 0;
       if (m.t === 'kicked') toast('The host removed you from the lobby');
       session = null; store('uc.session', null); S = null; render();
     }
@@ -567,6 +659,7 @@ body.has-reacts #wrap{padding-bottom:84px}
       btn.style.display = '';
       btn.className = 'word' + (shown ? ' show' : '');
       if (!shown) fill(btn, 'Tap to see your word');
+      else if (me.joker) fill(btn, 'You are the 🤡 Joker', h('span', { class: 'big' }, me.word), h('small', null, 'Get yourself voted out to win!'));
       else if (me.white) fill(btn, 'You are Mr. White', h('span', { class: 'big' }, 'No word'), h('small', null, me.hint ? '💡 Hint: ' + me.hint : 'Blend in and work out the word'));
       else fill(btn, 'Your word', h('span', { class: 'big' }, me.word));
     }
@@ -580,8 +673,34 @@ body.has-reacts #wrap{padding-bottom:84px}
   }
   function pidx(id) { for (var i = 0; i < S.players.length; i++) if (S.players[i].id === id) return i; return 0; }
   function nameOf(id) { var p = S.players.filter(function (x) { return x.id === id; })[0]; return p ? p.name : '?'; }
-  function roleLabel(r) { return r === 'civilian' ? 'Civilian' : r === 'undercover' ? 'Undercover' : r === 'white' ? 'Mr. White' : ''; }
-  function roleTag(r) { return r ? h('span', { class: 'tag ' + (r === 'civilian' ? 'civ' : r === 'undercover' ? 'und' : 'wht') }, roleLabel(r)) : null; }
+  function roleLabel(r) { return r === 'civilian' ? 'Civilian' : r === 'undercover' ? 'Undercover' : r === 'white' ? 'Mr. White' : r === 'joker' ? 'Joker 🤡' : ''; }
+  function roleCls(r) { return r === 'civilian' ? 'civ' : r === 'undercover' ? 'und' : r === 'joker' ? 'jok' : 'wht'; }
+  function roleTag(r) { return r ? h('span', { class: 'tag ' + roleCls(r) }, roleLabel(r)) : null; }
+  // word modes ("bag of words")
+  function modeCount(id) { return id === 'mix' ? PAIRS.length : PAIRS.filter(function (p) { return (' ' + (p[4] || '') + ' ').indexOf(' ' + id + ' ') >= 0; }).length; }
+  function modesLabel(sel) { sel = sel && sel.length ? sel : ['mix']; return sel.map(function (id) { var m = MODES.filter(function (x) { return x.id === id; })[0]; return m ? m.icon + ' ' + m.label : id; }).join(' + '); }
+  function modePicker(sel, onChange, readOnly) {
+    sel = sel && sel.length ? sel.slice() : ['mix'];
+    var total = sel[0] === 'mix' ? PAIRS.length : PAIRS.filter(function (p) { return sel.some(function (id) { return (' ' + (p[4] || '') + ' ').indexOf(' ' + id + ' ') >= 0; }); }).length;
+    return h('div', null, h('div', { class: 'modes' }, MODES.map(function (m) {
+      var on = sel.indexOf(m.id) >= 0;
+      return h('button', { class: 'mode' + (on ? ' on' : ''), type: 'button', disabled: !!readOnly, onclick: function () {
+        var next;
+        if (m.id === 'mix') next = ['mix'];
+        else {
+          next = sel.filter(function (x) { return x !== 'mix'; });
+          next = on ? next.filter(function (x) { return x !== m.id; }) : next.concat(m.id);
+          if (!next.length) next = ['mix'];
+        }
+        buzz(10); onChange(next);
+      } }, h('span', { class: 'mi' }, m.icon), h('span', { class: 'ml' }, m.label), h('span', { class: 'mc' }, String(modeCount(m.id))), on ? h('span', { class: 'mk' }, '✓') : null);
+    })), h('p', { class: 'mute small center', style: 'margin:6px 0 0' }, total + ' word pairs in the bag'));
+  }
+  function seg(opts, val, onPick) {
+    return h('div', { class: 'seg' }, opts.map(function (o) {
+      return h('button', { type: 'button', class: o[0] === val ? 'on' : '', onclick: function () { onPick(o[0]); } }, o[1]);
+    }));
+  }
   function playerRow(p, extra) {
     return h('li', null,
       avatar(p.name, pidx(p.id)),
@@ -605,14 +724,19 @@ body.has-reacts #wrap{padding-bottom:84px}
     return h('button', { class: 'btn ' + (cls || ''), type: 'button', onclick: function () { if (confirmText && !confirm(confirmText)) return; send(msg); } }, label);
   }
 
+  /* ---------- dark mode (per phone) ---------- */
+  function applyTheme() { document.documentElement.setAttribute('data-theme', load('uc.theme') === 'dark' ? 'dark' : 'light'); var m = document.querySelector('meta[name=theme-color]'); if (m) m.setAttribute('content', load('uc.theme') === 'dark' ? '#17141F' : '#FFF8E7'); }
+  function themeBtn() { var dark = load('uc.theme') === 'dark'; return h('button', { class: 'themebtn', type: 'button', 'aria-label': dark ? 'Light mode' : 'Dark mode', onclick: function () { store('uc.theme', dark ? 'light' : 'dark'); applyTheme(); renderHeader(); } }, dark ? '☀️' : '🌙'); }
+  applyTheme();
+
   /* ---------- header ---------- */
   var hdr = document.getElementById('hdr');
   function renderHeader() {
-    if (!S) return fill(hdr, h('span', { class: 'logo' }, 'Undercover'), mode === 'menu' ? null : h('button', { class: 'link', type: 'button', onclick: goMenu }, '← Menu'));
+    if (!S) return fill(hdr, h('span', { class: 'logo' }, 'Undercover'), h('div', { class: 'hdr-r' }, themeBtn(), mode === 'menu' ? null : h('button', { class: 'link', type: 'button', onclick: goMenu }, '← Menu')));
     var parts = [];
-    if (S.round > 0 && S.phase !== 'lobby') parts.push(h('span', { class: 'tag' }, 'Round ' + S.round));
+    if (S.round > 0 && S.phase !== 'lobby') parts.push(h('span', { class: 'tag rtag' }, 'R' + S.round));
     fill(hdr, h('span', { class: 'logo' }, 'Undercover'),
-      h('div', { class: 'hdr-r' }, parts,
+      h('div', { class: 'hdr-r' }, parts, themeBtn(),
         h('button', { class: 'chip', type: 'button', onclick: shareLink }, S.code),
         h('button', { class: 'link', type: 'button', onclick: function () { if (confirm('Leave this lobby?')) send({ t: 'leave' }); } }, 'Leave')));
   }
@@ -698,7 +822,8 @@ body.has-reacts #wrap{padding-bottom:84px}
         var s = S.settings, pl = S.plan, supP = S.players.filter(function (p) { return p.sup; })[0];
         fill(summary, h('p', null, 'Time per clue: ' + s.describeSecs + 's'),
           h('p', null, 'Roles for ' + pl.n + ' players: ' + pl.c + ' Civilian · ' + pl.u + ' Undercover · ' + pl.w + ' Mr. White'),
-          h('p', null, 'Mr. White hint: ' + (s.hint ? 'on' : 'off') + ' · Reactions: ' + (s.reacts ? 'on' : 'off') + ' · Leaderboard: ' + (s.board ? 'on' : 'off')));
+          h('p', null, '🎒 Words: ' + modesLabel(s.modes)),
+          h('p', null, 'Mr. White hint: ' + (s.hint ? 'on' : 'off') + ' · Joker: ' + (s.joker ? 'on' : 'off') + ' · Chat: ' + (s.chat ? 'on' + (s.chatSlow ? ' (slow ' + s.chatSlow + 's)' : '') : 'off') + ' · Reactions: ' + (s.reacts ? 'on' : 'off') + ' · Leaderboard: ' + (s.board ? 'on' : 'off')));
         fill(supArea, S.me.sup ? null
           : supP ? h('div', { class: 'banner' }, '🕵️ ' + supP.name + ' is the supervisor (not playing)')
           : S.mySupReq ? h('div', { class: 'banner' }, '⏳ Asked the host to make you supervisor… ', h('button', { class: 'link', type: 'button', onclick: function () { send({ t: 'supReq', cancel: true }); } }, 'Cancel'))
@@ -717,6 +842,9 @@ body.has-reacts #wrap{padding-bottom:84px}
     var hint = toggle('Mr. White gets a hint', 'Shows him the category, e.g. "Food" or "Film villain"', function (v) { send({ t: 'settings', hint: v }); });
     var reacts = toggle('Emoji reactions', 'Everyone can throw 😂 🤨 🤡 during the game', function (v) { send({ t: 'settings', reacts: v }); });
     var boardT = toggle('Leaderboard', 'Points and wins for each player in this lobby', function (v) { send({ t: 'settings', board: v }); });
+    var jokerT = toggle('🤡 Joker (6+ players)', 'One player gets the civilian word and wins alone if voted out', function (v) { send({ t: 'settings', joker: v }); });
+    var chatT = toggle('💬 Chat', 'Open during discussion & voting. Secret words are blocked', function (v) { send({ t: 'settings', chat: v }); });
+    var slowRow = h('div', { class: 'set' }), cdRow = h('div', { class: 'set' }), modesBox = h('div');
     var sup = toggle('I\'ll be the supervisor', 'You won\'t get a word. You choose the words and see everyone\'s role', function (v) { send({ t: 'settings', supervisor: v }); });
     var otherSup = h('div');
     var startBtn = h('button', { class: 'btn primary', type: 'button', onclick: function () { send({ t: 'start' }); } }, 'Start game');
@@ -727,17 +855,27 @@ body.has-reacts #wrap{padding-bottom:84px}
       h('div', { class: 'card' }, count, list),
       h('div', { class: 'card' }, h('h2', null, 'Settings'),
         h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Time per clue', h('small', null, 'seconds for each player\'s turn')), secsStep.root),
-        autoRoles.root, uRow, wRow, planTxt, hint.root, reacts.root, boardT.root, sup.root, otherSup),
+        autoRoles.root, uRow, wRow, planTxt, hint.root, jokerT.root, chatT.root, slowRow, reacts.root, cdRow, boardT.root, sup.root, otherSup),
+      h('div', { class: 'card tight' }, h('h2', null, '🎒 Word modes'), modesBox),
       sw.root, board, startBtn, why);
     return { root: root, update: function () {
       var s = S.settings, pl = S.plan, supP = S.players.filter(function (p) { return p.sup && p.id !== S.me.id; })[0];
       fill(count, 'Players (' + S.players.length + ')');
       fill(list, S.players.map(function (p) {
-        return playerRow(p, p.id !== S.me.id ? h('button', { class: 'btn small danger', type: 'button', onclick: function () { if (confirm('Remove ' + p.name + '?')) send({ t: 'kick', id: p.id }); } }, 'Kick') : null);
+        return playerRow(p, p.id !== S.me.id ? h('span', { class: 'rowbtns' },
+          p.connected ? h('button', { class: 'btn small', type: 'button', title: 'Make host', onclick: function () { if (confirm('Make ' + p.name + ' the host? You will lose host controls.')) send({ t: 'makeHost', id: p.id }); } }, '👑') : null,
+          h('button', { class: 'btn small danger', type: 'button', onclick: function () { if (confirm('Remove ' + p.name + '?')) send({ t: 'kick', id: p.id }); } }, 'Kick')) : null);
       }));
       secsStep.set(s.describeSecs);
       autoRoles.inp.checked = s.autoRoles; sup.inp.checked = S.me.sup;
-      hint.inp.checked = s.hint; reacts.inp.checked = s.reacts; boardT.inp.checked = s.board;
+      hint.inp.checked = s.hint; reacts.inp.checked = s.reacts; boardT.inp.checked = s.board; jokerT.inp.checked = s.joker; chatT.inp.checked = s.chat;
+      fill(slowRow, h('div', { class: 'lbl' }, '🐢 Chat slow mode', h('small', null, 'Seconds between messages per player')),
+        seg([[0, 'Off'], [5, '5s'], [10, '10s'], [30, '30s']], s.chatSlow, function (v) { send({ t: 'settings', chatSlow: v }); }));
+      slowRow.style.display = s.chat ? '' : 'none';
+      fill(cdRow, h('div', { class: 'lbl' }, '⏱️ Reaction cooldown', h('small', null, 'Wait between emojis')),
+        seg([[1, '1s'], [3, '3s'], [10, '10s']], s.reactCd, function (v) { send({ t: 'settings', reactCd: v }); }));
+      cdRow.style.display = s.reacts ? '' : 'none';
+      fill(modesBox, modePicker(s.modes, function (next) { send({ t: 'settings', modes: next }); }));
       uStep.set(s.undercover); wStep.set(s.white);
       uRow.style.display = wRow.style.display = s.autoRoles ? 'none' : '';
       sup.root.style.display = supP ? 'none' : '';
@@ -778,18 +916,76 @@ body.has-reacts #wrap{padding-bottom:84px}
     hostbar.style.display = '';
     fill(hostbar, h('span', { class: 'hb-l' }, 'HOST'),
       S.phase !== 'over' ? h('button', { class: 'btn small', type: 'button', onclick: function () { if (confirm('Scrap this round and deal a new word to everyone? Nobody gets points for it.')) send({ t: 'restart' }); } }, '🔄 New word') : null,
-      S.canUndo ? h('button', { class: 'btn small', type: 'button', onclick: function () { if (confirm('Undo the last kick and vote again?')) send({ t: 'undo' }); } }, '↩ Undo kick') : null);
+      S.canUndo ? h('button', { class: 'btn small', type: 'button', onclick: function () { if (confirm('Undo the last kick and vote again?')) send({ t: 'undo' }); } }, '↩ Undo kick') : null,
+      h('button', { class: 'btn small', type: 'button', onclick: handOver }, '👑 Hand over'));
+  }
+
+  function handOver() {
+    var others = S.players.filter(function (p) { return p.id !== S.me.id && p.connected && !p.left; });
+    if (!others.length) return toast('Nobody else is online');
+    var m = h('div', { class: 'modal' });
+    function close() { if (m.parentNode) m.parentNode.removeChild(m); }
+    fill(m, h('div', { class: 'modal-in' }, h('h1', { style: 'font-size:22px' }, '👑 Make someone else host'), h('p', { class: 'mute small' }, 'They get the host buttons. You keep playing.'),
+      h('div', { class: 'suspects' }, others.map(function (p) {
+        return h('button', { class: 'suspect', type: 'button', onclick: function () { send({ t: 'makeHost', id: p.id }); close(); } }, h('div', { class: 'nm' }, avatar(p.name, pidx(p.id), 'sm'), h('span', null, p.name)));
+      })), h('button', { class: 'btn yellow', type: 'button', onclick: close }, 'Cancel')));
+    document.body.appendChild(m);
   }
 
   /* emoji reactions */
   var reactBar = h('div', { class: 'reactbar' }, ['😂', '🤨', '🤡', '🔥', '😱', '👀'].map(function (e) {
-    return h('button', { type: 'button', 'aria-label': 'React ' + e, onclick: function () { send({ t: 'react', e: e }); } }, e);
-  }));
+    return h('button', { type: 'button', 'aria-label': 'React ' + e, onclick: function () {
+      if (reactBar.classList.contains('cool')) return;
+      send({ t: 'react', e: e });
+      var cd = (S && S.settings && S.settings.reactCd || 3) * 1000;
+      reactBar.style.setProperty('--cd', cd + 'ms'); reactBar.classList.add('cool');
+      setTimeout(function () { reactBar.classList.remove('cool'); }, cd);
+    } }, e);
+  }).concat([h('i', { class: 'cdbar' })]));
   document.body.appendChild(reactBar);
   function syncReactBar() {
     var on = S && S.settings && S.settings.reacts && S.phase !== 'lobby' && !(S.phase === 'whiteguess');
     reactBar.style.display = on ? '' : 'none';
     document.body.classList.toggle('has-reacts', !!on);
+  }
+  /* chat: slow mode, only during discussion, host can mute, secret words blocked */
+  var chatList = [], chatOpen = false, chatUnread = 0, chatNextAt = 0;
+  var chatBtn = h('button', { class: 'chatbtn', type: 'button', 'aria-label': 'Chat', onclick: function () { chatOpen = !chatOpen; chatUnread = chatOpen ? 0 : chatUnread; paintChat(); } }, '💬', h('b', { class: 'badge' }));
+  var chatMsgs = h('div', { class: 'cmsgs' }), chatInp = h('input', { type: 'text', maxlength: 120, placeholder: 'Say something…', autocomplete: 'off', enterkeyhint: 'send' });
+  var chatSend = h('button', { class: 'btn primary', type: 'button', onclick: sendChat }, 'Send'), chatInfo = h('div', { class: 'cinfo' });
+  chatInp.addEventListener('keydown', function (e) { if (e.key === 'Enter') sendChat(); });
+  var chatSheet = h('div', { class: 'chatsheet' }, h('div', { class: 'chead' }, h('b', null, '💬 Chat'), chatInfo, h('button', { class: 'link', type: 'button', onclick: function () { chatOpen = false; paintChat(); } }, 'Close')),
+    chatMsgs, h('div', { class: 'cin' }, chatInp, chatSend));
+  document.body.appendChild(chatBtn); document.body.appendChild(chatSheet);
+  function chatAllowed() { return S && S.settings && S.settings.chat && ['lobby', 'vote', 'elim', 'over'].indexOf(S.phase) >= 0; }
+  function sendChat() {
+    var t = chatInp.value.trim(); if (!t) return;
+    if (!chatAllowed()) return toast('Chat opens during the discussion');
+    send({ t: 'chat', text: t }); chatInp.value = ''; // the server checks slow mode, mutes and secret words
+  }
+  function paintChat() {
+    var on = S && S.settings && S.settings.chat;
+    chatBtn.style.display = on ? '' : 'none';
+    document.body.classList.toggle('has-chat', !!on);
+    chatSheet.classList.toggle('open', !!(on && chatOpen));
+    var badge = chatBtn.querySelector('.badge'); badge.textContent = chatUnread > 9 ? '9+' : chatUnread ? String(chatUnread) : '';
+    badge.style.display = chatUnread ? '' : 'none';
+    if (!on) return;
+    var allowed = chatAllowed(), muted = S.me.muteUntil && S.me.muteUntil > Date.now() + offset;
+    chatInp.disabled = chatSend.disabled = !allowed || !!muted;
+    chatInp.placeholder = muted ? '🔇 You are muted for a bit' : allowed ? 'Say something… (no secret words!)' : '🔒 Chat opens during discussion';
+    fill(chatInfo, S.settings.chatSlow ? '🐢 ' + S.settings.chatSlow + 's' : '');
+    if (!chatOpen) return;
+    var atBottom = chatMsgs.scrollHeight - chatMsgs.scrollTop - chatMsgs.clientHeight < 60;
+    fill(chatMsgs, chatList.length ? chatList.map(function (c) {
+      if (c.sys) return h('div', { class: 'cm sys' }, c.text);
+      var mine = c.id === S.me.id, idx = pidx(c.id);
+      return h('div', { class: 'cm' + (mine ? ' me' : '') }, mine ? null : avatar(c.name, idx, 'xs'),
+        h('div', { class: 'cb' }, mine ? null : h('button', { class: 'cn', type: 'button', onclick: function () {
+          if (S.me.host && c.id !== S.me.id && confirm('Mute ' + c.name + ' for 1 minute?')) send({ t: 'mute', id: c.id });
+        } }, c.name + (S.me.host ? ' ⋯' : '')), h('span', null, c.text)));
+    }) : h('p', { class: 'mute small center' }, 'No messages yet. Roast someone\'s clue 😄'));
+    if (atBottom || true) chatMsgs.scrollTop = chatMsgs.scrollHeight;
   }
   function floatReact(e, from) {
     if (RM) return toast(from + ' ' + e);
@@ -973,9 +1169,9 @@ body.has-reacts #wrap{padding-bottom:84px}
     return { root: h('div', null, top, words, votes, roles, again, h('div', { class: 'gap' }), lobby, wait), update: function () {
       var w = S.winner, g = S.guess;
       if (!fired) { fired = true; if (typeof confetti === 'function') later(confetti, 150); buzz([80, 50, 80]); }
-      fill(top, h('div', { class: 'winner bounce ' + (w === 'civilians' ? 'civ' : w === 'white' ? 'wht' : 'imp') },
-        h('div', { class: 'big' }, w === 'civilians' ? 'Civilians win!' : w === 'white' ? 'Mr. White wins!' : 'Impostors win!'),
-        h('p', null, w === 'civilians' ? 'Every impostor was caught!' : w === 'white' ? nameOf(g && g.by) + ' guessed “' + (g && g.text) + '” ✓' : 'The impostors took over the adda!')));
+      fill(top, h('div', { class: 'winner bounce ' + (w === 'civilians' ? 'civ' : w === 'white' ? 'wht' : w === 'joker' ? 'jok' : 'imp') },
+        h('div', { class: 'big' }, w === 'civilians' ? 'Civilians win!' : w === 'white' ? 'Mr. White wins!' : w === 'joker' ? '🤡 Joker wins!' : 'Impostors win!'),
+        h('p', null, w === 'civilians' ? 'Every impostor was caught!' : w === 'joker' ? nameOf(S.lastElim && S.lastElim.id) + ' fooled everyone into voting them out!' : w === 'white' ? nameOf(g && g.by) + ' guessed “' + (g && g.text) + '” ✓' : 'The impostors took over the adda!')));
       fill(words, S.pair ? [h('h2', null, 'The secret word pair'), h('div', { class: 'tiles' }, h('div', { class: 'tile' }, h('small', null, 'CIVILIAN WORD'), h('b', null, S.pair.civilian)), h('div', { class: 'tile' }, h('small', null, 'UNDERCOVER WORD'), h('b', null, S.pair.undercover)))] : null);
       fill(votes, S.lastElim && S.lastElim.breakdown ? h('div', { class: 'card tight' }, h('h2', null, 'Last vote'), voteBars(S.lastElim.breakdown, S.lastElim.id)) : null);
       fill(roles, h('h2', null, 'Everyone\'s role'), S.players.filter(function (p) { return p.in; }).map(function (p) {
@@ -1030,7 +1226,7 @@ body.has-reacts #wrap{padding-bottom:84px}
   /* ---------- one-phone (pass-and-play) mode ---------- */
   var L = null;
   function newSolo(names) {
-    return { roster: (names || []).filter(Boolean).map(function (n) { return { name: String(n).slice(0, 14), score: 0 }; }), cfg: { u: 1, w: 0, manual: false, hint: false, board: true },
+    return { roster: (names || []).filter(Boolean).map(function (n) { return { name: String(n).slice(0, 14), score: 0 }; }), cfg: { u: 1, w: 0, manual: false, hint: false, board: true, joker: false, modes: ['mix'] },
       players: [], pair: null, step: 'roster', starter: 0, winner: null, last: null, gain: null, scored: false };
   }
   try { L = JSON.parse(load('uc.solo') || 'null'); } catch (e) { L = null; }
@@ -1039,6 +1235,7 @@ body.has-reacts #wrap{padding-bottom:84px}
   if (typeof L.starter !== 'number') L.starter = 0;
   if (!('board' in L.cfg)) L.cfg.board = true;
   if (!('hint' in L.cfg)) L.cfg.hint = false;
+  if (!Array.isArray(L.cfg.modes) || !L.cfg.modes.length) L.cfg.modes = ['mix'];
   function saveSolo() { store('uc.solo', JSON.stringify(L)); }
   var mode = (session || /[?&]c=/.test(location.search)) ? 'online' : (L.step !== 'roster' ? 'solo' : 'menu');
   var IN_ROUND = { spin: 1, reveal: 1, play: 1, result: 1 };
@@ -1068,17 +1265,20 @@ body.has-reacts #wrap{padding-bottom:84px}
     if (!KEYS) KEYS = PAIRS.map(function (p) { return pairKey(p[0], p[1]); });
     var usedArr = loadList('uc.used'), recent = loadList('uc.recent'), used = {};
     usedArr.forEach(function (k) { used[k] = 1; });
-    var idx = PAIRS.map(function (_, i) { return i; }), isMeme = function (i) { return PAIRS[i][2] === 'meme'; };
-    [true, false].forEach(function (m) {
-      var g = idx.filter(function (i) { return isMeme(i) === m; });
-      if (g.every(function (i) { return used[KEYS[i]]; })) g.forEach(function (i) { delete used[KEYS[i]]; });
+    var modes = (L && L.cfg && L.cfg.modes && L.cfg.modes.length) ? L.cfg.modes : ['mix'], mix = modes[0] === 'mix';
+    var idx = PAIRS.map(function (_, i) { return i; }).filter(function (i) { return mix || modes.some(function (id) { return (' ' + (PAIRS[i][4] || '') + ' ').indexOf(' ' + id + ' ') >= 0; }); });
+    if (!idx.length) idx = PAIRS.map(function (_, i) { return i; });
+    var groupOf = function (i) { return mix ? (PAIRS[i][2] === 'meme' ? 'm' : 'n') : 'g'; };
+    ['m', 'n', 'g'].forEach(function (gk) {
+      var g = idx.filter(function (i) { return groupOf(i) === gk; });
+      if (g.length && g.every(function (i) { return used[KEYS[i]]; })) g.forEach(function (i) { delete used[KEYS[i]]; });
     });
     var block = {}; recent.forEach(function (w) { block[w] = 1; });
     var fresh = idx.filter(function (i) { return !used[KEYS[i]]; });
     var ok = fresh.filter(function (i) { return !block[normW(PAIRS[i][0])] && !block[normW(PAIRS[i][1])]; });
-    var want = rnd(1000) < MEME_SHARE * 1000;
-    var pool = ok.filter(function (i) { return isMeme(i) === want; });
-    if (!pool.length) pool = ok.length ? ok : fresh.filter(function (i) { return isMeme(i) === want; });
+    var want = !mix ? 'g' : rnd(1000) < MEME_SHARE * 1000 ? 'm' : 'n';
+    var pool = ok.filter(function (i) { return groupOf(i) === want; });
+    if (!pool.length) pool = ok.length ? ok : fresh.filter(function (i) { return groupOf(i) === want; });
     if (!pool.length) pool = fresh.length ? fresh : idx;
     var i = pool[rnd(pool.length)], pr = PAIRS[i];
     used[KEYS[i]] = 1;
@@ -1090,9 +1290,10 @@ body.has-reacts #wrap{padding-bottom:84px}
   }
   function autoCounts(n) { return { u: Math.max(1, Math.floor((n - 1) / 4)), w: n >= 6 ? (n >= 12 ? 2 : 1) : 0 }; }
   function syncCounts() { if (!L.cfg.manual) { var a = autoCounts(L.roster.length); L.cfg.u = a.u; L.cfg.w = a.w; } }
+  function jokerOn() { return !!L.cfg.joker && L.roster.length >= 6; }
   function checkSetup() {
     var n = L.roster.length, c = L.cfg; syncCounts();
-    var civ = n - c.u - c.w;
+    var civ = n - c.u - c.w - (jokerOn() ? 1 : 0);
     if (n < 3) return 'Add at least 3 players';
     if (c.u + c.w < 1) return 'Add at least one Undercover or Mr. White';
     if (civ < 2 || civ <= c.u + c.w) return 'Too many impostors: civilians must outnumber Undercover + Mr. White';
@@ -1103,11 +1304,12 @@ body.has-reacts #wrap{padding-bottom:84px}
     var c = L.cfg, roles = [], k;
     for (k = 0; k < c.u; k++) roles.push('undercover');
     for (k = 0; k < c.w; k++) roles.push('white');
+    if (jokerOn()) roles.push('joker');
     while (roles.length < L.roster.length) roles.push('civilian');
-    roles = spreadRoles(roles, (L.players || []).filter(function (p) { return p.role && p.role !== 'civilian'; }).map(function (p) { return p.name; }));
+    roles = spreadRoles(roles, (L.players || []).filter(function (p) { return isImpR(p.role); }).map(function (p) { return p.name; }));
     var prevStarter = L.players && L.players.length ? (L.players[L.starter % L.players.length] || {}).name : null;
     L.pair = drawPair();
-    L.players = L.roster.map(function (r, i) { var ro = roles[i]; return { name: r.name, role: ro, word: ro === 'civilian' ? L.pair.civilian : ro === 'undercover' ? L.pair.undercover : '', alive: true, seen: false }; });
+    L.players = L.roster.map(function (r, i) { var ro = roles[i]; return { name: r.name, role: ro, word: ro === 'civilian' || ro === 'joker' ? L.pair.civilian : ro === 'undercover' ? L.pair.undercover : '', alive: true, seen: false }; });
     // random first player each round (not the same person as last round); everything else follows the seats clockwise
     var starters = L.players.map(function (_, i) { return i; }).filter(function (i) { return L.players[i].name !== prevStarter; });
     L.starter = starters.length ? starters[rnd(starters.length)] : rnd(L.players.length);
@@ -1115,16 +1317,17 @@ body.has-reacts #wrap{padding-bottom:84px}
   }
   // Shuffle roles over the seats so impostors don't sit next to each other (when possible), and people who
   // were impostors last game get a much smaller chance of being one again.
+  function isImpR(r) { return r === 'undercover' || r === 'white'; } // the Joker is on nobody's team
   function spreadRoles(roles, prevNames) {
-    var n = roles.length, k = roles.filter(function (r) { return r !== 'civilian'; }).length;
+    var n = roles.length, k = roles.filter(isImpR).length;
     var prev = {}; prevNames.forEach(function (nm) { prev[normW(nm)] = 1; });
     var wasImp = L.roster.map(function (r) { return !!prev[normW(r.name)]; });
     var best = null, bestScore = Infinity, allowRepeat = Math.random() < 0.15; // a repeat now and then keeps it unpredictable
     for (var t = 0; t < 400; t++) {
       var cand = shuf(roles), adj = 0, rep = 0;
       for (var i = 0; i < n; i++) {
-        var imp = cand[i] !== 'civilian';
-        if (imp && cand[(i + 1) % n] !== 'civilian' && n > 2) adj++;
+        var imp = isImpR(cand[i]);
+        if (imp && isImpR(cand[(i + 1) % n]) && n > 2) adj++;
         if (imp && wasImp[i]) rep++;
       }
       if (k * 2 > n) adj = 0; // too many impostors to keep them apart
@@ -1137,8 +1340,8 @@ body.has-reacts #wrap{padding-bottom:84px}
   function seatOrder() { var n = L.players.length, s = L.starter % n, a = []; for (var k = 0; k < n; k++) a.push((s + k) % n); return a; }
   function counts() {
     var alive = L.players.filter(function (p) { return p.alive; });
-    var imp = alive.filter(function (p) { return p.role !== 'civilian'; }).length;
-    return { imp: imp, civ: alive.length - imp };
+    var imp = alive.filter(function (p) { return isImpR(p.role); }).length;
+    return { imp: imp, civ: alive.filter(function (p) { return p.role === 'civilian'; }).length };
   }
   function soloWin() { var c = counts(); return c.imp === 0 ? 'civilians' : c.imp >= c.civ ? 'impostors' : null; }
   // Points: civilians win = +2 each civilian · undercover team wins = +4 each Undercover / Mr. White · Mr. White guesses the word = +6
@@ -1147,7 +1350,8 @@ body.has-reacts #wrap{padding-bottom:84px}
     var w = L.winner, g = (L.last && L.last.guess) || {};
     L.gain = L.players.map(function (p, i) {
       if (w === 'white') return g[i] ? 6 : 0;
-      return w === 'civilians' ? (p.role === 'civilian' ? 2 : 0) : (p.role === 'civilian' ? 0 : 4);
+      if (w === 'joker') return p.role === 'joker' ? 6 : 0;
+      return w === 'civilians' ? (p.role === 'civilian' ? 2 : 0) : (isImpR(p.role) ? 4 : 0);
     });
     L.gain.forEach(function (n, i) { var r = L.roster[i]; if (!r) return; r.score += n; r.games = (r.games || 0) + 1; r.wins = (r.wins || 0) + (n > 0 ? 1 : 0); });
   }
@@ -1156,7 +1360,7 @@ body.has-reacts #wrap{padding-bottom:84px}
     L.gain.forEach(function (n, i) { var r = L.roster[i]; if (!r) return; r.score -= n; r.games = Math.max(0, (r.games || 1) - 1); r.wins = Math.max(0, (r.wins || 0) - (n > 0 ? 1 : 0)); });
     L.scored = false; L.gain = null; L.winner = null;
   }
-  function rcls(role) { return role === 'civilian' ? 'civ' : role === 'undercover' ? 'und' : 'wht'; }
+  function rcls(role) { return roleCls(role); }
   function dock() { var d = h('div', { class: 'dock' }); for (var i = 0; i < arguments.length; i++) add(d, arguments[i]); return d; }
   function orderChips(order, curPos, opts) {
     opts = opts || {};
@@ -1187,7 +1391,7 @@ body.has-reacts #wrap{padding-bottom:84px}
       var stage = h('div', { class: 'stage' },
         h('div', { class: 's-lbl' }, 'SECRET ASSIGNMENT'),
         h('div', { class: 's-word', style: 'font-size:' + size + 'px' }, w),
-        h('div', { class: 's-note' }, p.role === 'white' ? (L.cfg.hint && L.pair && L.pair.cat ? 'Mr. White · hint: ' + L.pair.cat : 'You are Mr. White — listen and bluff') : 'Give one subtle clue on your turn'),
+        h('div', { class: 's-note' }, p.role === 'white' ? (L.cfg.hint && L.pair && L.pair.cat ? 'Mr. White · hint: ' + L.pair.cat : 'You are Mr. White — listen and bluff') : p.role === 'joker' ? '🤡 Joker: get yourself voted out to win!' : 'Give one subtle clue on your turn'),
         h('div', { class: 'shutter' }, h('div', { class: 'plaque' }, h('b', null, 'Top secret chit'), h('span', null, 'Hold the orange button to peek'))));
       var done = h('button', { class: 'btn green', type: 'button', disabled: true, onclick: function () { open(false); opts.onDone(); } }, opts.doneText);
       var hold = h('button', { class: 'btn primary hold', type: 'button' }, 'Hold thumb here to see word');
@@ -1341,7 +1545,9 @@ body.has-reacts #wrap{padding-bottom:84px}
           h('div', { class: 'role-box' }, h('div', { class: 'lbl' }, 'MR. WHITE (NO WORD)'), wS.root)), info, autoRow,
         h('div', { class: 'card tight' },
           soloToggle('Mr. White gets a hint', 'Shows him the category, e.g. "Food" or "Film villain"', 'hint'),
-          soloToggle('Leaderboard', 'Points and wins for each player', 'board')),
+          soloToggle('Leaderboard', 'Points and wins for each player', 'board'),
+          soloToggle('🤡 Joker (6+ players)', 'One player gets the civilian word and wins alone if voted out', 'joker')),
+        h('div', { class: 'card tight' }, h('h2', null, '🎒 Word modes'), modePicker(L.cfg.modes, function (next) { L.cfg.modes = next; saveSolo(); draw(); })),
         err, dock(start));
       refresh(); return node;
     };
@@ -1462,9 +1668,24 @@ body.has-reacts #wrap{padding-bottom:84px}
               h('button', { class: 'btn danger', type: 'button', onclick: function () { answer(false); } }, '✗ No')))));
     }
 
+    function jokerScene(i) {
+      var p = L.players[i];
+      later(function () { buzz([80, 40, 80, 40, 200]); }, 100);
+      return h('div', { class: 'wscene joker' }, RM ? null : h('div', { class: 'flash' }),
+        h('div', { class: 'wscene-in' },
+          h('span', { class: 'pill', style: 'background:var(--yellow)' }, 'VERDICT'),
+          h('div', { class: 'spot' }, avatar(p.name, i, 'xl')),
+          h('div', { class: 'caught' }, '🤡 Joker fooled you all!'),
+          h('div', { class: 'nm' }, p.name),
+          h('p', { class: 'wsub' }, p.name + ' wanted to be voted out. And you did it. 😂'),
+          h('div', { class: 'q' }, h('h2', null, 'The Joker wins this round'), h('p', { class: 'mute small', style: 'margin:4px 0 10px' }, p.name + ' gets +6. Everyone else gets nothing.'),
+            h('button', { class: 'btn primary', type: 'button', onclick: function () { L.winner = 'joker'; scoreGame(); go('over'); } }, 'See results →'))));
+    }
     views.result = function () {
       var ids = L.last.ids, P = L.players;
       if (!L.last.guess) L.last.guess = {};
+      var joker = ids.filter(function (i) { return P[i].role === 'joker'; })[0];
+      if (joker !== undefined) return jokerScene(joker);
       var pendingWhite = ids.filter(function (i) { return P[i].role === 'white' && !(i in L.last.guess); });
       if (pendingWhite.length) return whiteScene(pendingWhite[0]);
       var first = !L.last.shown, c = counts(), w = soloWin();
@@ -1503,8 +1724,8 @@ body.has-reacts #wrap{padding-bottom:84px}
       var w = L.winner, key = L.pair.civilian + '|' + L.pair.undercover + '|' + w;
       if (!celebrated[key]) { celebrated[key] = 1; later(confetti, 150); buzz([80, 50, 80]); }
       return h('div', null,
-        h('div', { class: 'winner bounce ' + (w === 'civilians' ? 'civ' : w === 'white' ? 'wht' : 'imp') }, h('div', { class: 'big' }, w === 'civilians' ? 'Civilians win!' : w === 'white' ? 'Mr. White wins!' : 'Impostors win!'),
-          h('p', null, w === 'civilians' ? 'Every impostor was kicked out of the tapri! +2 each' : w === 'white' ? 'Caught, but guessed the word! +6' : 'The impostors took over the adda! +4 each')),
+        h('div', { class: 'winner bounce ' + (w === 'civilians' ? 'civ' : w === 'white' ? 'wht' : w === 'joker' ? 'jok' : 'imp') }, h('div', { class: 'big' }, w === 'civilians' ? 'Civilians win!' : w === 'white' ? 'Mr. White wins!' : w === 'joker' ? '🤡 Joker wins!' : 'Impostors win!'),
+          h('p', null, w === 'civilians' ? 'Every impostor was kicked out of the tapri! +2 each' : w === 'white' ? 'Caught, but guessed the word! +6' : w === 'joker' ? 'Fooled everyone into voting them out! +6' : 'The impostors took over the adda! +4 each')),
         h('h2', null, 'The secret word pair'),
         h('div', { class: 'tiles' }, h('div', { class: 'tile' }, h('small', null, 'CIVILIAN WORD'), h('b', null, L.pair.civilian)), h('div', { class: 'tile' }, h('small', null, 'UNDERCOVER WORD'), h('b', null, L.pair.undercover))),
         h('h2', null, L.cfg.board ? 'Everyone\'s role & scoreboard' : 'Everyone\'s role'),
@@ -1548,7 +1769,7 @@ body.has-reacts #wrap{padding-bottom:84px}
     }
     if (S && S.phase !== 'lobby' && S.phase !== 'over') wakeLock();
     cur.update();
-    syncSupModal(); syncHostbar(); syncReactBar();
+    syncSupModal(); syncHostbar(); syncReactBar(); paintChat();
   }
   setInterval(function () { if (cur && cur.tick) cur.tick(); }, 250);
 

@@ -18,7 +18,7 @@ const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // no I, L, O, 0, 1
 // ---------------------------------------------------------------- static page
 const htmlPath = [path.join(__dirname, 'public', 'index.html'), path.join(__dirname, 'index.html')].find((f) => fs.existsSync(f));
 // One-phone mode runs fully in the browser, so the page gets the same word pairs as the server (from words.js).
-const htmlRaw = Buffer.from(fs.readFileSync(htmlPath, 'utf8').replace('/*__WORDS__*/[]', () => JSON.stringify(PAIRS)));
+const htmlRaw = Buffer.from(fs.readFileSync(htmlPath, 'utf8').replace('/*__WORDS__*/[]', () => JSON.stringify(PAIRS)).replace('/*__MODES__*/[]', () => JSON.stringify(PAIRS.MODES)));
 const htmlGz = zlib.gzipSync(htmlRaw, { level: 9 });
 const etag = '"' + crypto.createHash('sha1').update(htmlRaw).digest('hex').slice(0, 16) + '"';
 
@@ -132,20 +132,29 @@ function pairKey(a, b) {
 }
 const KEYS = PAIRS.map((p) => pairKey(p[0], p[1]));
 const KEYSET = new Set(KEYS);
-function pickPair(state, rand) { // state = { used: Set<key>, recent: [normalised words] }
-  const isMeme = (i) => PAIRS[i][2] === 'meme';
-  const idx = PAIRS.map((_, i) => i);
-  for (const m of [true, false]) { // a whole group used up -> that group starts over
-    const g = idx.filter((i) => isMeme(i) === m);
-    if (g.every((i) => state.used.has(KEYS[i]))) g.forEach((i) => state.used.delete(KEYS[i]));
+const MODE_IDS = PAIRS.MODES.map((m) => m.id);
+function cleanModes(list) {
+  const m = Array.isArray(list) ? [...new Set(list.filter((x) => MODE_IDS.includes(x) && x !== 'mix'))] : [];
+  return m.length ? m : ['mix'];
+}
+// state = { used: Set<key>, recent: [normalised words] }; modes = chosen word modes (['mix'] = everything)
+function pickPair(state, rand, modes) {
+  modes = cleanModes(modes);
+  const mix = modes[0] === 'mix';
+  const all = PAIRS.map((_, i) => i).filter((i) => mix || PAIRS[i][4].split(' ').some((x) => modes.includes(x)));
+  // groups: in Mix, memes and everyday words alternate about half/half; in chosen modes it's one group
+  const groupOf = (i) => (mix ? (PAIRS[i][2] === 'meme' ? 'm' : 'n') : 'g');
+  for (const g of new Set(all.map(groupOf))) { // a whole group used up -> that group starts over
+    const grp = all.filter((i) => groupOf(i) === g);
+    if (grp.every((i) => state.used.has(KEYS[i]))) grp.forEach((i) => state.used.delete(KEYS[i]));
   }
   const block = new Set(state.recent);
-  const fresh = idx.filter((i) => !state.used.has(KEYS[i]));
+  const fresh = all.filter((i) => !state.used.has(KEYS[i]));
   const ok = fresh.filter((i) => !block.has(norm(PAIRS[i][0])) && !block.has(norm(PAIRS[i][1])));
-  const want = rand(1000) < MEME_SHARE * 1000;
-  let pool = ok.filter((i) => isMeme(i) === want);
-  if (!pool.length) pool = ok.length ? ok : fresh.filter((i) => isMeme(i) === want);
-  if (!pool.length) pool = fresh.length ? fresh : idx;
+  const want = !mix ? 'g' : rand(1000) < MEME_SHARE * 1000 ? 'm' : 'n';
+  let pool = ok.filter((i) => groupOf(i) === want);
+  if (!pool.length) pool = ok.length ? ok : fresh.filter((i) => groupOf(i) === want);
+  if (!pool.length) pool = fresh.length ? fresh : all;
   const i = pool[rand(pool.length)];
   state.used.add(KEYS[i]);
   state.recent.push(norm(PAIRS[i][0]), norm(PAIRS[i][1]));
@@ -153,7 +162,7 @@ function pickPair(state, rand) { // state = { used: Set<key>, recent: [normalise
   return PAIRS[i];
 }
 function drawPair(room) {
-  const [a, b, , cat] = pickPair(room.words, (n) => crypto.randomInt(n));
+  const [a, b, , cat] = pickPair(room.words, (n) => crypto.randomInt(n), room.settings.modes);
   return Math.random() < 0.5 ? { civilian: a, undercover: b, cat } : { civilian: b, undercover: a, cat };
 }
 function loadWords(m) { // memory handed over by the phone that creates the lobby
@@ -169,7 +178,7 @@ function makeRoom(words) {
   const room = {
     code: newCode(), hostId: null, supervisorId: null, players: new Map(),
     phase: 'lobby', round: 0, seq: 0, timer: null, endsAt: 0,
-    settings: { describeSecs: 30, autoRoles: true, undercover: 1, white: 1, whiteGuess: true, hint: false, board: true, reacts: true },
+    settings: { describeSecs: 30, autoRoles: true, undercover: 1, white: 1, whiteGuess: true, hint: false, board: true, reacts: true, modes: ['mix'], joker: false, chat: true, chatSlow: 5, reactCd: 3 },
     words: words || { used: new Set(), recent: [] }, pair: null, nextPair: null, customPair: null, supReq: null,
     typingId: null, typingUntil: 0, typingTimer: null, undo: null, stats: {},
     descs: {}, order: [], turn: 0, history: [], votes: {}, tie: false,
@@ -194,10 +203,12 @@ const alivePlayers = (room) => parts(room).filter((p) => p.alive && p.role);
 function autoCounts(n) {
   return { u: Math.max(1, Math.floor((n - 1) / 4)), w: n >= 6 ? (n >= 12 ? 2 : 1) : 0 };
 }
+const isImp = (p) => p.role === 'undercover' || p.role === 'white'; // the Joker is on nobody's team
 function plan(room) {
   const n = parts(room).length;
   const { u, w } = room.settings.autoRoles ? autoCounts(n) : { u: room.settings.undercover, w: room.settings.white };
-  return { n, u, w, c: n - u - w };
+  const j = room.settings.joker && n >= 6 ? 1 : 0; // Joker only with 6+ players
+  return { n, u, w, j, c: n - u - w - j };
 }
 function checkStart(room) {
   const pl = plan(room);
@@ -252,12 +263,13 @@ function view(room, p) {
     me: { id: p.id, name: p.name, host: p.id === room.hostId, sup, alive: p.alive && !p.left },
   };
   if (inGame && p.role) {
-    v.me.white = p.role === 'white'; v.me.word = p.word;
+    v.me.white = p.role === 'white'; v.me.joker = p.role === 'joker'; v.me.word = p.word;
     if (p.role === 'white' && room.settings.hint && room.pair) v.me.hint = room.pair.cat || 'Custom words';
   }
   if (room.typingId && Date.now() < room.typingUntil) v.typing = room.typingId;
   if (p.id === room.hostId && room.supReq && room.players.get(room.supReq)) v.supReq = { id: room.supReq, name: room.players.get(room.supReq).name };
   if (room.supReq === p.id) v.mySupReq = true;
+  if (p.muteUntil && p.muteUntil > Date.now()) v.me.muteUntil = p.muteUntil;
   if (sup && room.phase === 'lobby') v.customPair = room.customPair;
   if (p.id === room.hostId) v.canUndo = !!room.undo && ['elim', 'whiteguess', 'over'].includes(room.phase);
   if (room.settings.board && (room.phase === 'lobby' || room.phase === 'over')) {
@@ -296,10 +308,13 @@ function startGame(room, custom) {
   const imps = pickImpostors(all, u + w, room.prevImp || new Set());
   const impRoles = shuffle(Array.from({ length: u + w }, (_, i) => (i < u ? 'undercover' : 'white')));
   room.prevImp = new Set(imps.map((p) => p.id));
+  const { j } = plan(room);
+  const rest = shuffle(all.filter((p) => !imps.includes(p)));
+  const joker = j ? rest[0] : null;
   all.forEach((p) => {
     const k = imps.indexOf(p);
-    p.role = k >= 0 ? impRoles[k] : 'civilian';
-    p.word = p.role === 'civilian' ? pair.civilian : p.role === 'undercover' ? pair.undercover : '';
+    p.role = k >= 0 ? impRoles[k] : p === joker ? 'joker' : 'civilian';
+    p.word = p.role === 'civilian' || p.role === 'joker' ? pair.civilian : p.role === 'undercover' ? pair.undercover : '';
     p.alive = true; p.revealed = false;
   });
   room.pair = pair; room.nextPair = null; room.customPair = null; room.undo = null; room.scoredFor = null;
@@ -324,7 +339,7 @@ function pickImpostors(players, k, prev) {
 }
 // Random speaking order, re-shuffled until no two impostors speak back to back (when that's possible).
 function spreadOrder(list) {
-  const imp = (p) => p.role !== 'civilian';
+  const imp = isImp;
   const k = list.filter(imp).length;
   let best = shuffle(list), bestBad = Infinity;
   if (k * 2 > list.length) return best;
@@ -385,6 +400,7 @@ function eliminate(room, id) {
   p.alive = false; p.revealed = true;
   room.lastElim = { id: p.id, name: p.name, role: p.role, breakdown: breakdown(room, room.votes) };
   room.tie = false;
+  if (p.role === 'joker') return endGame(room, 'joker');
   if (p.role === 'white' && room.settings.whiteGuess) {
     setPhase(room, 'whiteguess');
     room.whiteId = p.id;
@@ -402,8 +418,8 @@ function finishGuess(room, text) {
 }
 function checkWin(room) {
   const alive = alivePlayers(room);
-  const imp = alive.filter((p) => p.role !== 'civilian').length;
-  const civ = alive.length - imp;
+  const imp = alive.filter(isImp).length;
+  const civ = alive.filter((p) => p.role === 'civilian').length;
   if (imp === 0) return 'civilians';
   if (imp >= civ) return 'impostors';
   return null;
@@ -420,12 +436,12 @@ function endGame(room, winner) {
   const delta = {};
   for (const p of room.players.values()) {
     if (!p.role) continue;
-    const won = winner === 'civilians' ? p.role === 'civilian' : winner === 'impostors' ? p.role !== 'civilian' : p.id === (room.guess && room.guess.by);
+    const won = winner === 'civilians' ? p.role === 'civilian' : winner === 'impostors' ? isImp(p) : winner === 'joker' ? p.role === 'joker' : p.id === (room.guess && room.guess.by);
     const pts = !won ? 0 : winner === 'civilians' ? 2 : winner === 'impostors' ? 4 : 6;
     const k = norm(p.name);
     const st = room.stats[k] || (room.stats[k] = { name: p.name, pts: 0, games: 0, wins: 0, imp: 0 });
-    st.name = p.name; st.pts += pts; st.games += 1; st.wins += won ? 1 : 0; st.imp += p.role !== 'civilian' ? 1 : 0;
-    delta[k] = { pts, won: won ? 1 : 0, imp: p.role !== 'civilian' ? 1 : 0 };
+    st.name = p.name; st.pts += pts; st.games += 1; st.wins += won ? 1 : 0; st.imp += isImp(p) ? 1 : 0;
+    delta[k] = { pts, won: won ? 1 : 0, imp: isImp(p) ? 1 : 0 };
   }
   room.lastDelta = delta;
   broadcast(room);
@@ -504,6 +520,7 @@ function attach(ws, room, p) {
   ws.ctx = { code: room.code, pid: p.id };
   if (!room.hostId || !room.players.get(room.hostId)) room.hostId = p.id;
   send(ws, { t: 'joined', id: p.id, token: p.token, code: room.code });
+  send(ws, { t: 'chatlog', list: room.chat || [] });
   broadcast(room);
 }
 
@@ -557,6 +574,11 @@ function handle(ws, m) {
       if ('hint' in m) s.hint = !!m.hint;
       if ('board' in m) s.board = !!m.board;
       if ('reacts' in m) s.reacts = !!m.reacts;
+      if ('joker' in m) s.joker = !!m.joker;
+      if ('chat' in m) s.chat = !!m.chat;
+      if ('chatSlow' in m && [0, 5, 10, 30].includes(Number(m.chatSlow))) s.chatSlow = Number(m.chatSlow);
+      if ('reactCd' in m && [1, 3, 10].includes(Number(m.reactCd))) s.reactCd = Number(m.reactCd);
+      if ('modes' in m) { s.modes = cleanModes(m.modes); if (!room.customPair) room.nextPair = drawPair(room); }
       return broadcast(room);
     }
     case 'reroll':
@@ -608,7 +630,7 @@ function handle(ws, m) {
     case 'react': {
       const E = ['😂', '🤨', '🤡', '🔥', '😱', '👀'];
       if (!room.settings.reacts || !E.includes(m.e) || room.phase === 'lobby') return;
-      const now = Date.now(); if (now - (p.lastReact || 0) < 600) return; p.lastReact = now;
+      const now = Date.now(); if (now - (p.lastReact || 0) < room.settings.reactCd * 1000 - 150) return; p.lastReact = now;
       for (const q of room.players.values()) if (q.ws && q.connected) send(q.ws, { t: 'react', e: m.e, from: p.name });
       return;
     }
@@ -669,6 +691,41 @@ function handle(ws, m) {
       if (err) { broadcast(room); return errTo(ws, err); }
       return;
     }
+    case 'chat': {
+      const s = room.settings, now = Date.now();
+      if (!s.chat) return errTo(ws, 'Chat is off');
+      if (!['lobby', 'vote', 'elim', 'over'].includes(room.phase)) return errTo(ws, 'Chat opens during the discussion');
+      if (p.muteUntil && p.muteUntil > now) return errTo(ws, '🔇 You are muted for ' + Math.ceil((p.muteUntil - now) / 1000) + 's');
+      const wait = (p.lastChat || 0) + s.chatSlow * 1000 - now;
+      if (wait > 0) return errTo(ws, '🐢 Slow mode: wait ' + Math.ceil(wait / 1000) + 's');
+      const text = clean(m.text, 120);
+      if (!text) return;
+      if (room.pair && room.phase !== 'over' && room.phase !== 'lobby' && (mentions(text, room.pair.civilian) || mentions(text, room.pair.undercover)))
+        return errTo(ws, '🚫 No secret words in chat!');
+      p.lastChat = now;
+      const msg = { id: p.id, name: p.name, text, at: now };
+      room.chat = (room.chat || []).concat(msg).slice(-40);
+      for (const q of room.players.values()) if (q.ws && q.connected) send(q.ws, { t: 'chat', m: msg });
+      return;
+    }
+    case 'mute': {
+      if (!hostOnly()) return;
+      const t = room.players.get(String(m.id));
+      if (!t || t.id === p.id) return;
+      t.muteUntil = Date.now() + 60000;
+      const msg = { sys: true, text: '🔇 ' + t.name + ' is muted for 1 minute', at: Date.now() };
+      room.chat = (room.chat || []).concat(msg).slice(-40);
+      for (const q of room.players.values()) if (q.ws && q.connected) send(q.ws, { t: 'chat', m: msg });
+      return broadcast(room);
+    }
+    case 'makeHost': {
+      if (!hostOnly()) return;
+      const t = room.players.get(String(m.id));
+      if (!t || t.left || !t.connected || t.id === p.id) return errTo(ws, 'That player is not online');
+      room.hostId = t.id; room.supReq = null;
+      notice(room, '👑 ' + t.name + ' is now the host');
+      return broadcast(room);
+    }
     case 'kick': {
       if (!hostOnly()) return;
       const t = room.players.get(String(m.id));
@@ -722,4 +779,4 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log('');
 });
 
-module.exports = { server, rooms, pickPair, pairKey, COOLDOWN, MEME_SHARE, pickImpostors, spreadOrder };
+module.exports = { server, rooms, pickPair, cleanModes, pairKey, COOLDOWN, MEME_SHARE, pickImpostors, spreadOrder };
