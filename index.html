@@ -362,6 +362,21 @@ input.code{font-family:var(--f-mono)}
 .srow.dead .pname{text-decoration:line-through;color:var(--mute)}
 @media (max-width:360px){.poster h1{font-size:38px}.pass .who{font-size:32px}.suspects{gap:8px}}
 
+
+.winner.wht{background:var(--violet)}
+.wscene{position:fixed;inset:0;z-index:30;overflow:auto;color:#fff;background:radial-gradient(circle at 50% 15%,rgba(255,214,0,.55) 0,rgba(255,214,0,.12) 14%,rgba(18,18,18,0) 34%),#121212;animation:fade .2s}
+.wscene-in{max-width:520px;min-height:100%;margin:0 auto;padding:22px 16px calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;text-align:center}
+.spot{margin-top:22px;animation:spotin .7s var(--spring) both}
+@keyframes spotin{0%{transform:scale(.2) rotate(-25deg);opacity:0}100%{transform:none;opacity:1}}
+.spot .av{box-shadow:0 0 0 6px var(--yellow),0 0 40px 14px rgba(255,214,0,.6)}
+.caught{font-family:var(--f-disp);font-weight:800;font-size:34px;line-height:1;text-transform:uppercase;color:var(--yellow);text-shadow:3px 3px 0 var(--orange);margin:18px 0 6px;animation:stamp .45s .55s var(--spring) both}
+.wscene .nm{font-family:var(--f-disp);font-weight:800;font-size:26px;text-transform:uppercase;margin:4px 0}
+.wsub{font-weight:700;margin:4px 0 18px;text-shadow:0 2px 6px #000}
+.wscene .q{background:#fff;color:var(--ink);border:3px solid var(--ink);border-radius:18px;box-shadow:6px 6px 0 var(--yellow);padding:14px;margin-top:auto;width:100%;text-align:left;animation:rise .35s 1s both}
+.wscene .q h2{color:var(--ink);font-size:13px}
+.yn{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.flash{position:fixed;inset:0;background:#fff;pointer-events:none;animation:flash .5s ease-out forwards;z-index:31}
+@keyframes flash{from{opacity:.9}to{opacity:0}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -872,11 +887,14 @@ input.code{font-family:var(--f-mono)}
     return { imp: imp, civ: alive.length - imp };
   }
   function soloWin() { var c = counts(); return c.imp === 0 ? 'civilians' : c.imp >= c.civ ? 'impostors' : null; }
-  // Points: civilians win = +2 each civilian · undercover team wins = +4 each Undercover / Mr. White
+  // Points: civilians win = +2 each civilian · undercover team wins = +4 each Undercover / Mr. White · Mr. White guesses the word = +6
   function scoreGame() {
     if (L.scored) return; L.scored = true;
-    var w = L.winner;
-    L.gain = L.players.map(function (p) { return w === 'civilians' ? (p.role === 'civilian' ? 2 : 0) : (p.role === 'civilian' ? 0 : 4); });
+    var w = L.winner, g = (L.last && L.last.guess) || {};
+    L.gain = L.players.map(function (p, i) {
+      if (w === 'white') return g[i] ? 6 : 0;
+      return w === 'civilians' ? (p.role === 'civilian' ? 2 : 0) : (p.role === 'civilian' ? 0 : 4);
+    });
     L.gain.forEach(function (n, i) { if (L.roster[i]) L.roster[i].score += n; });
   }
   function rcls(role) { return role === 'civilian' ? 'civ' : role === 'undercover' ? 'und' : 'wht'; }
@@ -1139,8 +1157,36 @@ input.code{font-family:var(--f-mono)}
     };
 
     /* ---- kick result: role stamp only (word stays secret) ---- */
+    /* Mr. White caught: spotlight scene; he says his guess out loud and the group taps Yes / No */
+    function whiteScene(i) {
+      var p = L.players[i], g = L.last.guess;
+      later(function () { buzz([60, 40, 60, 40, 200]); }, 100);
+      function answer(yes) {
+        if (yes && !confirm(p.name + ' guessed the word correctly? Mr. White wins this round.')) return;
+        g[i] = yes; saveSolo();
+        if (yes) { L.winner = 'white'; scoreGame(); return go('over'); }
+        draw(); window.scrollTo(0, 0);
+      }
+      return h('div', { class: 'wscene' }, RM ? null : h('div', { class: 'flash' }),
+        h('div', { class: 'wscene-in' },
+          h('span', { class: 'pill ink', style: 'background:var(--yellow);color:var(--ink)' }, 'VERDICT'),
+          h('div', { class: 'spot' }, avatar(p.name, i, 'xl')),
+          h('div', { class: 'caught' }, 'Mr. White pakda gaya!'),
+          h('div', { class: 'nm' }, p.name),
+          h('p', { class: 'wsub' }, 'Ek last chance, ' + p.name + '! Say the civilians\' word out loud. 🎤'),
+          h('div', { class: 'q' }, h('h2', null, 'Did ' + p.name + ' guess the word?'),
+            h('p', { class: 'mute small', style: 'margin:4px 0 0' }, 'Civilians decide. If yes, Mr. White wins and the round ends.'),
+            h('div', { class: 'yn' },
+              h('button', { class: 'btn green', type: 'button', onclick: function () { answer(true); } }, '✓ Yes'),
+              h('button', { class: 'btn danger', type: 'button', onclick: function () { answer(false); } }, '✗ No')))));
+    }
+
     views.result = function () {
-      var ids = L.last.ids, first = !L.last.shown, P = L.players, c = counts(), w = soloWin();
+      var ids = L.last.ids, P = L.players;
+      if (!L.last.guess) L.last.guess = {};
+      var pendingWhite = ids.filter(function (i) { return P[i].role === 'white' && !(i in L.last.guess); });
+      if (pendingWhite.length) return whiteScene(pendingWhite[0]);
+      var first = !L.last.shown, c = counts(), w = soloWin();
       if (first) { L.last.shown = true; saveSolo(); later(function () { buzz([40, 60, 40]); }, 450); }
       var cont = h('button', { class: 'btn primary', type: 'button', onclick: function () {
         if (w) { L.winner = w; scoreGame(); return go('over'); }
@@ -1155,6 +1201,7 @@ input.code{font-family:var(--f-mono)}
           var p = P[i];
           return h('div', { class: 'stampcard', style: 'animation-delay:' + (k * 0.35) + 's' }, h('h2', null, 'Kicked from the circle'), h('div', { class: 'kname' }, p.name),
             h('div', { class: 'rstamp ' + rcls(p.role), style: 'animation-delay:' + (0.3 + k * 0.35) + 's' }, roleLabel(p.role)),
+            p.role === 'white' && L.last.guess[i] === false ? h('p', { style: 'font-weight:800;margin:4px 0' }, 'Guessed the word? ✗ No') : null,
             h('p', { class: 'mute small' }, 'The word stays secret until the game ends.'));
         }),
         h('div', { class: 'card status' }, h('h2', null, 'Adda status'), h('p', null, status)),
@@ -1166,8 +1213,8 @@ input.code{font-family:var(--f-mono)}
       var w = L.winner, key = L.pair.civilian + '|' + L.pair.undercover + '|' + w;
       if (!celebrated[key]) { celebrated[key] = 1; later(confetti, 150); buzz([80, 50, 80]); }
       return h('div', null,
-        h('div', { class: 'winner bounce ' + (w === 'civilians' ? 'civ' : 'imp') }, h('div', { class: 'big' }, w === 'civilians' ? 'Civilians win!' : 'Impostors win!'),
-          h('p', null, w === 'civilians' ? 'Every impostor was kicked out of the tapri! +2 each' : 'The impostors took over the adda! +4 each')),
+        h('div', { class: 'winner bounce ' + (w === 'civilians' ? 'civ' : w === 'white' ? 'wht' : 'imp') }, h('div', { class: 'big' }, w === 'civilians' ? 'Civilians win!' : w === 'white' ? 'Mr. White wins!' : 'Impostors win!'),
+          h('p', null, w === 'civilians' ? 'Every impostor was kicked out of the tapri! +2 each' : w === 'white' ? 'Caught, but guessed the word! +6' : 'The impostors took over the adda! +4 each')),
         h('h2', null, 'The secret word pair'),
         h('div', { class: 'tiles' }, h('div', { class: 'tile' }, h('small', null, 'CIVILIAN WORD'), h('b', null, L.pair.civilian)), h('div', { class: 'tile' }, h('small', null, 'UNDERCOVER WORD'), h('b', null, L.pair.undercover))),
         h('h2', null, 'Everyone\'s role & scoreboard'),
