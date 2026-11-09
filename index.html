@@ -329,7 +329,7 @@ input.code{font-family:var(--f-mono)}
 .sheet-in .grow{flex:1}
 
 /* discussion: suspect cards */
-.suspects{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px}
+.suspects{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-bottom:6px}
 .suspect{background:#fff;border:3px solid var(--ink);border-radius:14px;box-shadow:var(--sh-s);padding:10px;min-height:74px;display:flex;flex-direction:column;gap:6px;text-align:left;font:inherit;color:var(--ink);transition:transform .1s ease}
 .suspect .top{display:flex;justify-content:space-between;align-items:center;gap:4px}
 .speaks{font-family:var(--f-mono);font-size:10.5px;font-weight:800;background:var(--ink);color:#fff;padding:2px 7px;border-radius:999px;white-space:nowrap}
@@ -484,7 +484,32 @@ body.has-reacts #wrap,body.has-chat #wrap{padding-bottom:84px}
 .cin .btn{width:auto;min-height:46px;padding:6px 16px}
 .themebtn{border:2px solid var(--ink);background:var(--card);border-radius:999px;width:36px;height:36px;font-size:16px;box-shadow:var(--sh-s);padding:0}
 .themebtn.off{opacity:.45;text-decoration:line-through}
-.sclue{font-size:12.5px;font-style:italic;opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.suspect{min-width:0;overflow:hidden}
+.ctable .cn .num{font:800 10px var(--f-mono);background:var(--ink);color:#fff;border-radius:999px;padding:1px 5px;margin-right:4px}
+html[data-theme=dark] .ctable .cn .num{background:#F4EFE3;color:#121212}
+.hostline{display:flex;align-items:center;gap:6px;font-weight:800;font-size:13px;margin:-6px 0 10px;color:var(--mute)}
+.hostline b{color:var(--ink)}
+html[data-theme=dark] .hostline b{color:#F4EFE3}
+.setsheet .modal-in{max-width:360px}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:2px dashed var(--bg2);font-weight:800}
+.setrow small{display:block;font-weight:600;color:var(--mute);font-size:12px}
+.cm .ct{display:block;text-align:right;font:600 10px var(--f-mono);opacity:.6;margin-top:2px}
+.cm.me .ct{color:#121212}
+.cm .cb{border-radius:16px 16px 16px 4px}
+.cm.me .cb{border-radius:16px 16px 4px 16px}
+.cm.cont .av{visibility:hidden}.cm.cont .cn{display:none}
+.cday{align-self:center;font:700 11px var(--f-mono);color:var(--mute)}
+.cfloats{position:fixed;left:8px;right:66px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:26;display:flex;flex-direction:column;align-items:flex-start;gap:6px;pointer-events:none}
+.cfloat{pointer-events:auto;max-width:100%;display:flex;align-items:center;gap:6px;background:var(--card);color:var(--ink);border:2px solid var(--ink);border-radius:16px 16px 16px 4px;box-shadow:var(--sh-s);padding:5px 10px 5px 5px;font-weight:700;font-size:14px;animation:cfin .25s var(--spring),cfout .4s ease-in 4.2s forwards}
+.cfloat b{font:800 11px var(--f-mono);color:var(--violet);display:block}
+.cfloat span.tx{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+html[data-theme=dark] .cfloat{background:var(--card);color:#F4EFE3;border-color:#5A5274}
+@keyframes cfin{from{opacity:0;transform:translateY(14px) scale(.9)}to{opacity:1;transform:none}}
+@keyframes cfout{to{opacity:0;transform:translateY(-12px)}}
+.watchbar{background:var(--violet);color:#fff;border:3px solid var(--ink);border-radius:14px;padding:8px 12px;font-weight:800;margin-bottom:12px}
+.ucask{background:var(--yellow-l);border-style:dashed}
+html[data-theme=dark] .ucask{background:#2b2640}
+.sclue{font-size:12.5px;font-style:italic;opacity:.8;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word}
 /* ===== dark mode ===== */
 html[data-theme=dark]{--bg:#17141F;--bg2:#24202F;--card:#262233;--ink:#08070C;--mute:#B4ACC8;--line:#3A3450;--yellow-l:#3B3315;--green-l:#173B2B;--orange-l:#40261A;--red-l:#47192A;--violet-l:#2E2145;--lav:#2E2145;color-scheme:dark}
 html[data-theme=dark] body{background-color:var(--bg);background-image:radial-gradient(rgba(255,255,255,.05) 1.25px,transparent 1.25px);color:#F4EFE3}
@@ -608,7 +633,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
 
   var lastPhase = null;
   function onMsg(m) {
-    if (m.t === 'joined') { session = { id: m.id, token: m.token, code: m.code }; store('uc.session', JSON.stringify(session)); }
+    if (m.t === 'joined') { session = { id: m.id, token: m.token, code: m.code }; store('uc.session', JSON.stringify(session)); vapidKey = m.vapid || null; if (load('uc.push') === 'on') enablePush(false); setTimeout(function () { send({ t: 'vis', hidden: document.visibilityState === 'hidden' }); }, 300); }
     else if (m.t === 'state') {
       offset = m.now - Date.now();
       var phaseChanged = !S || S.phase !== m.phase;
@@ -621,7 +646,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
     else if (m.t === 'notice') toast(m.msg);
     else if (m.t === 'react') floatReact(m.e, m.from);
     else if (m.t === 'chatlog') { chatList = m.list || []; chatUnread = 0; paintChat(); }
-    else if (m.t === 'chat') { chatList.push(m.m); if (chatList.length > 60) chatList.shift(); if (!chatOpen && !(m.m.id && S && m.m.id === S.me.id)) chatUnread++; paintChat(); if (!chatOpen && !m.m.sys) buzz(20); }
+    else if (m.t === 'chat') { chatList.push(m.m); if (chatList.length > 60) chatList.shift(); if (!chatOpen && !(m.m.id && S && m.m.id === S.me.id)) { chatUnread++; if (!m.m.sys) { floatChat(m.m); buzz(30); } } paintChat(); }
     else if (m.t === 'words') { // the lobby's "already played" memory, kept on this phone
       if (Array.isArray(m.used)) store('uc.used', JSON.stringify(m.used));
       if (Array.isArray(m.recent)) store('uc.recent', JSON.stringify(m.recent));
@@ -728,6 +753,55 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
 
   /* ---------- dark mode (per phone) ---------- */
   function applyTheme() { document.documentElement.setAttribute('data-theme', load('uc.theme') === 'dark' ? 'dark' : 'light'); var m = document.querySelector('meta[name=theme-color]'); if (m) m.setAttribute('content', load('uc.theme') === 'dark' ? '#17141F' : '#FFF8E7'); }
+  function setBtn() { return h('button', { class: 'themebtn', type: 'button', 'aria-label': 'Settings', onclick: openSettings }, '⚙️'); }
+  function openSettings() {
+    var m = h('div', { class: 'modal setsheet' });
+    function close() { if (m.parentNode) m.parentNode.removeChild(m); }
+    function row(label, hint, on, fn) { var t = toggle(label, hint, fn); t.inp.checked = on; return t.root; }
+    var pushState = h('span', { class: 'mute small' });
+    function paintPush() { fill(pushState, pushStatus()); }
+    fill(m, h('div', { class: 'modal-in' }, h('h1', { style: 'font-size:22px' }, '⚙️ This phone'),
+      row('🌙 Dark mode', '', load('uc.theme') === 'dark', function (v) { store('uc.theme', v ? 'dark' : 'light'); applyTheme(); }),
+      row('📳 Vibration', 'Buzzes on your turn, voting, verdict…', load('uc.haptic') !== 'off', function (v) { store('uc.haptic', v ? 'on' : 'off'); if (v) buzz(120); }),
+      h('button', { class: 'btn small', type: 'button', onclick: function () {
+        if (!navigator.vibrate) return toast('This browser can\'t vibrate (iPhone browsers block it)');
+        if (load('uc.haptic') === 'off') return toast('Turn Vibration on first');
+        var okv = navigator.vibrate([200, 100, 200]); toast(okv ? 'Bzz bzz! Felt nothing? Check your phone\'s vibration / battery saver' : 'Your browser blocked vibration');
+      } }, '📳 Test vibration'),
+      h('div', { class: 'gap' }),
+      h('div', { class: 'setrow' }, h('div', null, '🔔 Background alerts', h('small', null, 'Phone notification + buzz when it\'s your turn, even if the app is closed')), pushState),
+      h('button', { class: 'btn small yellow', type: 'button', onclick: function () { enablePush(true).then(paintPush); } }, 'Turn on alerts'),
+      h('div', { class: 'gap' }), h('button', { class: 'btn', type: 'button', onclick: function () { close(); renderHeader(); } }, 'Done')));
+    paintPush();
+    document.body.appendChild(m);
+  }
+  /* background alerts: web push via the service worker */
+  var vapidKey = null;
+  function pushStatus() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !window.Notification) return 'Not supported here';
+    if (Notification.permission === 'denied') return 'Blocked in browser settings';
+    return Notification.permission === 'granted' && load('uc.push') === 'on' ? '✅ On' : 'Off';
+  }
+  function b64key(k) { var p = '='.repeat((4 - k.length % 4) % 4), raw = atob((k + p).replace(/-/g, '+').replace(/_/g, '/')), a = new Uint8Array(raw.length); for (var i = 0; i < raw.length; i++) a[i] = raw.charCodeAt(i); return a; }
+  function enablePush(ask) {
+    try {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window) || !window.Notification) { if (ask) toast('This browser can\'t do background alerts'); return Promise.resolve(); }
+      if (!vapidKey) { if (ask) { store('uc.push', 'on'); toast('Alerts will turn on once you are in a lobby'); } return Promise.resolve(); }
+      var perm = Notification.permission === 'granted' ? Promise.resolve('granted') : ask ? Notification.requestPermission() : Promise.resolve(Notification.permission);
+      return perm.then(function (pr) {
+        if (pr !== 'granted') { if (ask) toast('Allow notifications to get alerts'); return; }
+        store('uc.push', 'on');
+        return navigator.serviceWorker.ready.then(function (reg) {
+          return reg.pushManager.getSubscription().then(function (old) {
+            var same = old && old.options && old.options.applicationServerKey && btoa(String.fromCharCode.apply(null, new Uint8Array(old.options.applicationServerKey))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '') === vapidKey;
+            if (same) return old;
+            return (old ? old.unsubscribe() : Promise.resolve()).then(function () { return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64key(vapidKey) }); });
+          }).then(function (sub) { send({ t: 'push', sub: sub.toJSON() }); if (ask) toast('🔔 Background alerts on'); });
+        });
+      }).catch(function () { if (ask) toast('Could not turn on alerts'); });
+    } catch (e) { return Promise.resolve(); }
+  }
+  document.addEventListener('visibilitychange', function () { if (S) send({ t: 'vis', hidden: document.visibilityState === 'hidden' }); });
   function hapticBtn() { var off = load('uc.haptic') === 'off'; return h('button', { class: 'themebtn' + (off ? ' off' : ''), type: 'button', 'aria-label': off ? 'Vibration off' : 'Vibration on', onclick: function () { store('uc.haptic', off ? 'on' : 'off'); if (off) buzz(80); toast(off ? '📳 Vibration on' : 'Vibration off'); renderHeader(); } }, '📳'); }
   function themeBtn() { var dark = load('uc.theme') === 'dark'; return h('button', { class: 'themebtn', type: 'button', 'aria-label': dark ? 'Light mode' : 'Dark mode', onclick: function () { store('uc.theme', dark ? 'light' : 'dark'); applyTheme(); renderHeader(); } }, dark ? '☀️' : '🌙'); }
   applyTheme();
@@ -735,11 +809,11 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
   /* ---------- header ---------- */
   var hdr = document.getElementById('hdr');
   function renderHeader() {
-    if (!S) return fill(hdr, h('span', { class: 'logo' }, 'Undercover'), h('div', { class: 'hdr-r' }, hapticBtn(), themeBtn(), mode === 'menu' ? null : h('button', { class: 'link', type: 'button', onclick: goMenu }, '← Menu')));
+    if (!S) return fill(hdr, h('span', { class: 'logo' }, 'Undercover'), h('div', { class: 'hdr-r' }, setBtn(), mode === 'menu' ? null : h('button', { class: 'link', type: 'button', onclick: goMenu }, '← Menu')));
     var parts = [];
     if (S.round > 0 && S.phase !== 'lobby') parts.push(h('span', { class: 'tag rtag' }, 'R' + S.round));
     fill(hdr, h('span', { class: 'logo' }, 'Undercover'),
-      h('div', { class: 'hdr-r' }, parts, hapticBtn(), themeBtn(),
+      h('div', { class: 'hdr-r' }, parts, setBtn(),
         h('button', { class: 'chip', type: 'button', onclick: shareLink }, S.code),
         h('button', { class: 'link', type: 'button', onclick: function () { if (confirm('Leave this lobby?')) send({ t: 'leave' }); } }, 'Leave')));
   }
@@ -911,17 +985,28 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
     document.body.appendChild(supModal);
   }
 
+  /* joined mid-game: watching until the next game */
+  var watchbar = h('div', { class: 'watchbar' }, '👀 You joined mid-game. You can see everyone\'s word & role. You play from the next game. Keep a straight face! 🤐');
+  document.getElementById('wrap').insertBefore(watchbar, document.getElementById('app'));
+  function syncWatch() { watchbar.style.display = S && S.me.watch ? '' : 'none'; }
   /* host tools during a game: new word / undo last kick */
   var hostbar = h('div', { class: 'hostbar' });
   document.getElementById('wrap').insertBefore(hostbar, document.getElementById('app'));
   function syncHostbar() {
     var inGame = S && ['describe', 'vote', 'whiteguess', 'elim', 'over'].indexOf(S.phase) >= 0;
-    if (!S || !S.me.host || !inGame) { hostbar.style.display = 'none'; return; }
+    if (!S || !inGame) { hostbar.style.display = 'none'; return; }
     hostbar.style.display = '';
+    if (!S.me.host) { // everyone can see who runs the game
+      var hp = S.players.filter(function (p) { return p.host; })[0];
+      hostbar.className = 'hostline';
+      return fill(hostbar, '👑 Host:', h('b', null, hp ? hp.name : '—'), hp && !hp.connected ? h('span', { class: 'tag' }, 'offline') : null);
+    }
+    hostbar.className = 'hostbar';
     fill(hostbar, h('span', { class: 'hb-l' }, 'HOST'),
       S.phase !== 'over' ? h('button', { class: 'btn small', type: 'button', onclick: function () { if (confirm('Scrap this round and deal a new word to everyone? Nobody gets points for it.')) send({ t: 'restart' }); } }, '🔄 New word') : null,
       S.canUndo ? h('button', { class: 'btn small', type: 'button', onclick: function () { if (confirm('Undo the last kick and vote again?')) send({ t: 'undo' }); } }, '↩ Undo kick') : null,
-      h('button', { class: 'btn small', type: 'button', onclick: handOver }, '👑 Hand over'));
+      h('button', { class: 'btn small', type: 'button', onclick: handOver }, '👑 Hand over'),
+      S.phase !== 'over' ? h('button', { class: 'btn small', type: 'button', onclick: function () { if (confirm('Stop this round now and take everyone back to the lobby? Nobody gets points.')) send({ t: 'abort' }); } }, '🛑 End round') : null);
   }
 
   function handOver() {
@@ -954,7 +1039,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
   }
   /* chat: slow mode, only during discussion, host can mute, secret words blocked */
   var chatList = [], chatOpen = false, chatUnread = 0, chatNextAt = 0;
-  var chatBtn = h('button', { class: 'chatbtn', type: 'button', 'aria-label': 'Chat', onclick: function () { chatOpen = !chatOpen; chatUnread = chatOpen ? 0 : chatUnread; paintChat(); } }, '💬', h('b', { class: 'badge' }));
+  var chatBtn = h('button', { class: 'chatbtn', type: 'button', 'aria-label': 'Chat', onclick: function () { chatOpen = !chatOpen; chatUnread = chatOpen ? 0 : chatUnread; if (chatOpen) clearFloats(); paintChat(); } }, '💬', h('b', { class: 'badge' }));
   var chatMsgs = h('div', { class: 'cmsgs' }), chatInp = h('input', { type: 'text', maxlength: 120, placeholder: 'Say something…', autocomplete: 'off', enterkeyhint: 'send' });
   var chatSend = h('button', { class: 'btn primary', type: 'button', onclick: sendChat }, 'Send'), chatInfo = h('div', { class: 'cinfo' });
   chatInp.addEventListener('keydown', function (e) { if (e.key === 'Enter') sendChat(); });
@@ -981,16 +1066,27 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
     fill(chatInfo, S.settings.chatSlow ? '🐢 ' + S.settings.chatSlow + 's' : '');
     if (!chatOpen) return;
     var atBottom = chatMsgs.scrollHeight - chatMsgs.scrollTop - chatMsgs.clientHeight < 60;
+    var prev = null;
     fill(chatMsgs, chatList.length ? chatList.map(function (c) {
-      if (c.sys) return h('div', { class: 'cm sys' }, c.text);
-      var mine = c.id === S.me.id, idx = pidx(c.id);
-      return h('div', { class: 'cm' + (mine ? ' me' : '') }, mine ? null : avatar(c.name, idx, 'xs'),
+      if (c.sys) { prev = null; return h('div', { class: 'cm sys' }, c.text); }
+      var mine = c.id === S.me.id, idx = pidx(c.id), cont = prev && prev.id === c.id && c.at - prev.at < 120000; prev = c;
+      return h('div', { class: 'cm' + (mine ? ' me' : '') + (cont ? ' cont' : '') }, mine ? null : h('span', { class: 'av' }, avatar(c.name, idx, 'xs')),
         h('div', { class: 'cb' }, mine ? null : h('button', { class: 'cn', type: 'button', onclick: function () {
           if (S.me.host && c.id !== S.me.id && confirm('Mute ' + c.name + ' for 1 minute?')) send({ t: 'mute', id: c.id });
-        } }, c.name + (S.me.host ? ' ⋯' : '')), h('span', null, c.text)));
+        } }, c.name + (S.me.host ? ' ⋯' : '')), h('span', null, c.text), c.at ? h('span', { class: 'ct' }, hhmm(c.at)) : null));
     }) : h('p', { class: 'mute small center' }, 'No messages yet. Roast someone\'s clue 😄'));
     if (atBottom || true) chatMsgs.scrollTop = chatMsgs.scrollHeight;
   }
+  function hhmm(t) { var d = new Date(t - offset); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
+  var cfloats = h('div', { class: 'cfloats' }); document.body.appendChild(cfloats);
+  function floatChat(c) { // a missed message floats up for a few seconds; tap it to open the chat
+    var el = h('button', { class: 'cfloat', type: 'button', onclick: function () { chatOpen = true; chatUnread = 0; clearFloats(); paintChat(); } },
+      avatar(c.name, pidx(c.id), 'xs'), h('span', null, h('b', null, c.name), h('span', { class: 'tx' }, c.text)));
+    cfloats.appendChild(el);
+    while (cfloats.children.length > 3) cfloats.removeChild(cfloats.firstChild);
+    setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 4700);
+  }
+  function clearFloats() { while (cfloats.firstChild) cfloats.removeChild(cfloats.firstChild); }
   function floatReact(e, from) {
     if (RM) return toast(from + ' ' + e);
     var el = h('div', { class: 'floater', style: 'left:' + (10 + Math.random() * 75) + '%' }, h('span', { class: 'fe' }, e), h('span', { class: 'fn' }, from));
@@ -1003,8 +1099,10 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
     var body = h('div');
     box.appendChild(body);
     return { root: box, update: function () {
-      box.style.display = S.me.sup ? '' : 'none';
-      if (!S.me.sup) return;
+      var see = S.me.sup || S.me.watch;
+      box.style.display = see ? '' : 'none';
+      if (!see) return;
+      fill(box.firstChild, S.me.watch ? '👀 Everyone\'s word' : 'Supervisor view');
       fill(body, S.players.filter(function (p) { return p.in; }).map(function (p) {
         var live = liveFn ? liveFn(p) : null;
         return h('div', { class: 'sup-row' },
@@ -1023,17 +1121,19 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
       .map(function (r) { var m = {}; r.items.forEach(function (it) { m[it[0]] = it[1]; }); return { m: m, live: false }; });
     if (live) cols.push({ m: S.clues || {}, live: true });
     if (!cols.length) return null;
-    var order = (live && S.order) ? S.order.slice() : [];
+    var lastItems = null; for (var k = (S.history || []).length - 1; k >= 0; k--) if (S.history[k].items && S.history[k].items.length) { lastItems = S.history[k].items.map(function (it) { return it[0]; }); break; }
+    var order = (live && S.order) ? S.order.slice() : (lastItems || []).slice();
+    var num = {}; order.forEach(function (id, k) { num[id] = k + 1; });
     S.players.forEach(function (p) { if (p.in && order.indexOf(p.id) < 0) order.push(p.id); });
     var pl = function (id) { return S.players.filter(function (x) { return x.id === id; })[0]; };
-    order.sort(function (a, b) { var A = pl(a), B = pl(b); return (B && B.alive ? 1 : 0) - (A && A.alive ? 1 : 0); });
+    order = order.filter(function (id) { var P = pl(id); return P && P.alive; }).concat(order.filter(function (id) { var P = pl(id); return P && !P.alive; })); // speaking order, players who are out at the bottom
     return h('div', { class: 'card tight' }, h('h2', null, 'All clues'),
       h('div', { class: 'ctable-wrap' }, h('table', { class: 'ctable' },
         h('thead', null, h('tr', null, h('th', null, 'Player'), cols.map(function (c, k) { return h('th', { class: c.live ? 'now' : '' }, c.live ? 'Now' : 'R' + (k + 1)); }))),
         h('tbody', null, order.map(function (id) {
           var p = pl(id); if (!p) return null;
           return h('tr', { class: p.alive ? '' : 'out' },
-            h('td', { class: 'who' }, h('span', { class: 'cw' }, avatar(p.name, pidx(id), 'xs'), h('span', { class: 'cn' }, p.name)), !p.alive && p.role ? roleTag(p.role) : null),
+            h('td', { class: 'who' }, h('span', { class: 'cw' }, avatar(p.name, pidx(id), 'xs'), h('span', { class: 'cn' }, p.alive && num[id] ? h('span', { class: 'num' }, '#' + num[id]) : null, p.name)), !p.alive && p.role ? roleTag(p.role) : null),
             cols.map(function (c) { var v = c.m[id]; return h('td', { class: (c.live ? 'now' : '') + (v ? '' : ' empty') }, v || (c.live && id === S.turnId ? '…' : '—')); }));
         })))));
   }
@@ -1113,7 +1213,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
             h('div', { class: 'top' }, h('span', { class: 'speaks' }, (x.n ? '#' + x.n : '—') + (S.tie ? ' · ' + n + (n === 1 ? ' vote' : ' votes') : '')), h('span', { class: 'mark' }, mineSel ? '☑ YOUR VOTE' : '☐')),
             h('div', { class: 'nm' }, avatar(p.name, pidx(p.id), 'sm'), h('span', null, p.name)),
             x.clue ? h('div', { class: 'sclue' }, '“' + x.clue + '”') : null);
-        }))] : h('div', { class: 'banner' }, S.me.sup ? 'You are supervising. Watch the votes come in.' : 'You are out. Just watching now.'));
+        }))] : h('div', { class: 'banner' }, S.me.sup ? 'You are supervising. Watch the votes come in.' : S.me.watch ? 'You are watching this game.' : 'You are out. Just watching now.'));
       fill(table, cluesTable(false));
       hostBox.style.display = S.me.host ? '' : 'none';
     } };
@@ -1158,8 +1258,19 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
     var wc = wordCard(), res = h('div'), votes = h('div', { class: 'card tight' });
     var againBtn = hostBtn('⏭ Vote again →', { t: 'voteAgain' }, 'primary'), nextBtn = hostBtn('Next round (new clues)', { t: 'next' }, 'yellow'), wait = h('p', { class: 'mute center' }, 'Waiting for the host: vote again or next round…');
     var hostBox = h('div', null, againBtn, h('div', { class: 'gap' }), nextBtn);
+    var ucBox = h('div'), ucInp = h('input', { type: 'text', maxlength: 40, placeholder: 'The civilians\' word…', autocomplete: 'off', enterkeyhint: 'send' }), ucShown = null;
+    function ucGo() { var v = ucInp.value.trim(); if (!v) return toast('Type your guess'); send({ t: 'ucGuess', text: v }); }
+    ucInp.addEventListener('keydown', function (e) { if (e.key === 'Enter') ucGo(); });
     var shownFor = null;
-    return { root: h('div', null, h('h1', null, 'Verdict'), h('div', { class: 'gap' }), res, votes, wc.root, hostBox, wait), update: function () {
+    return { root: h('div', null, h('h1', null, 'Verdict'), h('div', { class: 'gap' }), res, ucBox, votes, wc.root, hostBox, wait), update: function () {
+      var ucKey = S.ucAsk ? 'ask' : S.ucResult ? 'res' + S.ucResult.ok : '';
+      if (ucKey !== ucShown) {
+        ucShown = ucKey;
+        if (S.ucAsk) { buzz([300, 80, 300]); setTimeout(function () { try { ucInp.focus(); } catch (e) {} }, 300); }
+        fill(ucBox, S.ucAsk ? h('div', { class: 'card ucask' }, h('h2', null, '🤫 Only you can see this'), h('p', { style: 'font-weight:800;margin:0 0 4px' }, 'You were the Undercover! Guess the civilians\' word for +3.'),
+            h('p', { class: 'mute small', style: 'margin:0 0 8px' }, 'Nobody else knows you get this chance. Be quick, before the host moves on.'), ucInp, h('div', { class: 'gap' }), h('button', { class: 'btn primary', type: 'button', onclick: ucGo }, 'Submit secret guess'))
+          : S.ucResult ? h('div', { class: 'card ucask' }, h('h2', null, '🤫 Your secret guess'), h('p', { style: 'font-weight:800;margin:0' }, '“' + S.ucResult.text + '” ' + (S.ucResult.ok ? '✓ Correct! +3 points' : '✗ Wrong. No bonus'))) : null);
+      }
       wc.update();
       var e = S.lastElim;
       if (e && shownFor !== e.id) {
@@ -1832,7 +1943,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
     }
     if (S && S.phase !== 'lobby' && S.phase !== 'over') wakeLock();
     cur.update();
-    syncSupModal(); syncHostbar(); syncReactBar(); paintChat();
+    syncSupModal(); syncHostbar(); syncWatch(); syncReactBar(); paintChat();
   }
   setInterval(function () { if (cur && cur.tick) cur.tick(); }, 250);
 
