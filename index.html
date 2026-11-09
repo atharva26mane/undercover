@@ -483,6 +483,8 @@ body.has-reacts #wrap,body.has-chat #wrap{padding-bottom:84px}
 .cin input{flex:1;padding:10px 12px;font-size:16px}
 .cin .btn{width:auto;min-height:46px;padding:6px 16px}
 .themebtn{border:2px solid var(--ink);background:var(--card);border-radius:999px;width:36px;height:36px;font-size:16px;box-shadow:var(--sh-s);padding:0}
+.themebtn.off{opacity:.45;text-decoration:line-through}
+.sclue{font-size:12.5px;font-style:italic;opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* ===== dark mode ===== */
 html[data-theme=dark]{--bg:#17141F;--bg2:#24202F;--card:#262233;--ink:#08070C;--mute:#B4ACC8;--line:#3A3450;--yellow-l:#3B3315;--green-l:#173B2B;--orange-l:#40261A;--red-l:#47192A;--violet-l:#2E2145;--lav:#2E2145;color-scheme:dark}
 html[data-theme=dark] body{background-color:var(--bg);background-image:radial-gradient(rgba(255,255,255,.05) 1.25px,transparent 1.25px);color:#F4EFE3}
@@ -512,7 +514,7 @@ html[data-theme=dark] .modal{background:rgba(0,0,0,.7)}
 html,body{overflow-x:clip} /* clip (not hidden) so the sticky bottom buttons keep working */
 header{flex-wrap:nowrap}
 .hdr-r{gap:6px;min-width:0}
-@media (max-width:420px){.logo{font-size:11.5px;padding:4px 9px;letter-spacing:.06em}.chip{padding:3px 9px;font-size:14px;letter-spacing:.1em}.themebtn{width:32px;height:32px;font-size:14px}.hdr-r .link{padding:6px 2px}}
+@media (max-width:420px){.logo{font-size:11.5px;padding:4px 9px;letter-spacing:.06em}.chip{padding:3px 9px;font-size:14px;letter-spacing:.1em}.themebtn{width:30px;height:30px;font-size:13px}.hdr-r{gap:5px}.hdr-r .link{padding:6px 2px}}
 
 html[data-theme=dark] .poster h1,html[data-theme=dark] .poster p,html[data-theme=dark] .pass .who,html[data-theme=dark] .pass p,html[data-theme=dark] .pass .to{color:#121212}
 .stage .s-note{color:#FFF8E7}
@@ -611,7 +613,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
       offset = m.now - Date.now();
       var phaseChanged = !S || S.phase !== m.phase;
       S = m;
-      if (phaseChanged && lastPhase !== null && navigator.vibrate && (m.phase === 'describe' || m.phase === 'vote' || m.phase === 'over')) navigator.vibrate(120);
+      if (phaseChanged && lastPhase !== null && m.phase === 'vote') buzz([90, 70, 90]); // voting starts: double buzz
       lastPhase = m.phase;
       render();
     }
@@ -619,7 +621,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
     else if (m.t === 'notice') toast(m.msg);
     else if (m.t === 'react') floatReact(m.e, m.from);
     else if (m.t === 'chatlog') { chatList = m.list || []; chatUnread = 0; paintChat(); }
-    else if (m.t === 'chat') { chatList.push(m.m); if (chatList.length > 60) chatList.shift(); if (!chatOpen && !(m.m.id && S && m.m.id === S.me.id)) chatUnread++; paintChat(); if (!chatOpen && !m.m.sys && navigator.vibrate) navigator.vibrate(20); }
+    else if (m.t === 'chat') { chatList.push(m.m); if (chatList.length > 60) chatList.shift(); if (!chatOpen && !(m.m.id && S && m.m.id === S.me.id)) chatUnread++; paintChat(); if (!chatOpen && !m.m.sys) buzz(20); }
     else if (m.t === 'words') { // the lobby's "already played" memory, kept on this phone
       if (Array.isArray(m.used)) store('uc.used', JSON.stringify(m.used));
       if (Array.isArray(m.recent)) store('uc.recent', JSON.stringify(m.recent));
@@ -726,17 +728,18 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
 
   /* ---------- dark mode (per phone) ---------- */
   function applyTheme() { document.documentElement.setAttribute('data-theme', load('uc.theme') === 'dark' ? 'dark' : 'light'); var m = document.querySelector('meta[name=theme-color]'); if (m) m.setAttribute('content', load('uc.theme') === 'dark' ? '#17141F' : '#FFF8E7'); }
+  function hapticBtn() { var off = load('uc.haptic') === 'off'; return h('button', { class: 'themebtn' + (off ? ' off' : ''), type: 'button', 'aria-label': off ? 'Vibration off' : 'Vibration on', onclick: function () { store('uc.haptic', off ? 'on' : 'off'); if (off) buzz(80); toast(off ? '📳 Vibration on' : 'Vibration off'); renderHeader(); } }, '📳'); }
   function themeBtn() { var dark = load('uc.theme') === 'dark'; return h('button', { class: 'themebtn', type: 'button', 'aria-label': dark ? 'Light mode' : 'Dark mode', onclick: function () { store('uc.theme', dark ? 'light' : 'dark'); applyTheme(); renderHeader(); } }, dark ? '☀️' : '🌙'); }
   applyTheme();
 
   /* ---------- header ---------- */
   var hdr = document.getElementById('hdr');
   function renderHeader() {
-    if (!S) return fill(hdr, h('span', { class: 'logo' }, 'Undercover'), h('div', { class: 'hdr-r' }, themeBtn(), mode === 'menu' ? null : h('button', { class: 'link', type: 'button', onclick: goMenu }, '← Menu')));
+    if (!S) return fill(hdr, h('span', { class: 'logo' }, 'Undercover'), h('div', { class: 'hdr-r' }, hapticBtn(), themeBtn(), mode === 'menu' ? null : h('button', { class: 'link', type: 'button', onclick: goMenu }, '← Menu')));
     var parts = [];
     if (S.round > 0 && S.phase !== 'lobby') parts.push(h('span', { class: 'tag rtag' }, 'R' + S.round));
     fill(hdr, h('span', { class: 'logo' }, 'Undercover'),
-      h('div', { class: 'hdr-r' }, parts, themeBtn(),
+      h('div', { class: 'hdr-r' }, parts, hapticBtn(), themeBtn(),
         h('button', { class: 'chip', type: 'button', onclick: shareLink }, S.code),
         h('button', { class: 'link', type: 'button', onclick: function () { if (confirm('Leave this lobby?')) send({ t: 'leave' }); } }, 'Leave')));
   }
@@ -843,6 +846,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
     var reacts = toggle('Emoji reactions', 'Everyone can throw 😂 🤨 🤡 during the game', function (v) { send({ t: 'settings', reacts: v }); });
     var boardT = toggle('Leaderboard', 'Points and wins for each player in this lobby', function (v) { send({ t: 'settings', board: v }); });
     var jokerT = toggle('🤡 Joker (6+ players)', 'One player gets the civilian word and wins alone if voted out', function (v) { send({ t: 'settings', joker: v }); });
+    var ucT = toggle('🕵️ Undercover can guess', 'If voted out, only they see a box to guess the civilians\' word (+3)', function (v) { send({ t: 'settings', ucGuess: v }); });
     var chatT = toggle('💬 Chat', 'Open during discussion & voting. Secret words are blocked', function (v) { send({ t: 'settings', chat: v }); });
     var slowRow = h('div', { class: 'set' }), cdRow = h('div', { class: 'set' }), modesBox = h('div');
     var sup = toggle('I\'ll be the supervisor', 'You won\'t get a word. You choose the words and see everyone\'s role', function (v) { send({ t: 'settings', supervisor: v }); });
@@ -855,7 +859,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
       h('div', { class: 'card' }, count, list),
       h('div', { class: 'card' }, h('h2', null, 'Settings'),
         h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Time per clue', h('small', null, 'seconds for each player\'s turn')), secsStep.root),
-        autoRoles.root, uRow, wRow, planTxt, hint.root, jokerT.root, chatT.root, slowRow, reacts.root, cdRow, boardT.root, sup.root, otherSup),
+        autoRoles.root, uRow, wRow, planTxt, hint.root, ucT.root, jokerT.root, chatT.root, slowRow, reacts.root, cdRow, boardT.root, sup.root, otherSup),
       h('div', { class: 'card tight' }, h('h2', null, '🎒 Word modes'), modesBox),
       sw.root, board, startBtn, why);
     return { root: root, update: function () {
@@ -868,7 +872,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
       }));
       secsStep.set(s.describeSecs);
       autoRoles.inp.checked = s.autoRoles; sup.inp.checked = S.me.sup;
-      hint.inp.checked = s.hint; reacts.inp.checked = s.reacts; boardT.inp.checked = s.board; jokerT.inp.checked = s.joker; chatT.inp.checked = s.chat;
+      hint.inp.checked = s.hint; reacts.inp.checked = s.reacts; boardT.inp.checked = s.board; jokerT.inp.checked = s.joker; ucT.inp.checked = s.ucGuess !== false; chatT.inp.checked = s.chat;
       fill(slowRow, h('div', { class: 'lbl' }, '🐢 Chat slow mode', h('small', null, 'Seconds between messages per player')),
         seg([[0, 'Off'], [5, '5s'], [10, '10s'], [30, '30s']], s.chatSlow, function (v) { send({ t: 'settings', chatSlow: v }); }));
       slowRow.style.display = s.chat ? '' : 'none';
@@ -1064,12 +1068,12 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
       h('button', { class: 'btn primary', type: 'button', onclick: submit }, 'Send clue'), hint);
     var table = h('div');
     var hostRow = h('div', { class: 'row' }, hostBtn('Skip this player', { t: 'skipTurn' }, 'small'), hostBtn('Go to voting now', { t: 'endDescribe' }, 'small danger', 'End the clue round and go to voting?'));
-    var wasMine = false;
+    var wasMine = false, tenBuzzed = false;
     var root = h('div', null, tm.root, wc.root, sp.root, turnBox, form, table, hostRow);
-    return { root: root, tick: tm.tick, update: function () {
+    return { root: root, tick: function () { tm.tick(); if (wasMine && !tenBuzzed && S && S.phase === 'describe' && secsLeft() <= 10 && secsLeft() > 0) { tenBuzzed = true; buzz(60); } }, update: function () {
       wc.update(); sp.update(); tm.tick();
       var mine = S.turnId === S.me.id && S.me.alive && !S.me.sup;
-      if (mine && !wasMine) { if (navigator.vibrate) navigator.vibrate(200); setTimeout(function () { try { inp.focus(); } catch (e) {} }, 50); }
+      if (mine && !wasMine) { buzz(450); tenBuzzed = false; setTimeout(function () { try { inp.focus(); } catch (e) {} }, 50); }
       if (!mine) inp.value = '';
       wasMine = mine;
       turnBox.className = 'banner' + (mine ? ' ok' : '');
@@ -1103,16 +1107,24 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
         })));
       var canVote = S.me.alive && !S.me.sup;
       fill(ballot, canVote ? [h('h2', null, S.myVote ? 'Your vote (tap again to undo)' : 'Tap who you think is the impostor'),
-        h('div', { class: 'suspects' }, alive.filter(function (p) { return p.id !== S.me.id; }).map(function (p) {
-          var mineSel = S.myVote === p.id, n = S.tie && S.breakdown && S.breakdown[p.id] ? S.breakdown[p.id].length : 0;
+        h('div', { class: 'suspects' }, speakOrder(alive).filter(function (x) { return x.p.id !== S.me.id; }).map(function (x) {
+          var p = x.p, mineSel = S.myVote === p.id, n = S.tie && S.breakdown && S.breakdown[p.id] ? S.breakdown[p.id].length : 0;
           return h('button', { class: 'suspect' + (mineSel ? ' sel' : ''), type: 'button', onclick: function () { send({ t: 'vote', target: mineSel ? null : p.id }); } },
-            h('div', { class: 'top' }, h('span', { class: 'speaks' }, S.tie ? n + (n === 1 ? ' vote' : ' votes') : 'SUSPECT'), h('span', { class: 'mark' }, mineSel ? '☑ YOUR VOTE' : '☐')),
-            h('div', { class: 'nm' }, avatar(p.name, pidx(p.id), 'sm'), h('span', null, p.name)));
+            h('div', { class: 'top' }, h('span', { class: 'speaks' }, (x.n ? '#' + x.n : '—') + (S.tie ? ' · ' + n + (n === 1 ? ' vote' : ' votes') : '')), h('span', { class: 'mark' }, mineSel ? '☑ YOUR VOTE' : '☐')),
+            h('div', { class: 'nm' }, avatar(p.name, pidx(p.id), 'sm'), h('span', null, p.name)),
+            x.clue ? h('div', { class: 'sclue' }, '“' + x.clue + '”') : null);
         }))] : h('div', { class: 'banner' }, S.me.sup ? 'You are supervising. Watch the votes come in.' : 'You are out. Just watching now.'));
       fill(table, cluesTable(false));
       hostBox.style.display = S.me.host ? '' : 'none';
     } };
   };
+
+  // Alive players in the order they gave clues in the latest clue round (#1, #2…), with that clue.
+  function speakOrder(alive) {
+    var last = null; for (var k = (S.history || []).length - 1; k >= 0; k--) if (S.history[k].items && S.history[k].items.length) { last = S.history[k]; break; }
+    var pos = {}, clue = {}; (last ? last.items : []).forEach(function (it, k) { pos[it[0]] = k + 1; clue[it[0]] = it[1]; });
+    return alive.slice().sort(function (a, b) { return (pos[a.id] || 99) - (pos[b.id] || 99); }).map(function (p) { return { p: p, n: pos[p.id] || 0, clue: clue[p.id] || '' }; });
+  }
 
   screens.whiteguess = function () {
     var num = h('div', { class: 'wtimer' });
@@ -1125,16 +1137,16 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
     var root = h('div', { class: 'wscene' }, RM ? null : h('div', { class: 'flash' }), h('div', { class: 'wscene-in' }, head, num, box));
     var built = false, wasMe = null;
     return { root: root, tick: function () { num.textContent = secsLeft() + 's'; }, update: function () {
-      var me = S.me.id === S.whiteId, i = pidx(S.whiteId), nm = nameOf(S.whiteId);
+      var me = S.me.id === S.whiteId, i = pidx(S.whiteId), nm = nameOf(S.whiteId), uc = S.guessKind === 'uc';
       if (!built) {
-        built = true; buzz([60, 40, 60, 40, 200]);
+        built = true; buzz(me ? [300, 80, 300] : [60, 40, 60, 40, 200]);
         fill(head, h('span', { class: 'pill', style: 'background:var(--yellow)' }, 'VOTED OUT'), h('div', { class: 'spot' }, avatar(nm, i, 'xl')),
-          h('div', { class: 'caught' }, 'Mr. White pakda gaya!'), h('div', { class: 'nm' }, nm));
+          h('div', { class: 'caught' }, uc ? 'Undercover pakda gaya!' : 'Mr. White pakda gaya!'), h('div', { class: 'nm' }, nm));
       }
       if (wasMe !== me) {
         wasMe = me;
-        fill(box, me ? [h('h2', null, 'Ek last chance! Guess the civilians\' word'), h('p', { class: 'mute small', style: 'margin:2px 0 8px' }, 'Get it right and you win the game.'), inp, h('div', { class: 'gap' }), h('button', { class: 'btn primary', type: 'button', onclick: go }, 'Submit guess')]
-          : [h('h2', null, nm + ' is guessing the word'), stat, h('p', { class: 'mute small', style: 'margin:0' }, 'If ' + nm + ' gets the civilians\' word, Mr. White wins.')]);
+        fill(box, me ? [h('h2', null, uc ? 'You were the Undercover! Guess the civilians\' word' : 'Ek last chance! Guess the civilians\' word'), h('p', { class: 'mute small', style: 'margin:2px 0 8px' }, uc ? 'Only you can see this. Right = +' + 3 + ' bonus. The game goes on either way.' : 'Get it right and you win the game.'), inp, h('div', { class: 'gap' }), h('button', { class: 'btn primary', type: 'button', onclick: go }, 'Submit guess')]
+          : [h('h2', null, nm + ' is guessing the word'), stat, h('p', { class: 'mute small', style: 'margin:0' }, uc ? '🔒 Only ' + nm + ' can see the guess. A right guess gives them +3 bonus.' : 'If ' + nm + ' gets the civilians\' word, Mr. White wins.')]);
         if (me) setTimeout(function () { try { inp.focus(); } catch (e) {} }, 300);
       }
       num.textContent = secsLeft() + 's';
@@ -1144,20 +1156,22 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
 
   screens.elim = function () {
     var wc = wordCard(), res = h('div'), votes = h('div', { class: 'card tight' });
-    var nextBtn = hostBtn('Next round →', { t: 'next' }, 'primary'), wait = h('p', { class: 'mute center' }, 'Waiting for the host to start the next round…');
+    var againBtn = hostBtn('⏭ Vote again →', { t: 'voteAgain' }, 'primary'), nextBtn = hostBtn('Next round (new clues)', { t: 'next' }, 'yellow'), wait = h('p', { class: 'mute center' }, 'Waiting for the host: vote again or next round…');
+    var hostBox = h('div', null, againBtn, h('div', { class: 'gap' }), nextBtn);
     var shownFor = null;
-    return { root: h('div', null, h('h1', null, 'Verdict'), h('div', { class: 'gap' }), res, votes, wc.root, nextBtn, wait), update: function () {
+    return { root: h('div', null, h('h1', null, 'Verdict'), h('div', { class: 'gap' }), res, votes, wc.root, hostBox, wait), update: function () {
       wc.update();
       var e = S.lastElim;
       if (e && shownFor !== e.id) {
-        shownFor = e.id; buzz([40, 60, 40]);
+        shownFor = e.id; buzz(e.id === S.me.id ? [400] : [40, 60, 40]);
         var cls = e.role === 'civilian' ? 'civ' : e.role === 'undercover' ? 'und' : 'wht';
         fill(res, h('div', { class: 'stampcard' }, h('h2', null, 'Voted out'), avatar(e.name, pidx(e.id), 'xl'), h('div', { class: 'kname' }, e.name),
           h('div', { class: 'rstamp ' + cls }, roleLabel(e.role)),
-          S.guess ? h('p', { style: 'font-weight:800;margin:6px 0 0' }, 'Guessed “' + (S.guess.text || '—') + '” ✗ Wrong') : h('p', { class: 'mute small' }, 'The word stays secret until the game ends.')));
+          S.guess && S.guess.uc ? h('p', { style: 'font-weight:800;margin:6px 0 0' }, S.guess.ok ? '🎯 Guessed the civilians\' word! +3 bonus' + (S.guess.text ? ' (“' + S.guess.text + '”)' : '') : 'Guess ✗ Wrong' + (S.guess.text ? ' (“' + S.guess.text + '”)' : ''))
+          : S.guess ? h('p', { style: 'font-weight:800;margin:6px 0 0' }, 'Guessed “' + (S.guess.text || '—') + '” ✗ Wrong') : h('p', { class: 'mute small' }, 'The word stays secret until the game ends.')));
       }
       fill(votes, h('h2', null, 'Who voted for whom'), voteBars(e && e.breakdown, e && e.id));
-      nextBtn.style.display = S.me.host ? '' : 'none'; wait.style.display = S.me.host ? 'none' : '';
+      hostBox.style.display = S.me.host ? '' : 'none'; wait.style.display = S.me.host ? 'none' : '';
     } };
   };
 
@@ -1168,7 +1182,12 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
     var fired = false;
     return { root: h('div', null, top, words, votes, roles, again, h('div', { class: 'gap' }), lobby, wait), update: function () {
       var w = S.winner, g = S.guess;
-      if (!fired) { fired = true; if (typeof confetti === 'function') later(confetti, 150); buzz([80, 50, 80]); }
+      if (!fired) {
+        fired = true; if (typeof confetti === 'function') later(confetti, 150);
+        var mine = S.players.filter(function (p) { return p.id === S.me.id; })[0], r = mine && mine.role;
+        var won = !r ? null : w === 'civilians' ? r === 'civilian' : w === 'impostors' ? (r === 'undercover' || r === 'white') : w === 'joker' ? r === 'joker' : g && g.by === S.me.id;
+        buzz(won === false ? [500] : [70, 50, 70, 50, 70]); // win: happy triple · lose: one long
+      }
       fill(top, h('div', { class: 'winner bounce ' + (w === 'civilians' ? 'civ' : w === 'white' ? 'wht' : w === 'joker' ? 'jok' : 'imp') },
         h('div', { class: 'big' }, w === 'civilians' ? 'Civilians win!' : w === 'white' ? 'Mr. White wins!' : w === 'joker' ? '🤡 Joker wins!' : 'Impostors win!'),
         h('p', null, w === 'civilians' ? 'Every impostor was caught!' : w === 'joker' ? nameOf(S.lastElim && S.lastElim.id) + ' fooled everyone into voting them out!' : w === 'white' ? nameOf(g && g.by) + ' guessed “' + (g && g.text) + '” ✓' : 'The impostors took over the adda!')));
@@ -1201,7 +1220,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
 
   /* ---------- small animation helpers ---------- */
   var RM = false; try { RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { RM = false; }
-  function buzz(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
+  function buzz(ms) { try { if (load('uc.haptic') !== 'off' && navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
   function later(fn, ms) { return RM ? (fn(), 0) : setTimeout(fn, ms); }
   function confetti() {
     if (RM) return;
@@ -1226,7 +1245,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
   /* ---------- one-phone (pass-and-play) mode ---------- */
   var L = null;
   function newSolo(names) {
-    return { roster: (names || []).filter(Boolean).map(function (n) { return { name: String(n).slice(0, 14), score: 0 }; }), cfg: { u: 1, w: 0, manual: false, hint: false, board: true, joker: false, modes: ['mix'] },
+    return { roster: (names || []).filter(Boolean).map(function (n) { return { name: String(n).slice(0, 14), score: 0 }; }), cfg: { u: 1, w: 0, manual: false, hint: false, board: true, joker: false, ucGuess: true, modes: ['mix'] },
       players: [], pair: null, step: 'roster', starter: 0, winner: null, last: null, gain: null, scored: false };
   }
   try { L = JSON.parse(load('uc.solo') || 'null'); } catch (e) { L = null; }
@@ -1235,6 +1254,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
   if (typeof L.starter !== 'number') L.starter = 0;
   if (!('board' in L.cfg)) L.cfg.board = true;
   if (!('hint' in L.cfg)) L.cfg.hint = false;
+  if (!('ucGuess' in L.cfg)) L.cfg.ucGuess = true;
   if (!Array.isArray(L.cfg.modes) || !L.cfg.modes.length) L.cfg.modes = ['mix'];
   function saveSolo() { store('uc.solo', JSON.stringify(L)); }
   var mode = (session || /[?&]c=/.test(location.search)) ? 'online' : (L.step !== 'roster' ? 'solo' : 'menu');
@@ -1360,6 +1380,11 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
     L.gain.forEach(function (n, i) { var r = L.roster[i]; if (!r) return; r.score -= n; r.games = Math.max(0, (r.games || 1) - 1); r.wins = Math.max(0, (r.wins || 0) - (n > 0 ? 1 : 0)); });
     L.scored = false; L.gain = null; L.winner = null;
   }
+  function unUcBonus() { // take back Undercover guess bonuses from the last kick
+    var b = L.last && L.last.ucb; if (!b) return;
+    Object.keys(b).forEach(function (i) { var r = L.roster[i]; if (r && b[i]) r.score -= 3; });
+    L.last.ucb = null;
+  }
   function rcls(role) { return roleCls(role); }
   function dock() { var d = h('div', { class: 'dock' }); for (var i = 0; i < arguments.length; i++) add(d, arguments[i]); return d; }
   function orderChips(order, curPos, opts) {
@@ -1373,10 +1398,20 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
     }));
   }
 
+  /* Hand the phone to one person, then show them a private screen. */
+  function passAndPeekGate(p, inner) {
+    var wrap = h('div');
+    buzz(70);
+    fill(wrap, h('div', { class: 'pass' }, h('span', { class: 'pill ink' }, 'Only ' + p.name + ' looks!'), h('div', { class: 'to' }, 'HAND THE PHONE TO'), h('div', { class: 'who' }, p.name),
+      h('p', null, 'Everyone else, eyes off the screen.')),
+      dock(h('button', { class: 'btn primary', type: 'button', onclick: function () { fill(wrap, inner()); } }, 'I am ' + p.name + ' — open')));
+    return wrap;
+  }
   /* Hand the phone over, then press-and-hold to peek. Used for word viewing and for "forgot my word". */
   function passAndPeek(p, opts) {
     var box = h('div', { class: 'grow' }), dk = h('div', { class: 'dock' }), wrap = h('div', null, box, dk);
     function gate() {
+      buzz(70);
       fill(box, opts.top || null,
         h('div', { class: 'pass' }, h('span', { class: 'pill ink' }, 'Neighbours, eyes off!'), h('div', { class: 'to' }, 'HAND THE PHONE TO'), h('div', { class: 'who' }, p.name),
           h('p', null, 'Make sure nobody next to you can see the screen.')),
@@ -1436,7 +1471,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
         } }, '🔄 New word'),
         withUndo && L.undo ? h('button', { class: 'btn small', type: 'button', onclick: function () {
           if (!confirm('Undo the last kick?')) return;
-          unscoreGame();
+          unscoreGame(); unUcBonus();
           L.undo.forEach(function (i) { L.players[i].alive = true; });
           L.undo = null; L.last = null; toast('↩ Kick undone'); go('play');
         } }, '↩ Undo kick') : null);
@@ -1546,6 +1581,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
         h('div', { class: 'card tight' },
           soloToggle('Mr. White gets a hint', 'Shows him the category, e.g. "Food" or "Film villain"', 'hint'),
           soloToggle('Leaderboard', 'Points and wins for each player', 'board'),
+          soloToggle('🕵️ Undercover can guess', 'If kicked, they secretly type the civilians\' word on this phone (+3)', 'ucGuess'),
           soloToggle('🤡 Joker (6+ players)', 'One player gets the civilian word and wins alone if voted out', 'joker')),
         h('div', { class: 'card tight' }, h('h2', null, '🎒 Word modes'), modePicker(L.cfg.modes, function (next) { L.cfg.modes = next; saveSolo(); draw(); })),
         err, dock(start));
@@ -1668,6 +1704,29 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
               h('button', { class: 'btn danger', type: 'button', onclick: function () { answer(false); } }, '✗ No')))));
     }
 
+    /* Undercover kicked: hand the phone to them, they secretly type the civilians' word (+3, game goes on) */
+    function ucScene(i) {
+      var p = L.players[i];
+      var inp = h('input', { type: 'text', maxlength: 40, placeholder: 'The civilians\' word…', autocomplete: 'off', enterkeyhint: 'send' });
+      function submit() {
+        var v = inp.value.trim(); if (!v) return toast('Type your guess');
+        var ok = normW(v) === normW(L.pair.civilian);
+        L.last.ucg[i] = ok;
+        if (ok) { if (L.roster[i]) L.roster[i].score += 3; L.last.ucb = L.last.ucb || {}; L.last.ucb[i] = 1; }
+        saveSolo(); buzz(ok ? [70, 50, 70] : [300]);
+        toast(ok ? '🎯 Correct! +3 bonus' : '✗ Wrong guess');
+        draw(); window.scrollTo(0, 0);
+      }
+      inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
+      return h('div', null, h('h1', null, 'Undercover caught'),
+        passAndPeekGate(p, function () {
+          later(function () { try { inp.focus(); } catch (e) {} }, 100);
+          return h('div', null, h('div', { class: 'card' }, h('h2', null, 'You were the Undercover, ' + p.name + '!'),
+            h('p', { class: 'mute small', style: 'margin:2px 0 8px' }, 'Secretly type the civilians\' word. Right = +3 bonus. The game goes on either way.'), inp),
+            h('div', { class: 'grow' }), dock(h('button', { class: 'btn primary', type: 'button', onclick: submit }, 'Submit guess'),
+              h('div', { class: 'gap' }), h('button', { class: 'btn small', type: 'button', onclick: function () { inp.value = ''; L.last.ucg[i] = false; saveSolo(); draw(); } }, 'Skip (no guess)')));
+        }));
+    }
     function jokerScene(i) {
       var p = L.players[i];
       later(function () { buzz([80, 40, 80, 40, 200]); }, 100);
@@ -1688,6 +1747,9 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
       if (joker !== undefined) return jokerScene(joker);
       var pendingWhite = ids.filter(function (i) { return P[i].role === 'white' && !(i in L.last.guess); });
       if (pendingWhite.length) return whiteScene(pendingWhite[0]);
+      if (!L.last.ucg) L.last.ucg = {};
+      var pendingUc = L.cfg.ucGuess ? ids.filter(function (i) { return P[i].role === 'undercover' && !(i in L.last.ucg); }) : [];
+      if (pendingUc.length) return ucScene(pendingUc[0]);
       var first = !L.last.shown, c = counts(), w = soloWin();
       if (first) { L.last.shown = true; saveSolo(); later(function () { buzz([40, 60, 40]); }, 450); }
       var cont = h('button', { class: 'btn primary', type: 'button', onclick: function () {
@@ -1704,6 +1766,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
           return h('div', { class: 'stampcard', style: 'animation-delay:' + (k * 0.35) + 's' }, h('h2', null, 'Kicked from the circle'), h('div', { class: 'kname' }, p.name),
             h('div', { class: 'rstamp ' + rcls(p.role), style: 'animation-delay:' + (0.3 + k * 0.35) + 's' }, roleLabel(p.role)),
             p.role === 'white' && L.last.guess[i] === false ? h('p', { style: 'font-weight:800;margin:4px 0' }, 'Guessed the word? ✗ No') : null,
+            p.role === 'undercover' && L.last.ucg && i in L.last.ucg ? h('p', { style: 'font-weight:800;margin:4px 0' }, L.last.ucg[i] ? '🎯 Guessed the civilians\' word! +3' : 'Word guess ✗ Wrong') : null,
             h('p', { class: 'mute small' }, 'The word stays secret until the game ends.'));
         }),
         h('div', { class: 'card status' }, h('h2', null, 'Adda status'), h('p', null, status)),
@@ -1739,7 +1802,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
         L.cfg.board ? soloBoard() : null,
         L.undo ? h('div', { class: 'center' }, h('button', { class: 'link', type: 'button', onclick: function () {
           if (!confirm('Undo the last kick? The game continues and these points are taken back.')) return;
-          unscoreGame(); L.undo.forEach(function (i) { L.players[i].alive = true; }); L.undo = null; L.last = null; go('play');
+          unscoreGame(); unUcBonus(); L.undo.forEach(function (i) { L.players[i].alive = true; }); L.undo = null; L.last = null; go('play');
         } }, '↩ Undo last kick')) : null,
         dock(h('button', { class: 'btn primary', type: 'button', onclick: function () { dealRoles(); go('spin'); } }, 'Play next round (new words) →'),
           h('div', { class: 'gap' }),

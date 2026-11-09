@@ -13,6 +13,7 @@ const PORT = Number(process.env.PORT) || 3000;
 const MAX_PLAYERS = 20;
 const MIN_PLAYERS = 3;
 const GUESS_SECS = 30;
+const UC_BONUS = 3; // Undercover guesses the civilian word after being voted out
 const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // no I, L, O, 0, 1
 
 // ---------------------------------------------------------------- static page
@@ -178,11 +179,11 @@ function makeRoom(words) {
   const room = {
     code: newCode(), hostId: null, supervisorId: null, players: new Map(),
     phase: 'lobby', round: 0, seq: 0, timer: null, endsAt: 0,
-    settings: { describeSecs: 30, autoRoles: true, undercover: 1, white: 1, whiteGuess: true, hint: false, board: true, reacts: true, modes: ['mix'], joker: false, chat: true, chatSlow: 5, reactCd: 3 },
+    settings: { describeSecs: 30, autoRoles: true, undercover: 1, white: 1, whiteGuess: true, hint: false, board: true, reacts: true, modes: ['mix'], joker: false, chat: true, chatSlow: 5, reactCd: 3, ucGuess: true },
     words: words || { used: new Set(), recent: [] }, pair: null, nextPair: null, customPair: null, supReq: null,
     typingId: null, typingUntil: 0, typingTimer: null, undo: null, stats: {},
     descs: {}, order: [], turn: 0, history: [], votes: {}, tie: false,
-    lastElim: null, guess: null, whiteId: null, winner: null, touched: Date.now(),
+    lastElim: null, guess: null, whiteId: null, guessKind: null, winner: null, touched: Date.now(),
   };
   room.nextPair = drawPair(room);
   rooms.set(room.code, room);
@@ -258,7 +259,7 @@ function view(room, p) {
   const v = {
     t: 'state', now: Date.now(), code: room.code, phase: room.phase, round: room.round,
     settings: room.settings, endsAt: room.endsAt, plan: plan(room), players,
-    history: room.history, tie: room.tie, lastElim: room.lastElim, guess: room.guess, whiteId: room.whiteId,
+    history: room.history, tie: room.tie, lastElim: room.lastElim, guess: guessFor(room, p), whiteId: room.whiteId, guessKind: room.guessKind,
     winner: over ? room.winner : null, pair: over ? room.pair : null,
     me: { id: p.id, name: p.name, host: p.id === room.hostId, sup, alive: p.alive && !p.left },
   };
@@ -283,6 +284,12 @@ function view(room, p) {
     if (room.tie || sup) v.breakdown = breakdown(room, room.votes);
   }
   return v;
+}
+// The Undercover's guess stays private: only he (and the supervisor) see what he typed until the game ends.
+function guessFor(room, p) {
+  const g = room.guess;
+  if (!g || !g.uc || room.phase === 'over' || p.id === g.by || p.id === room.supervisorId) return g;
+  return { by: g.by, ok: g.ok, uc: true, text: '' };
 }
 function broadcast(room) {
   room.touched = Date.now();
@@ -356,7 +363,7 @@ function spreadOrder(list) {
 const isActive = (room, id) => { const q = room.players.get(id); return !!q && !q.left && q.alive; };
 function startDescribe(room) {
   setPhase(room, 'describe');
-  room.descs = {}; room.votes = {}; room.tie = false; room.guess = null; room.whiteId = null;
+  room.descs = {}; room.votes = {}; room.tie = false; room.guess = null; room.whiteId = null; room.guessKind = null;
   room.order = spreadOrder(alivePlayers(room)).map((p) => p.id); // fresh random speaking order every round
   room.turn = 0;
   startTurn(room);
@@ -401,9 +408,10 @@ function eliminate(room, id) {
   room.lastElim = { id: p.id, name: p.name, role: p.role, breakdown: breakdown(room, room.votes) };
   room.tie = false;
   if (p.role === 'joker') return endGame(room, 'joker');
-  if (p.role === 'white' && room.settings.whiteGuess) {
+  const ucg = p.role === 'undercover' && room.settings.ucGuess && room.pair;
+  if ((p.role === 'white' && room.settings.whiteGuess) || ucg) {
     setPhase(room, 'whiteguess');
-    room.whiteId = p.id;
+    room.whiteId = p.id; room.guessKind = ucg ? 'uc' : 'white';
     schedule(room, GUESS_SECS * 1000, () => finishGuess(room, ''));
     return broadcast(room);
   }
@@ -412,6 +420,16 @@ function eliminate(room, id) {
 function finishGuess(room, text) {
   if (room.phase !== 'whiteguess') return;
   const ok = !!text && norm(text) === norm(room.pair.civilian);
+  if (room.guessKind === 'uc') { // bonus only: never ends the game
+    room.guess = { by: room.whiteId, text, ok, uc: true };
+    if (ok) {
+      const q = room.players.get(room.whiteId), k = norm(q.name);
+      const st = room.stats[k] || (room.stats[k] = { name: q.name, pts: 0, games: 0, wins: 0, imp: 0 });
+      st.pts += UC_BONUS;
+      if (room.undo) room.undo.bonus = k;
+    }
+    return afterElim(room);
+  }
   room.guess = { by: room.whiteId, text, ok };
   if (ok) return endGame(room, 'white');
   afterElim(room);
@@ -453,8 +471,9 @@ function undoKick(room) { // host: put the last voted-out player back and vote a
     for (const [k, d] of Object.entries(room.lastDelta)) { const st = room.stats[k]; if (st) { st.pts -= d.pts; st.games -= 1; st.wins -= d.won; st.imp -= d.imp; if (st.games <= 0) delete room.stats[k]; } }
     room.lastDelta = null;
   }
+  if (u.bonus && room.stats[u.bonus]) room.stats[u.bonus].pts -= UC_BONUS;
   if (p && !p.left) { p.alive = true; p.revealed = false; }
-  room.undo = null; room.lastElim = null; room.guess = null; room.whiteId = null; room.winner = null;
+  room.undo = null; room.lastElim = null; room.guess = null; room.whiteId = null; room.guessKind = null; room.winner = null;
   setPhase(room, 'vote');
   room.votes = {}; room.tie = false;
   notice(room, 'Host undid the last kick. Vote again.');
@@ -575,6 +594,7 @@ function handle(ws, m) {
       if ('board' in m) s.board = !!m.board;
       if ('reacts' in m) s.reacts = !!m.reacts;
       if ('joker' in m) s.joker = !!m.joker;
+      if ('ucGuess' in m) s.ucGuess = !!m.ucGuess;
       if ('chat' in m) s.chat = !!m.chat;
       if ('chatSlow' in m && [0, 5, 10, 30].includes(Number(m.chatSlow))) s.chatSlow = Number(m.chatSlow);
       if ('reactCd' in m && [1, 3, 10].includes(Number(m.reactCd))) s.reactCd = Number(m.reactCd);
@@ -680,6 +700,12 @@ function handle(ws, m) {
       if (!hostOnly() || room.phase !== 'elim') return;
       room.round++; room.undo = null;
       return startDescribe(room);
+    case 'voteAgain': // host: skip the clue round and vote again straight away
+      if (!hostOnly() || room.phase !== 'elim') return;
+      room.round++; room.undo = null; room.lastElim = null; room.guess = null; room.whiteId = null; room.guessKind = null;
+      setPhase(room, 'vote');
+      room.votes = {}; room.tie = false;
+      return broadcast(room);
     case 'toLobby':
       if (!hostOnly() || room.phase !== 'over') return;
       backToLobby(room);
