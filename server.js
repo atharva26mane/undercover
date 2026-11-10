@@ -206,7 +206,7 @@ function makeRoom(words) {
   const room = {
     code: newCode(), hostId: null, supervisorId: null, players: new Map(),
     phase: 'lobby', round: 0, seq: 0, timer: null, endsAt: 0,
-    settings: { describeSecs: 30, autoRoles: true, undercover: 1, white: 1, whiteGuess: true, hint: false, board: true, reacts: true, modes: ['mix'], joker: false, chat: true, chatSlow: 5, reactCd: 3, ucGuess: true },
+    settings: { describeSecs: 30, autoRoles: true, undercover: 1, white: 1, whiteGuess: true, hint: false, board: true, reacts: true, modes: ['mix'], joker: false, chat: true, chatSlow: 5, reactCd: 3, ucGuess: true, whiteTries: 2 },
     words: words || { used: new Set(), recent: [] }, pair: null, nextPair: null, customPair: null, supReq: null,
     typingId: null, typingUntil: 0, typingTimer: null, undo: null, stats: {},
     descs: {}, order: [], turn: 0, history: [], votes: {}, tie: false,
@@ -293,6 +293,7 @@ function view(room, p) {
   };
   if (inGame && p.role) {
     v.me.white = p.role === 'white'; v.me.joker = p.role === 'joker'; v.me.word = p.word;
+    if (p.role === 'white') v.me.wLeft = Math.max(0, (room.settings.whiteTries || 0) - (p.wTried || 0));
     if (p.role === 'white' && room.settings.hint && room.pair) v.me.hint = room.pair.cat || 'Custom words';
   }
   if (room.phase === 'elim' && room.ucPending === p.id) v.ucAsk = true; // private: only the voted-out Undercover sees this
@@ -311,7 +312,8 @@ function view(room, p) {
   if (room.phase === 'describe') { v.order = room.order; v.turnId = room.order[room.turn]; v.clues = room.descs; }
   if (room.phase === 'vote') {
     v.myVote = room.votes[p.id] || null;
-    if (room.tie || sup) v.breakdown = breakdown(room, room.votes);
+    if (sup) v.breakdown = breakdown(room, room.votes);
+    if (room.tie) { v.tieTally = room.tieTally; v.tieTop = room.tieTop; }
   }
   return v;
 }
@@ -346,7 +348,7 @@ function startGame(room, custom) {
     const k = imps.indexOf(p);
     p.role = k >= 0 ? impRoles[k] : p === joker ? 'joker' : 'civilian';
     p.word = p.role === 'civilian' || p.role === 'joker' ? pair.civilian : p.role === 'undercover' ? pair.undercover : '';
-    p.alive = true; p.revealed = false; p.watch = false;
+    p.alive = true; p.revealed = false; p.watch = false; p.wTried = 0;
   });
   room.pair = pair; room.nextPair = null; room.customPair = null; room.undo = null; room.scoredFor = null;
   shareWords(room);
@@ -424,7 +426,11 @@ function tryResolve(room, force) {
   const max = Math.max(0, ...Object.values(counts));
   const top = Object.keys(counts).filter((id) => counts[id] === max);
   if (max > 0 && top.length === 1) return eliminate(room, top[0]);
-  room.tie = true; // no majority: everyone may change their vote
+  // No majority: show who tied, wipe the votes and let everyone vote again from scratch.
+  room.tieTally = breakdown(room, room.votes);
+  room.tieTop = top.map((id) => (room.players.get(id) || {}).name).filter(Boolean);
+  room.votes = {};
+  room.tie = true;
   broadcast(room);
 }
 
@@ -552,7 +558,7 @@ function removePlayer(room, p, selfLeft) {
 }
 
 // ---------------------------------------------------------------- websocket
-const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 4096, perMessageDeflate: false });
+const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 16384, perMessageDeflate: false });
 
 function attach(ws, room, p) {
   if (p.ws && p.ws !== ws) { p.ws.ctx = null; try { p.ws.close(); } catch (e) { /* ignore */ } }
@@ -565,6 +571,8 @@ function attach(ws, room, p) {
     notice(room, '👑 ' + p.name + ' is back. Host again');
   }
   send(ws, { t: 'joined', id: p.id, token: p.token, code: room.code, vapid: webpush ? webpush.pub : null });
+  const photos = {}; for (const q of room.players.values()) if (q.photo && !q.left) photos[q.name] = q.photo;
+  send(ws, { t: 'photos', map: photos });
   send(ws, { t: 'chatlog', list: room.chat || [] });
   broadcast(room);
 }
@@ -622,6 +630,7 @@ function handle(ws, m) {
       if ('reacts' in m) s.reacts = !!m.reacts;
       if ('joker' in m) s.joker = !!m.joker;
       if ('ucGuess' in m) s.ucGuess = !!m.ucGuess;
+      if ('whiteTries' in m) s.whiteTries = Math.max(0, Math.min(3, m.whiteTries | 0));
       if ('chat' in m) s.chat = !!m.chat;
       if ('chatSlow' in m && [0, 5, 10, 30].includes(Number(m.chatSlow))) s.chatSlow = Number(m.chatSlow);
       if ('reactCd' in m && [1, 3, 10].includes(Number(m.reactCd))) s.reactCd = Number(m.reactCd);
@@ -710,6 +719,7 @@ function handle(ws, m) {
         if (!t || !t.alive || !t.role || t.id === p.id) return errTo(ws, "Can't vote for that player");
         room.votes[p.id] = t.id;
       }
+      room.tie = false; // re-voting has started: hide the tie card
       return tryResolve(room, false);
     }
     case 'closeVote':
@@ -737,6 +747,29 @@ function handle(ws, m) {
     case 'vis':
       p.hidden = !!m.hidden;
       return;
+    case 'photo': { // session profile photo: kept in memory for this lobby only, never saved
+      const d = m.data;
+      if (d !== null && (typeof d !== 'string' || !/^data:image\/(jpeg|webp|png);base64,[A-Za-z0-9+/=]+$/.test(d) || d.length > 14000)) return errTo(ws, 'Photo too big');
+      if (Date.now() - (p.photoAt || 0) < 2000) return errTo(ws, 'Slow down');
+      p.photoAt = Date.now(); p.photo = d || null;
+      for (const q of room.players.values()) if (q.ws && q.connected) send(q.ws, { t: 'photo', name: p.name, data: p.photo });
+      return;
+    }
+    case 'whiteTry': { // Mr. White guesses the civilians' word in the middle of a round; everyone sees it
+      if (!['describe', 'vote', 'elim'].includes(room.phase) || p.role !== 'white' || !p.alive || !room.pair) return;
+      if ((p.wTried || 0) >= (room.settings.whiteTries || 0)) return errTo(ws, 'No guesses left');
+      const text = clean(m.text, 40);
+      if (!text) return errTo(ws, 'Type your guess');
+      p.wTried = (p.wTried || 0) + 1;
+      const ok = norm(text) === norm(room.pair.civilian);
+      const left = Math.max(0, room.settings.whiteTries - p.wTried);
+      for (const q of room.players.values()) if (q.ws && q.connected) send(q.ws, { t: 'wguess', id: p.id, name: p.name, text, ok, left });
+      const cm = { sys: true, text: '🎯 ' + p.name + ' (Mr. White) guessed “' + text + '” ' + (ok ? '✓ CORRECT!' : '✗ wrong'), at: Date.now() };
+      room.chat = (room.chat || []).concat(cm).slice(-40);
+      for (const q of room.players.values()) if (q.ws && q.connected) send(q.ws, { t: 'chat', m: cm });
+      if (ok) { room.guess = { by: p.id, text, ok: true, mid: true }; room.undo = null; return endGame(room, 'white'); }
+      return broadcast(room);
+    }
     case 'ucGuess': { // the voted-out Undercover's private guess
       if (room.phase !== 'elim' || room.ucPending !== p.id || !room.pair) return;
       const text = clean(m.text, 40);

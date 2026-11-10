@@ -717,6 +717,47 @@ html[data-theme=dark] .suspects{background:repeating-linear-gradient(0deg,transp
 @keyframes curPulse{0%,100%{transform:scale(1.06)}50%{transform:scale(1.12)}}
 
 @media (prefers-reduced-motion:reduce){#app h1,.btn.primary,.banner.spotlit::before,.winner::before,.pass::before,.onode.cur,.stampcard,.stampcard .rstamp,.suspect.sel::after,.plist li.popin,#app .word.show,.tile{animation:none!important}}
+
+/* Mr. White mid-round guess */
+.wtry{display:flex;align-items:center;gap:10px;width:100%;margin:0 0 12px;padding:10px 14px;border:3px solid #121212;border-radius:14px;background:#7B2CBF;color:#fff;box-shadow:4px 4px 0 #121212;font:inherit;text-align:left;cursor:pointer;animation:wtPulse 2.4s ease-in-out infinite}
+.wtry:active{transform:translate(3px,3px);box-shadow:1px 1px 0 #121212}
+.wtry span{font-size:24px}.wtry b{flex:1;font:800 17px var(--f-disp);text-transform:uppercase}.wtry small{font:800 11px var(--f-mono);background:#FFD600;color:#121212;border-radius:999px;padding:3px 8px}
+@keyframes wtPulse{0%,100%{box-shadow:4px 4px 0 #121212}50%{box-shadow:4px 4px 0 #121212,0 0 0 5px rgba(123,44,191,.35)}}
+.wgpop{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(8,9,16,.78);animation:fadeIn .2s ease-out}
+.wg-in{position:relative;overflow:hidden;isolation:isolate;width:100%;max-width:360px;text-align:center;background:#131726;color:#F4EFE3;border:3px solid #121212;border-radius:22px;box-shadow:6px 6px 0 #000;padding:20px 16px 18px;animation:slamV .5s var(--spring) both}
+.wg-in::before{content:'';position:absolute;left:50%;top:-30px;width:220px;height:260px;margin-left:-110px;background:linear-gradient(to bottom,rgba(255,214,0,.5),rgba(255,214,0,0) 88%);clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);z-index:-1}
+.wg-in small{display:block;font:800 11px var(--f-mono);letter-spacing:.14em;color:#FFD600;margin-bottom:8px}
+.wg-name{font:800 26px var(--f-disp);text-transform:uppercase;color:#FFD600;-webkit-text-stroke:1.5px #121212;paint-order:stroke fill;text-shadow:3px 3px 0 #121212;margin:6px 0 2px}
+.wg-text{font:800 24px var(--f-body);font-style:italic;margin:4px 0 10px;word-break:break-word}
+.wg-stamp{display:inline-block;font:800 26px var(--f-disp);color:#fff;background:#E6003D;border:3px solid #121212;border-radius:8px;padding:4px 14px;transform:rotate(-6deg);animation:stampIn2 .45s .35s var(--spring) both}
+.wgpop.ok .wg-stamp{background:#00A859}
+.wg-in p{font-weight:800;margin:12px 0 0}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* chat messages float up as comic speech bubbles, then pop */
+.cfloats{position:fixed;left:0;right:0;bottom:calc(74px + env(safe-area-inset-bottom));top:auto;height:0;z-index:26;pointer-events:none;display:block}
+.cbub{position:absolute;bottom:0;pointer-events:auto;max-width:min(72%,300px);background:#fff;color:#121212;border:3px solid #121212;border-radius:20px 20px 20px 6px;box-shadow:4px 4px 0 #121212;padding:7px 12px 9px 8px;font:inherit;text-align:left;cursor:pointer;
+  animation:bubIn .4s var(--spring) both,bubRise 5.6s cubic-bezier(.25,.6,.35,1) forwards,bubWob 1.6s ease-in-out .4s infinite}
+.cbub::after{content:'';position:absolute;left:14px;bottom:-12px;width:16px;height:12px;background:#fff;border-left:3px solid #121212;border-bottom:3px solid #121212;transform:skewX(-30deg);border-bottom-left-radius:4px}
+.cb-head{display:flex;align-items:center;gap:6px;margin-bottom:2px}
+.cb-head b{font:800 11px var(--f-mono);letter-spacing:.04em;color:#7B2CBF;text-transform:uppercase}
+.cb-head .av.sm{width:26px;height:26px;border-width:2px}
+.cb-tx{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;font-weight:800;font-size:15px;line-height:1.25;padding-left:2px}
+.cbub.popping{animation:bubPop .4s ease-in forwards}
+@keyframes bubIn{from{opacity:0;transform:scale(.3) rotate(var(--t))}to{opacity:1;transform:scale(1) rotate(var(--t))}}
+@keyframes bubRise{from{bottom:0}to{bottom:150px}}
+@keyframes bubWob{0%,100%{transform:rotate(var(--t)) translateX(0)}50%{transform:rotate(calc(var(--t) * -1)) translateX(4px)}}
+@keyframes bubPop{0%{transform:scale(1);opacity:1}40%{transform:scale(1.15);opacity:1}100%{transform:scale(1.5);opacity:0;filter:blur(2px)}}
+html[data-theme=dark] .cbub{border-color:#121212}
+.cfloat{display:none}
+@media (prefers-reduced-motion:reduce){.cbub{animation:none}.cbub.popping{opacity:0}}
+
+/* profile photos */
+.av.pic{overflow:hidden;padding:0;background:#121212}
+.av.pic img{width:100%;height:100%;object-fit:cover;display:block}
+.avbtn{position:relative;border:0;background:none;padding:0;margin:0;cursor:pointer;flex:none;display:inline-flex}
+.avbtn i{position:absolute;right:-5px;bottom:-4px;font-style:normal;font-size:11px;background:#FFD600;border:2px solid #121212;border-radius:50%;width:19px;height:19px;display:flex;align-items:center;justify-content:center;line-height:1}
+.avbtn:active{transform:scale(.92)}
 </style>
 </head>
 <body>
@@ -768,7 +809,47 @@ html[data-theme=dark] .suspects{background:repeating-linear-gradient(0deg,transp
     faceCache[key] = f;
     return f.cloneNode(true);
   }
+  // Session profile photos: online ones come from the lobby, one-phone ones are saved on this phone.
+  var photoMap = {};
+  function photoOf(name) {
+    var k = String(name).trim().toLowerCase();
+    if (S && photoMap[k]) return photoMap[k];
+    if (!S && typeof L !== 'undefined' && L && L.photos && L.photos[k]) return L.photos[k];
+    return null;
+  }
+  function pickPhoto(cb) { // choose/take a photo, crop to a square, shrink to a ~4 KB JPEG
+    var inp = h('input', { type: 'file', accept: 'image/*', style: 'display:none' });
+    inp.addEventListener('change', function () {
+      var f = inp.files && inp.files[0]; if (inp.parentNode) inp.parentNode.removeChild(inp);
+      if (!f) return;
+      var url = URL.createObjectURL(f), img = new Image();
+      img.onload = function () {
+        var c = document.createElement('canvas'), S2 = 88; c.width = c.height = S2;
+        var side = Math.min(img.width, img.height), sx = (img.width - side) / 2, sy = Math.max(0, (img.height - side) / 2 - side * 0.08);
+        var g = c.getContext('2d'); g.drawImage(img, sx, sy, side, side, 0, 0, S2, S2);
+        URL.revokeObjectURL(url);
+        var q = 0.72, d = c.toDataURL('image/jpeg', q);
+        while (d.length > 13000 && q > 0.3) { q -= 0.1; d = c.toDataURL('image/jpeg', q); }
+        cb(d);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); toast('Could not open that photo'); };
+      img.src = url;
+    });
+    document.body.appendChild(inp); inp.click();
+  }
+  function photoMenu(has, onPick, onRemove) {
+    if (!has) return pickPhoto(onPick);
+    var m = h('div', { class: 'modal' });
+    function close() { if (m.parentNode) m.parentNode.removeChild(m); }
+    fill(m, h('div', { class: 'modal-in' }, h('h1', { style: 'font-size:22px' }, '📸 Profile photo'),
+      h('button', { class: 'btn primary', type: 'button', onclick: function () { close(); pickPhoto(onPick); } }, 'Change photo'), h('div', { class: 'gap' }),
+      h('button', { class: 'btn danger', type: 'button', onclick: function () { close(); onRemove(); } }, 'Remove photo'), h('div', { class: 'gap' }),
+      h('button', { class: 'btn yellow', type: 'button', onclick: close }, 'Cancel')));
+    document.body.appendChild(m);
+  }
   function avatar(name, i, cls) {
+    var ph = photoOf(name);
+    if (ph) return h('span', { class: 'av toon pic' + (cls ? ' ' + cls : ''), role: 'img', 'aria-label': String(name) }, h('img', { src: ph, alt: '' }));
     return h('span', { class: 'av toon' + (cls ? ' ' + cls : ''), role: 'img', 'aria-label': String(name), style: 'background:' + PAL[((i % PAL.length) + PAL.length) % PAL.length] }, faceFor(name));
   }
   var PAIRS = /*__WORDS__*/[];
@@ -826,6 +907,9 @@ html[data-theme=dark] .suspects{background:repeating-linear-gradient(0deg,transp
     else if (m.t === 'err') toast(m.msg);
     else if (m.t === 'notice') toast(m.msg);
     else if (m.t === 'react') floatReact(m.e, m.from);
+    else if (m.t === 'wguess') showWhiteGuess(m);
+    else if (m.t === 'photos') { photoMap = {}; Object.keys(m.map || {}).forEach(function (n) { photoMap[n.trim().toLowerCase()] = m.map[n]; }); if (S) render(); }
+    else if (m.t === 'photo') { var pk = String(m.name).trim().toLowerCase(); if (m.data) photoMap[pk] = m.data; else delete photoMap[pk]; if (S) render(); }
     else if (m.t === 'chatlog') { chatList = m.list || []; chatUnread = 0; paintChat(); }
     else if (m.t === 'chat') { chatList.push(m.m); if (chatList.length > 60) chatList.shift(); if (!chatOpen && !(m.m.id && S && m.m.id === S.me.id)) { chatUnread++; if (!m.m.sys) { floatChat(m.m); buzz(90); } } paintChat(); }
     else if (m.t === 'words') { // the lobby's "already played" memory, kept on this phone
@@ -834,7 +918,7 @@ html[data-theme=dark] .suspects{background:repeating-linear-gradient(0deg,transp
     }
     else if (m.t === 'norejoin') { session = null; store('uc.session', null); S = null; render(); }
     else if (m.t === 'kicked' || m.t === 'left') {
-      chatList = []; chatOpen = false; chatUnread = 0;
+      chatList = []; chatOpen = false; chatUnread = 0; photoMap = {};
       if (m.t === 'kicked') toast('The host removed you from the lobby');
       session = null; store('uc.session', null); S = null; render();
     }
@@ -910,9 +994,14 @@ html[data-theme=dark] .suspects{background:repeating-linear-gradient(0deg,transp
       return h('button', { type: 'button', class: o[0] === val ? 'on' : '', onclick: function () { onPick(o[0]); } }, o[1]);
     }));
   }
+  function myPhoto() {
+    var k = S.me.name.trim().toLowerCase();
+    photoMenu(!!photoMap[k], function (d) { send({ t: 'photo', data: d }); toast('📸 Looking good!'); }, function () { send({ t: 'photo', data: null }); });
+  }
   function playerRow(p, extra) {
+    var mine = p.id === S.me.id;
     return h('li', null,
-      avatar(p.name, pidx(p.id)),
+      mine ? h('button', { class: 'avbtn', type: 'button', 'aria-label': 'Set your photo', onclick: myPhoto }, avatar(p.name, pidx(p.id)), h('i', null, '📷')) : avatar(p.name, pidx(p.id)),
       h('span', { class: 'dot' + (p.connected ? '' : ' off') }),
       h('span', { class: 'pname' + (p.alive === false && S.phase !== 'lobby' ? ' dead' : '') }, p.name, p.id === S.me.id ? ' (you)' : ''),
       p.host ? h('span', { class: 'tag' }, 'Host') : null,
@@ -1104,7 +1193,7 @@ html[data-theme=dark] .suspects{background:repeating-linear-gradient(0deg,transp
     var jokerT = toggle('🤡 Joker (6+ players)', 'One player gets the civilian word and wins alone if voted out', function (v) { send({ t: 'settings', joker: v }); });
     var ucT = toggle('🕵️ Undercover can guess', 'If voted out, only they see a box to guess the civilians\' word (+3)', function (v) { send({ t: 'settings', ucGuess: v }); });
     var chatT = toggle('💬 Chat', 'Open during discussion & voting. Secret words are blocked', function (v) { send({ t: 'settings', chat: v }); });
-    var slowRow = h('div', { class: 'set' }), cdRow = h('div', { class: 'set' }), modesBox = h('div');
+    var slowRow = h('div', { class: 'set' }), cdRow = h('div', { class: 'set' }), wtRow = h('div', { class: 'set' }), modesBox = h('div');
     var sup = toggle('I\'ll be the supervisor', 'You won\'t get a word. You choose the words and see everyone\'s role', function (v) { send({ t: 'settings', supervisor: v }); });
     var otherSup = h('div');
     var startBtn = h('button', { class: 'btn primary', type: 'button', onclick: function () { send({ t: 'start' }); } }, 'Start game');
@@ -1116,7 +1205,7 @@ html[data-theme=dark] .suspects{background:repeating-linear-gradient(0deg,transp
       h('div', { class: 'card' }, count, list),
       h('div', { class: 'card' }, h('h2', null, 'Settings'),
         h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Time per clue', h('small', null, 'seconds for each player\'s turn')), secsStep.root),
-        autoRoles.root, uRow, wRow, planTxt, hint.root, ucT.root, jokerT.root, chatT.root, slowRow, reacts.root, cdRow, boardT.root, sup.root, otherSup),
+        autoRoles.root, uRow, wRow, planTxt, wtRow, hint.root, ucT.root, jokerT.root, chatT.root, slowRow, reacts.root, cdRow, boardT.root, sup.root, otherSup),
       h('div', { class: 'card tight' }, h('h2', null, '🎒 Word modes'), modesBox),
       sw.root, board, startBtn, why);
     return { root: root, update: function () {
@@ -1136,6 +1225,8 @@ html[data-theme=dark] .suspects{background:repeating-linear-gradient(0deg,transp
       fill(cdRow, h('div', { class: 'lbl' }, '⏱️ Reaction cooldown', h('small', null, 'Wait between emojis')),
         seg([[1, '1s'], [3, '3s'], [10, '10s']], s.reactCd, function (v) { send({ t: 'settings', reactCd: v }); }));
       cdRow.style.display = s.reacts ? '' : 'none';
+      fill(wtRow, h('div', { class: 'lbl' }, '🎯 Mr. White guesses', h('small', null, 'Times he can guess the word mid-round (everyone sees it)')),
+        seg([[0, 'Off'], [1, '1'], [2, '2'], [3, '3']], s.whiteTries == null ? 2 : s.whiteTries, function (v) { send({ t: 'settings', whiteTries: v }); }));
       fill(modesBox, modePicker(s.modes, function (next) { send({ t: 'settings', modes: next }); }));
       uStep.set(s.undercover); wStep.set(s.white);
       uRow.style.display = wRow.style.display = s.autoRoles ? 'none' : '';
@@ -1168,6 +1259,37 @@ html[data-theme=dark] .suspects{background:repeating-linear-gradient(0deg,transp
     document.body.appendChild(supModal);
   }
 
+  /* Mr. White can guess the word any time in the round (host sets how many tries) */
+  var wtry = h('button', { class: 'wtry', type: 'button', onclick: openWhiteTry });
+  document.getElementById('wrap').insertBefore(wtry, document.getElementById('app'));
+  function syncWhiteTry() {
+    var on = S && S.me.white && S.me.alive && S.me.wLeft > 0 && ['describe', 'vote', 'elim'].indexOf(S.phase) >= 0;
+    wtry.style.display = on ? '' : 'none';
+    if (on) fill(wtry, h('span', null, '🎯'), h('b', null, 'I know the word!'), h('small', null, S.me.wLeft + (S.me.wLeft === 1 ? ' guess left' : ' guesses left')));
+  }
+  function openWhiteTry() {
+    var m = h('div', { class: 'modal' }), inp = h('input', { type: 'text', maxlength: 40, placeholder: 'The civilians\' word…', autocomplete: 'off', enterkeyhint: 'send' });
+    function close() { if (m.parentNode) m.parentNode.removeChild(m); }
+    function go() { var v = inp.value.trim(); if (!v) return toast('Type your guess'); send({ t: 'whiteTry', text: v }); close(); }
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
+    fill(m, h('div', { class: 'modal-in' }, h('h1', { style: 'font-size:22px' }, '🎯 Mr. White\'s guess'),
+      h('p', { class: 'mute small' }, '⚠️ Everyone will see your name and your guess! Right = you win. Wrong = you lose a chance (' + S.me.wLeft + ' left).'),
+      inp, h('div', { class: 'gap' }), h('button', { class: 'btn primary', type: 'button', onclick: go }, 'Lock it in'), h('div', { class: 'gap' }), h('button', { class: 'btn yellow', type: 'button', onclick: close }, 'Not yet')));
+    document.body.appendChild(m); setTimeout(function () { try { inp.focus(); } catch (e) {} }, 80);
+  }
+  // Big popup on every phone when Mr. White guesses
+  function showWhiteGuess(g) {
+    var m = h('div', { class: 'wgpop' + (g.ok ? ' ok' : '') });
+    fill(m, h('div', { class: 'wg-in' }, h('small', null, '🎯 MR. WHITE GUESSED!'), avatar(g.name, g.idx != null ? g.idx : S ? pidx(g.id) : 0, 'xl'), h('div', { class: 'wg-name' }, g.name),
+      h('div', { class: 'wg-text' }, '“' + g.text + '”'),
+      h('div', { class: 'wg-stamp' }, g.ok ? '✓ CORRECT!' : '✗ WRONG'),
+      h('p', null, g.ok ? 'Mr. White wins the game! 🤯' : (g.left ? g.left + (g.left === 1 ? ' chance' : ' chances') + ' left 😂' : 'No chances left 😂'))));
+    m.addEventListener('click', function () { if (m.parentNode) m.parentNode.removeChild(m); });
+    document.body.appendChild(m);
+    buzz(g.ok ? [150, 80, 150, 80, 400] : [500]);
+    if (g.ok && typeof confetti === 'function') confetti();
+    setTimeout(function () { if (m.parentNode) m.parentNode.removeChild(m); }, g.ok ? 4500 : 3800);
+  }
   /* joined mid-game: watching until the next game */
   var watchbar = h('div', { class: 'watchbar' }, '👀 You joined mid-game. You can see everyone\'s word & role. You play from the next game. Keep a straight face! 🤐');
   document.getElementById('wrap').insertBefore(watchbar, document.getElementById('app'));
@@ -1262,12 +1384,16 @@ html[data-theme=dark] .suspects{background:repeating-linear-gradient(0deg,transp
   }
   function hhmm(t) { var d = new Date(t - offset); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
   var cfloats = h('div', { class: 'cfloats' }); document.body.appendChild(cfloats);
-  function floatChat(c) { // a missed message floats up for a few seconds; tap it to open the chat
-    var el = h('button', { class: 'cfloat', type: 'button', onclick: function () { chatOpen = true; chatUnread = 0; clearFloats(); paintChat(); } },
-      avatar(c.name, pidx(c.id), 'xs'), h('span', null, h('b', null, c.name), h('span', { class: 'tx' }, c.text)));
+  var lane = 0;
+  function floatChat(c) { // a message floats up as a comic speech bubble, then pops; tap it to open the chat
+    var tilt = (Math.random() * 8 - 4).toFixed(1), x = [6, 30, 14][lane++ % 3];
+    var el = h('button', { class: 'cbub', type: 'button', style: 'left:' + x + '%;--t:' + tilt + 'deg', onclick: function () { chatOpen = true; chatUnread = 0; clearFloats(); paintChat(); } },
+      h('span', { class: 'cb-head' }, avatar(c.name, pidx(c.id), 'sm'), h('b', null, c.name)),
+      h('span', { class: 'cb-tx' }, c.text));
     cfloats.appendChild(el);
     while (cfloats.children.length > 3) cfloats.removeChild(cfloats.firstChild);
-    setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 4700);
+    setTimeout(function () { el.classList.add('popping'); }, 5200);
+    setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 5600);
   }
   function clearFloats() { while (cfloats.firstChild) cfloats.removeChild(cfloats.firstChild); }
   function floatReact(e, from) {
@@ -1385,8 +1511,8 @@ html[data-theme=dark] .suspects{background:repeating-linear-gradient(0deg,transp
       var alive = S.players.filter(function (p) { return p.in && p.alive; });
       var votedN = alive.filter(function (p) { return p.voted; }).length;
       tie.style.display = S.tie ? '' : 'none';
-      fill(tie, '⚖️ Tie! Nobody has a majority. Anyone can change their vote.');
-      fill(tieBars, S.tie && S.breakdown ? h('div', { class: 'card tight' }, h('h2', null, 'Votes so far'), voteBars(S.breakdown)) : null);
+      fill(tie, '⚖️ Tie' + (S.tieTop && S.tieTop.length ? ' between ' + S.tieTop.join(' & ') : '') + '! Votes are reset. Everyone vote again.');
+      fill(tieBars, S.tie && S.tieTally ? h('div', { class: 'card tight' }, h('h2', null, 'Last tally'), voteBars(S.tieTally)) : null);
       fill(progress, h('div', { class: 'row', style: 'justify-content:space-between;margin-bottom:8px' }, h('h2', { style: 'margin:0' }, 'Votes in · ' + votedN + ' / ' + alive.length), h('span', { class: 'mute small', style: 'flex:none' }, S.tie ? '' : '🔒 secret till everyone votes')),
         h('div', { class: 'vprog' }, h('i', { style: 'width:' + Math.round(votedN / Math.max(1, alive.length) * 100) + '%' })),
         h('div', { class: 'vstat' }, alive.map(function (p) {
@@ -1395,7 +1521,7 @@ html[data-theme=dark] .suspects{background:repeating-linear-gradient(0deg,transp
       var canVote = S.me.alive && !S.me.sup;
       fill(ballot, canVote ? [h('h2', null, S.myVote ? 'Your vote (tap again to undo)' : 'Tap who you think is the impostor'),
         h('div', { class: 'suspects' }, speakOrder(alive).filter(function (x) { return x.p.id !== S.me.id; }).map(function (x) {
-          var p = x.p, mineSel = S.myVote === p.id, n = S.tie && S.breakdown && S.breakdown[p.id] ? S.breakdown[p.id].length : 0;
+          var p = x.p, mineSel = S.myVote === p.id, n = S.tie && S.tieTally && S.tieTally[p.id] ? S.tieTally[p.id].length : 0;
           return h('button', { class: 'suspect' + (mineSel ? ' sel' : ''), type: 'button', onclick: function () { send({ t: 'vote', target: mineSel ? null : p.id }); } },
             h('div', { class: 'top' }, h('span', { class: 'speaks' }, (x.n ? '#' + x.n : '—') + (S.tie ? ' · ' + n + (n === 1 ? ' vote' : ' votes') : '')), h('span', { class: 'mark' }, mineSel ? '☑ YOUR VOTE' : '☐')),
             h('div', { class: 'nm' }, avatar(p.name, pidx(p.id), 'sm'), h('span', null, p.name)),
@@ -1662,6 +1788,7 @@ html[data-theme=dark] .suspects{background:repeating-linear-gradient(0deg,transp
   if (!('board' in L.cfg)) L.cfg.board = true;
   if (!('hint' in L.cfg)) L.cfg.hint = false;
   if (!('ucGuess' in L.cfg)) L.cfg.ucGuess = true;
+  if (!('whiteTries' in L.cfg)) L.cfg.whiteTries = 2;
   if (!Array.isArray(L.cfg.modes) || !L.cfg.modes.length) L.cfg.modes = ['mix'];
   function saveSolo() { store('uc.solo', JSON.stringify(L)); }
   var mode = (session || /[?&]c=/.test(location.search)) ? 'online' : (L.step !== 'roster' ? 'solo' : 'menu');
@@ -1740,7 +1867,7 @@ html[data-theme=dark] .suspects{background:repeating-linear-gradient(0deg,transp
     // random first player each round (not the same person as last round); everything else follows the seats clockwise
     var starters = L.players.map(function (_, i) { return i; }).filter(function (i) { return L.players[i].name !== prevStarter; });
     L.starter = starters.length ? starters[rnd(starters.length)] : rnd(L.players.length);
-    L.last = null; L.winner = null; L.gain = null; L.scored = false; L.undo = null; L.step = 'spin';
+    L.last = null; L.winner = null; L.gain = null; L.scored = false; L.undo = null; L.wtries = {}; L.wmid = null; L.step = 'spin';
   }
   // Shuffle roles over the seats so impostors don't sit next to each other (when possible), and people who
   // were impostors last game get a much smaller chance of being one again.
@@ -1776,7 +1903,7 @@ html[data-theme=dark] .suspects{background:repeating-linear-gradient(0deg,transp
     if (L.scored) return; L.scored = true;
     var w = L.winner, g = (L.last && L.last.guess) || {};
     L.gain = L.players.map(function (p, i) {
-      if (w === 'white') return g[i] ? 6 : 0;
+      if (w === 'white') return (g[i] || (L.wmid && L.wmid.i === i)) ? 6 : 0;
       if (w === 'joker') return p.role === 'joker' ? 6 : 0;
       return w === 'civilians' ? (p.role === 'civilian' ? 2 : 0) : (isImpR(p.role) ? 4 : 0);
     });
@@ -1945,7 +2072,11 @@ html[data-theme=dark] .suspects{background:repeating-linear-gradient(0deg,transp
           var row = h('div', { class: 'rrow' + (i === justAdded ? ' enter' : '') });
           var handle = h('button', { class: 'handle', type: 'button', 'aria-label': 'Drag to move ' + r.name }, '☰');
           handle.addEventListener('pointerdown', function (e) { startDrag(e, i); });
-          add(row, [handle, h('span', { class: 'seatno' }, String(i + 1))]);
+          add(row, [handle, h('span', { class: 'seatno' }, String(i + 1)),
+            h('button', { class: 'avbtn', type: 'button', 'aria-label': 'Photo for ' + r.name, onclick: function () {
+              var k = r.name.trim().toLowerCase(); L.photos = L.photos || {};
+              photoMenu(!!L.photos[k], function (d) { L.photos[k] = d; saveSolo(); paint(); }, function () { delete L.photos[k]; saveSolo(); paint(); });
+            } }, avatar(r.name, i, 'sm'), h('i', null, '📷'))]);
           if (editing === i) {
             var done = false, inp = h('input', { type: 'text', maxlength: 14, value: r.name, autocomplete: 'off', class: 'redit' });
             var commit = function () {
@@ -1990,6 +2121,8 @@ html[data-theme=dark] .suspects{background:repeating-linear-gradient(0deg,transp
         h('div', { class: 'card tight' },
           soloToggle('Mr. White gets a hint', 'Shows him the category, e.g. "Food" or "Film villain"', 'hint'),
           soloToggle('Leaderboard', 'Points and wins for each player', 'board'),
+          h('div', { class: 'set' }, h('div', { class: 'lbl' }, '🎯 Mr. White guesses', h('small', null, 'Times he can guess the word mid-round (everyone sees it)')),
+            seg([[0, 'Off'], [1, '1'], [2, '2'], [3, '3']], L.cfg.whiteTries, function (v) { L.cfg.whiteTries = v; saveSolo(); draw(); })),
           soloToggle('🕵️ Undercover can guess', 'If kicked, they secretly type the civilians\' word on this phone (+3)', 'ucGuess'),
           soloToggle('🤡 Joker (6+ players)', 'One player gets the civilian word and wins alone if voted out', 'joker')),
         h('div', { class: 'card tight' }, h('h2', null, '🎒 Word modes'), modePicker(L.cfg.modes, function (next) { L.cfg.modes = next; saveSolo(); draw(); })),
@@ -2079,6 +2212,38 @@ html[data-theme=dark] .suspects{background:repeating-linear-gradient(0deg,transp
           })), h('div', { class: 'grow' }), dock(h('button', { class: 'btn yellow', type: 'button', onclick: close }, 'Cancel'))));
         root.appendChild(sheet);
       }
+      // Mr. White guesses mid-round: he picks his own name (privately), types, and everyone sees the result
+      function wtryOpen() { L.wtries = L.wtries || {}; return L.cfg.whiteTries > 0 && alive.some(function (i) { return P[i].role === 'white' && (L.wtries[i] || 0) < L.cfg.whiteTries; }); }
+      function whiteTrySheet() {
+        var sheet = h('div', { class: 'sheet' });
+        function close() { if (sheet.parentNode) sheet.parentNode.removeChild(sheet); }
+        function guessFor(i) {
+          var inp = h('input', { type: 'text', maxlength: 40, placeholder: 'The civilians\' word…', autocomplete: 'off', enterkeyhint: 'send' });
+          function lock() {
+            var v = inp.value.trim(); if (!v) return toast('Type your guess');
+            L.wtries[i] = (L.wtries[i] || 0) + 1;
+            var ok = normW(v) === normW(L.pair.civilian), left = Math.max(0, L.cfg.whiteTries - L.wtries[i]);
+            close();
+            showWhiteGuess({ name: P[i].name, idx: i, text: v, ok: ok, left: left });
+            if (ok) { L.wmid = { i: i, text: v }; L.winner = 'white'; scoreGame(); return go('over'); }
+            saveSolo(); draw();
+          }
+          inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') lock(); });
+          fill(sheet, h('div', { class: 'sheet-in' }, h('h1', null, '🎯 Your guess, ' + P[i].name),
+            h('p', { class: 'mute small' }, '⚠️ Everyone will see your name and guess. Right = you win. Wrong = one chance gone (' + (L.cfg.whiteTries - (L.wtries[i] || 0)) + ' left).'),
+            inp, h('div', { class: 'grow' }), dock(h('button', { class: 'btn primary', type: 'button', onclick: lock }, 'Lock it in'), h('div', { class: 'gap' }), h('button', { class: 'btn yellow', type: 'button', onclick: close }, 'Cancel'))));
+          setTimeout(function () { try { inp.focus(); } catch (e) {} }, 80);
+        }
+        fill(sheet, h('div', { class: 'sheet-in' }, h('h1', null, 'Who are you?'), h('p', { class: 'mute small' }, 'Mr. White, tap your own name.'),
+          h('div', { class: 'suspects' }, alive.map(function (i) {
+            return h('button', { class: 'suspect', type: 'button', onclick: function () {
+              if (P[i].role !== 'white') { buzz(200); return toast('🤨 ' + P[i].name + ' is not Mr. White!'); }
+              if ((L.wtries[i] || 0) >= L.cfg.whiteTries) return toast('No guesses left 😂');
+              guessFor(i);
+            } }, h('div', { class: 'nm' }, avatar(P[i].name, i, 'sm'), h('span', null, P[i].name)));
+          })), h('div', { class: 'grow' }), dock(h('button', { class: 'btn yellow', type: 'button', onclick: close }, 'Cancel'))));
+        root.appendChild(sheet);
+      }
       return h('div', null, roundTools(false),
         h('div', { class: 'row', style: 'justify-content:space-between' }, h('h1', null, 'Clues & vote'), h('span', { class: 'pill', style: 'flex:none' }, alive.length + ' ALIVE')),
         tickerStrip('BOL BHAI ★ SHAK MAT KAR ★ SOCH KE KICK KAR'),
@@ -2086,6 +2251,7 @@ html[data-theme=dark] .suspects{background:repeating-linear-gradient(0deg,transp
         h('h2', null, 'Tap one or more suspects to kick out'),
         grid,
         h('button', { class: 'link', type: 'button', onclick: forgot }, 'Forgot your word? Check it'),
+        wtryOpen() ? h('button', { class: 'wtry solo-wtry', type: 'button', onclick: whiteTrySheet }, h('span', null, '🎯'), h('b', null, 'Mr. White wants to guess'), h('small', null, L.cfg.whiteTries + ' tries each')) : null,
         dock(btn));
     };
 
@@ -2198,7 +2364,7 @@ html[data-theme=dark] .suspects{background:repeating-linear-gradient(0deg,transp
       if (!celebrated[key]) { celebrated[key] = 1; later(confetti, 150); buzz([80, 50, 80]); }
       return h('div', null,
         h('div', { class: 'winner bounce ' + (w === 'civilians' ? 'civ' : w === 'white' ? 'wht' : w === 'joker' ? 'jok' : 'imp') }, h('div', { class: 'big' }, w === 'civilians' ? 'Civilians win!' : w === 'white' ? 'Mr. White wins!' : w === 'joker' ? '🤡 Joker wins!' : 'Impostors win!'),
-          h('p', null, w === 'civilians' ? 'Every impostor was kicked out of the tapri! +2 each' : w === 'white' ? 'Caught, but guessed the word! +6' : w === 'joker' ? 'Fooled everyone into voting them out! +6' : 'The impostors took over the adda! +4 each')),
+          h('p', null, w === 'civilians' ? 'Every impostor was kicked out of the tapri! +2 each' : w === 'white' ? (L.wmid ? L.players[L.wmid.i].name + ' guessed “' + L.wmid.text + '” mid-round! +6' : 'Caught, but guessed the word! +6') : w === 'joker' ? 'Fooled everyone into voting them out! +6' : 'The impostors took over the adda! +4 each')),
         h('h2', null, 'The secret word pair'),
         h('div', { class: 'tiles' }, h('div', { class: 'tile' }, h('small', null, 'CIVILIAN WORD'), h('b', null, L.pair.civilian)), h('div', { class: 'tile' }, h('small', null, 'UNDERCOVER WORD'), h('b', null, L.pair.undercover))),
         h('h2', null, L.cfg.board ? 'Everyone\'s role & scoreboard' : 'Everyone\'s role'),
@@ -2244,7 +2410,7 @@ html[data-theme=dark] .suspects{background:repeating-linear-gradient(0deg,transp
     }
     if (S && S.phase !== 'lobby' && S.phase !== 'over') wakeLock();
     cur.update();
-    syncSupModal(); syncHostbar(); syncWatch(); syncReactBar(); paintChat();
+    syncSupModal(); syncHostbar(); syncWatch(); syncWhiteTry(); syncReactBar(); paintChat();
   }
   setInterval(function () { if (cur && cur.tick) cur.tick(); }, 250);
 
