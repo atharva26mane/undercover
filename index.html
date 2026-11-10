@@ -509,6 +509,7 @@ html[data-theme=dark] .cfloat{background:var(--card);color:#F4EFE3;border-color:
 .watchbar{background:var(--violet);color:#fff;border:3px solid var(--ink);border-radius:14px;padding:8px 12px;font-weight:800;margin-bottom:12px}
 .ucask{background:var(--yellow-l);border-style:dashed}
 html[data-theme=dark] .ucask{background:#2b2640}
+.vibbar{position:fixed;left:12px;right:12px;top:calc(8px + env(safe-area-inset-top));z-index:60;background:var(--yellow);color:#121212;border:3px solid var(--ink);border-radius:14px;box-shadow:var(--sh-s);padding:10px;font:800 14px var(--f-body);animation:cfin .25s var(--spring)}
 .sclue{font-size:12.5px;font-style:italic;opacity:.8;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word}
 /* ===== dark mode ===== */
 html[data-theme=dark]{--bg:#17141F;--bg2:#24202F;--card:#262233;--ink:#08070C;--mute:#B4ACC8;--line:#3A3450;--yellow-l:#3B3315;--green-l:#173B2B;--orange-l:#40261A;--red-l:#47192A;--violet-l:#2E2145;--lav:#2E2145;color-scheme:dark}
@@ -553,6 +554,57 @@ html[data-theme=dark] .wscene .q{background:#262233;color:#F4EFE3;border-color:#
 html[data-theme=dark] .wscene .q h2{color:#F4EFE3}
 html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* ---- home: spotlight line-up poster (v12) ---- */
+body.menu{--st-bg:#FFF8E7;--st-ink:#121212;--st-mute:#4a4560;--st-dot:rgba(18,18,18,.10);--st-cone:rgba(255,214,0,.55);--st-title-sh:#FF4D00}
+html[data-theme=dark] body.menu{--st-bg:#131726;--st-ink:#F4EFE3;--st-mute:#B9B3CC;--st-dot:rgba(255,255,255,.06);--st-cone:rgba(255,214,0,.30);--st-title-sh:#FF4D00}
+.hm-stage{position:relative;overflow:hidden;background:var(--st-bg);background-image:radial-gradient(var(--st-dot) 1.3px,transparent 1.3px);background-size:14px 14px;border:3px solid #121212;border-radius:24px;box-shadow:var(--sh-l);padding:12px 12px 10px;margin:0 0 4px;text-align:center;color:var(--st-ink);isolation:isolate}
+.hm-spot{position:absolute;left:50%;top:-30px;width:240px;height:270px;margin-left:-120px;background:linear-gradient(to bottom,var(--st-cone),rgba(255,214,0,0) 92%);clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);transform-origin:50% 0;animation:sweep 6s ease-in-out infinite alternate;z-index:-1;pointer-events:none}
+@keyframes sweep{from{transform:rotate(-9deg)}to{transform:rotate(9deg)}}
+.hm-stamp{position:absolute;left:10px;top:10px;width:66px;height:66px;border-radius:50%;border:3px double #00A859;color:#00A859;display:flex;flex-direction:column;align-items:center;justify-content:center;font:800 10.5px/1.05 var(--f-mono);letter-spacing:.06em;transform:rotate(-14deg);background:rgba(0,168,89,.08);z-index:2}
+html[data-theme=dark] .hm-stamp{color:#3ddc8c;border-color:#3ddc8c}
+.hm-pl-tag{position:absolute;right:10px;top:12px;background:#7B2CBF;color:#fff;border:2.5px solid #121212;border-radius:10px;padding:3px 8px;transform:rotate(8deg);box-shadow:2px 2px 0 #121212;display:flex;flex-direction:column;line-height:1;z-index:2}
+.hm-pl-tag b{font:800 17px var(--f-disp)}.hm-pl-tag span{font:800 8.5px var(--f-mono);letter-spacing:.08em}
+.hm-lineup{display:flex;justify-content:center;align-items:flex-end;margin:46px 0 4px;padding:0 2px}
+.hm-sus{--r:0deg;width:19%;max-width:74px;aspect-ratio:60/80;padding:4px 3px 0;margin:0 -1.5%;background:var(--c);border:2.5px solid #121212;border-radius:9px;box-shadow:3px 3px 0 #121212;transform:rotate(var(--r));animation:bob 3.2s ease-in-out var(--d) infinite;overflow:hidden;display:flex;align-items:flex-end}
+.hm-sus svg{width:100%;height:auto;display:block}
+.hm-sus.hm-spy{z-index:1;width:22%;max-width:86px;margin-bottom:6px;box-shadow:4px 4px 0 #121212,0 0 0 3px rgba(255,214,0,.35)}
+.hm-sus.hm-pop{animation:susPop .45s var(--spring)}
+@keyframes bob{0%,100%{transform:rotate(var(--r)) translateY(0)}50%{transform:rotate(var(--r)) translateY(-4px)}}
+@keyframes susPop{0%{transform:rotate(var(--r)) scale(1)}40%{transform:rotate(0) scale(1.18)}100%{transform:rotate(var(--r)) scale(1)}}
+.hm-sus .hm-glint{animation:glint 3s ease-in-out infinite}
+@keyframes glint{0%,70%,100%{opacity:0}80%{opacity:1}}
+.hm-stage .hm-mtitle,html[data-theme=dark] .hm-stage .hm-mtitle{font:800 clamp(40px,12.5vw,54px)/.95 var(--f-disp);color:#FFD600;-webkit-text-stroke:2.5px #121212;paint-order:stroke fill;text-shadow:3px 3px 0 var(--st-title-sh),5px 5px 0 #121212;margin:6px 0 4px;letter-spacing:-.02em;text-transform:uppercase}
+.hm-mtag{font-weight:800;font-style:italic;font-size:14px;line-height:1.3;margin:0 auto 10px;max-width:290px;color:var(--st-ink)}
+.hm-ticker{margin:0 -12px 12px;background:#FF4D00;border-top:2.5px solid #121212;border-bottom:2.5px solid #121212;overflow:hidden;transform:rotate(-1.5deg)}
+.hm-ticker .hm-tk{display:flex;width:max-content;animation:tick 16s linear infinite}
+.hm-ticker span{font:800 11.5px/1 var(--f-mono);color:#FFD600;white-space:pre;padding:6px 0}
+@keyframes tick{to{transform:translateX(-50%)}}
+.hm-tix{display:flex;flex-direction:column;gap:12px;padding:0 2px}
+.hm-tkt{display:flex;align-items:stretch;width:100%;border:3px solid #121212;border-radius:14px;padding:0;color:#121212;font:inherit;text-align:left;box-shadow:4px 4px 0 #121212;cursor:pointer;transition:transform .12s var(--snap),box-shadow .12s;
+  -webkit-mask:radial-gradient(circle 9px at var(--nx) 0,transparent 98%,#000) top/100% 51% no-repeat,radial-gradient(circle 9px at var(--nx) 100%,transparent 98%,#000) bottom/100% 51% no-repeat;
+  mask:radial-gradient(circle 9px at var(--nx) 0,transparent 98%,#000) top/100% 51% no-repeat,radial-gradient(circle 9px at var(--nx) 100%,transparent 98%,#000) bottom/100% 51% no-repeat}
+.hm-tkt:active{transform:translate(3px,3px) scale(.98);box-shadow:1px 1px 0 #121212}
+.hm-tkt.hm-one{--nx:72%;background:#FF4D00;transform:rotate(-1.5deg)}
+.hm-tkt.hm-two{--nx:31%;background:#FFD600;transform:rotate(1.2deg)}
+.hm-tkt.hm-one:active{transform:rotate(-1.5deg) translate(3px,3px) scale(.98)}.hm-tkt.hm-two:active{transform:rotate(1.2deg) translate(3px,3px) scale(.98)}
+.hm-tk-main{flex:1;padding:10px 14px;position:relative;display:block}
+.hm-tk-main small{display:block;font:800 10px var(--f-mono);letter-spacing:.08em;opacity:.85}
+.hm-tk-main b{display:block;font:800 23px/1 var(--f-disp);text-transform:uppercase;letter-spacing:-.01em;margin-top:3px}
+.hm-tkt.hm-one .hm-tk-main b,.hm-tkt.hm-one .hm-tk-main small{color:#fff}.hm-tkt.hm-one .hm-tk-main b{text-shadow:2px 2px 0 #121212}
+.hm-tk-main .hm-arr{position:absolute;right:12px;top:50%;transform:translateY(-50%);font:800 26px var(--f-disp);font-style:normal;animation:nudge 1.4s ease-in-out infinite}
+.hm-tkt.hm-one .hm-arr{color:#FFD600}
+@keyframes nudge{0%,100%{margin-right:0}50%{margin-right:-5px}}
+.hm-tk-stub{width:31%;max-width:118px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 6px;border-style:dashed;border-color:#121212;border-width:0;font:800 10.5px/1.2 var(--f-mono);text-align:center;background:rgba(255,255,255,.22)}
+.hm-tkt.hm-one .hm-tk-stub{width:28%;border-left-width:2.5px;color:#121212;background:#FFE4D6;font-size:10px}.hm-tkt.hm-one .hm-tk-stub{font-size:10px}
+.hm-tk-stub .hm-ico{font-size:20px;line-height:1}
+.hm-tkt.hm-two .hm-tk-stub{border-right-width:2.5px;background:#FFF5B8}
+.hm-bars{display:block;width:70%;height:16px;background:repeating-linear-gradient(90deg,#121212 0 2px,transparent 2px 4px,#121212 4px 5px,transparent 5px 8px)}
+.hm-howlink{background:none;border:0;color:var(--st-ink);font:800 14px var(--f-body);text-decoration:underline;text-underline-offset:3px;padding:12px 8px 4px}
+.hm-howto{padding-left:20px;margin:6px 0 14px}.hm-howto li{margin:0 0 8px;font-size:14.5px}
+body.menu .dock{display:none}
+@media (max-width:360px){.hm-tk-main b{font-size:20px}.hm-mtag{font-size:13px}.hm-lineup{margin-top:40px}}
+@media (prefers-reduced-motion:reduce){.hm-spot,.hm-sus,.hm-ticker .hm-tk,.hm-tk-main .hm-arr,.hm-sus .hm-glint{animation:none}}
 </style>
 </head>
 <body>
@@ -638,7 +690,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
       offset = m.now - Date.now();
       var phaseChanged = !S || S.phase !== m.phase;
       S = m;
-      if (phaseChanged && lastPhase !== null && m.phase === 'vote') buzz([90, 70, 90]); // voting starts: double buzz
+      if (phaseChanged && lastPhase !== null && m.phase === 'vote') buzz([200, 100, 200]); // voting starts: double buzz
       lastPhase = m.phase;
       render();
     }
@@ -646,7 +698,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
     else if (m.t === 'notice') toast(m.msg);
     else if (m.t === 'react') floatReact(m.e, m.from);
     else if (m.t === 'chatlog') { chatList = m.list || []; chatUnread = 0; paintChat(); }
-    else if (m.t === 'chat') { chatList.push(m.m); if (chatList.length > 60) chatList.shift(); if (!chatOpen && !(m.m.id && S && m.m.id === S.me.id)) { chatUnread++; if (!m.m.sys) { floatChat(m.m); buzz(30); } } paintChat(); }
+    else if (m.t === 'chat') { chatList.push(m.m); if (chatList.length > 60) chatList.shift(); if (!chatOpen && !(m.m.id && S && m.m.id === S.me.id)) { chatUnread++; if (!m.m.sys) { floatChat(m.m); buzz(90); } } paintChat(); }
     else if (m.t === 'words') { // the lobby's "already played" memory, kept on this phone
       if (Array.isArray(m.used)) store('uc.used', JSON.stringify(m.used));
       if (Array.isArray(m.recent)) store('uc.recent', JSON.stringify(m.recent));
@@ -766,7 +818,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
       h('button', { class: 'btn small', type: 'button', onclick: function () {
         if (!navigator.vibrate) return toast('This browser can\'t vibrate (iPhone browsers block it)');
         if (load('uc.haptic') === 'off') return toast('Turn Vibration on first');
-        var okv = navigator.vibrate([200, 100, 200]); toast(okv ? 'Bzz bzz! Felt nothing? Check your phone\'s vibration / battery saver' : 'Your browser blocked vibration');
+        var okv = navigator.vibrate([300, 150, 300]); toast(okv ? 'Bzz bzz! Felt nothing? Turn off silent/DND and battery saver, and check Android Settings → Sound → Vibration' : 'Your browser blocked vibration');
       } }, '📳 Test vibration'),
       h('div', { class: 'gap' }),
       h('div', { class: 'setrow' }, h('div', null, '🔔 Background alerts', h('small', null, 'Phone notification + buzz when it\'s your turn, even if the app is closed')), pushState),
@@ -1170,10 +1222,10 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
     var hostRow = h('div', { class: 'row' }, hostBtn('Skip this player', { t: 'skipTurn' }, 'small'), hostBtn('Go to voting now', { t: 'endDescribe' }, 'small danger', 'End the clue round and go to voting?'));
     var wasMine = false, tenBuzzed = false;
     var root = h('div', null, tm.root, wc.root, sp.root, turnBox, form, table, hostRow);
-    return { root: root, tick: function () { tm.tick(); if (wasMine && !tenBuzzed && S && S.phase === 'describe' && secsLeft() <= 10 && secsLeft() > 0) { tenBuzzed = true; buzz(60); } }, update: function () {
+    return { root: root, tick: function () { tm.tick(); if (wasMine && !tenBuzzed && S && S.phase === 'describe' && secsLeft() <= 10 && secsLeft() > 0) { tenBuzzed = true; buzz(180); } }, update: function () {
       wc.update(); sp.update(); tm.tick();
       var mine = S.turnId === S.me.id && S.me.alive && !S.me.sup;
-      if (mine && !wasMine) { buzz(450); tenBuzzed = false; setTimeout(function () { try { inp.focus(); } catch (e) {} }, 50); }
+      if (mine && !wasMine) { buzz([600, 150, 300]); tenBuzzed = false; setTimeout(function () { try { inp.focus(); } catch (e) {} }, 50); }
       if (!mine) inp.value = '';
       wasMine = mine;
       turnBox.className = 'banner' + (mine ? ' ok' : '');
@@ -1239,7 +1291,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
     return { root: root, tick: function () { num.textContent = secsLeft() + 's'; }, update: function () {
       var me = S.me.id === S.whiteId, i = pidx(S.whiteId), nm = nameOf(S.whiteId), uc = S.guessKind === 'uc';
       if (!built) {
-        built = true; buzz(me ? [300, 80, 300] : [60, 40, 60, 40, 200]);
+        built = true; buzz(me ? [400, 100, 400] : [150, 80, 150, 80, 300]);
         fill(head, h('span', { class: 'pill', style: 'background:var(--yellow)' }, 'VOTED OUT'), h('div', { class: 'spot' }, avatar(nm, i, 'xl')),
           h('div', { class: 'caught' }, uc ? 'Undercover pakda gaya!' : 'Mr. White pakda gaya!'), h('div', { class: 'nm' }, nm));
       }
@@ -1266,7 +1318,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
       var ucKey = S.ucAsk ? 'ask' : S.ucResult ? 'res' + S.ucResult.ok : '';
       if (ucKey !== ucShown) {
         ucShown = ucKey;
-        if (S.ucAsk) { buzz([300, 80, 300]); setTimeout(function () { try { ucInp.focus(); } catch (e) {} }, 300); }
+        if (S.ucAsk) { buzz([400, 100, 400]); setTimeout(function () { try { ucInp.focus(); } catch (e) {} }, 300); }
         fill(ucBox, S.ucAsk ? h('div', { class: 'card ucask' }, h('h2', null, '🤫 Only you can see this'), h('p', { style: 'font-weight:800;margin:0 0 4px' }, 'You were the Undercover! Guess the civilians\' word for +3.'),
             h('p', { class: 'mute small', style: 'margin:0 0 8px' }, 'Nobody else knows you get this chance. Be quick, before the host moves on.'), ucInp, h('div', { class: 'gap' }), h('button', { class: 'btn primary', type: 'button', onclick: ucGo }, 'Submit secret guess'))
           : S.ucResult ? h('div', { class: 'card ucask' }, h('h2', null, '🤫 Your secret guess'), h('p', { style: 'font-weight:800;margin:0' }, '“' + S.ucResult.text + '” ' + (S.ucResult.ok ? '✓ Correct! +3 points' : '✗ Wrong. No bonus'))) : null);
@@ -1274,7 +1326,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
       wc.update();
       var e = S.lastElim;
       if (e && shownFor !== e.id) {
-        shownFor = e.id; buzz(e.id === S.me.id ? [400] : [40, 60, 40]);
+        shownFor = e.id; buzz(e.id === S.me.id ? [700] : [150, 80, 150]);
         var cls = e.role === 'civilian' ? 'civ' : e.role === 'undercover' ? 'und' : 'wht';
         fill(res, h('div', { class: 'stampcard' }, h('h2', null, 'Voted out'), avatar(e.name, pidx(e.id), 'xl'), h('div', { class: 'kname' }, e.name),
           h('div', { class: 'rstamp ' + cls }, roleLabel(e.role)),
@@ -1297,7 +1349,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
         fired = true; if (typeof confetti === 'function') later(confetti, 150);
         var mine = S.players.filter(function (p) { return p.id === S.me.id; })[0], r = mine && mine.role;
         var won = !r ? null : w === 'civilians' ? r === 'civilian' : w === 'impostors' ? (r === 'undercover' || r === 'white') : w === 'joker' ? r === 'joker' : g && g.by === S.me.id;
-        buzz(won === false ? [500] : [70, 50, 70, 50, 70]); // win: happy triple · lose: one long
+        buzz(won === false ? [800] : [150, 80, 150, 80, 150]); // win: happy triple · lose: one long
       }
       fill(top, h('div', { class: 'winner bounce ' + (w === 'civilians' ? 'civ' : w === 'white' ? 'wht' : w === 'joker' ? 'jok' : 'imp') },
         h('div', { class: 'big' }, w === 'civilians' ? 'Civilians win!' : w === 'white' ? 'Mr. White wins!' : w === 'joker' ? '🤡 Joker wins!' : 'Impostors win!'),
@@ -1313,25 +1365,112 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
   };
 
 
-  /* ---------- mode menu (Chai Tapri poster) ---------- */
+  /* ---------- mode menu: spotlight line-up poster ---------- */
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  function sv(tag, attrs, kids) {
+    var e = document.createElementNS(SVGNS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    (kids || []).forEach(function (c) { if (c) e.appendChild(c); });
+    return e;
+  }
+  // One suspect face, drawn in SVG (no images). spy = the odd one out in hat + shades.
+  function suspectFace(o) {
+    var ink = '#121212', k = [];
+    k.push(sv('path', { d: 'M6 78 C8 58 20 52 30 52 C40 52 52 58 54 78 Z', fill: o.shirt, stroke: ink, 'stroke-width': 2.5 }));
+    if (o.spy) k.push(sv('path', { d: 'M14 78 L22 54 L30 64 L38 54 L46 78 Z', fill: '#C9A26B', stroke: ink, 'stroke-width': 2.5 }));
+    k.push(sv('rect', { x: 25, y: 44, width: 10, height: 10, fill: o.skin, stroke: ink, 'stroke-width': 2.5 }));
+    k.push(sv('ellipse', { cx: 30, cy: 32, rx: 13.5, ry: 15.5, fill: o.skin, stroke: ink, 'stroke-width': 2.5 }));
+    if (o.hair === 'short') k.push(sv('path', { d: 'M16.5 30 C15 16 25 12 31 13 C39 13 45 18 43.5 30 C41 22 35 20 30 21 C24 21 19 23 16.5 30 Z', fill: ink }));
+    if (o.hair === 'side') k.push(sv('path', { d: 'M16.5 31 C14 15 28 10 36 14 C42 16 45 22 43.5 30 C40 24 33 20 22 23 C19 25 17.5 28 16.5 31 Z', fill: '#3a2414', stroke: ink, 'stroke-width': 1.5 }));
+    if (o.hair === 'curly') ['18,22', '23,16', '30,14', '37,16', '42,22'].forEach(function (c) { var q = c.split(','); k.push(sv('circle', { cx: q[0], cy: q[1], r: 5.5, fill: ink })); });
+    if (o.hair === 'bald') { k.push(sv('path', { d: 'M16.5 34 C16 27 17 24 19 23', fill: 'none', stroke: '#6b6b6b', 'stroke-width': 3, 'stroke-linecap': 'round' })); k.push(sv('path', { d: 'M43.5 34 C44 27 43 24 41 23', fill: 'none', stroke: '#6b6b6b', 'stroke-width': 3, 'stroke-linecap': 'round' })); }
+    if (o.spy) {
+      k.push(sv('rect', { x: 18, y: 28, width: 10, height: 6, rx: 2, fill: ink }));
+      k.push(sv('rect', { x: 32, y: 28, width: 10, height: 6, rx: 2, fill: ink }));
+      k.push(sv('path', { d: 'M28 30 L32 30', stroke: ink, 'stroke-width': 2 }));
+      k.push(sv('path', { d: 'M20 29.5 L23 29.5', stroke: '#fff', 'stroke-width': 1.2, 'stroke-linecap': 'round', class: 'hm-glint' }));
+      k.push(sv('path', { d: 'M8 20 C14 16 46 16 52 20 C46 22 14 22 8 20 Z', fill: '#2b2b33', stroke: ink, 'stroke-width': 2 }));
+      k.push(sv('path', { d: 'M17 19 C17 8 22 5 30 5 C38 5 43 8 43 19 Z', fill: '#2b2b33', stroke: ink, 'stroke-width': 2.5 }));
+      k.push(sv('rect', { x: 17, y: 14, width: 26, height: 3.5, fill: '#B5121B' }));
+      k.push(sv('path', { d: 'M26 41 C29 42.5 33 42 35 39.5', fill: 'none', stroke: ink, 'stroke-width': 2, 'stroke-linecap': 'round' }));
+    } else {
+      k.push(sv('circle', { cx: 24.5, cy: 31, r: 1.8, fill: ink })); k.push(sv('circle', { cx: 35.5, cy: 31, r: 1.8, fill: ink }));
+      k.push(sv('path', { d: 'M21.5 26.5 L27 25.5 M33 25.5 L38.5 26.5', stroke: ink, 'stroke-width': 1.8, 'stroke-linecap': 'round' }));
+      if (o.stache) k.push(sv('path', { d: 'M23 38.5 C26 35.5 29 36.5 30 37.5 C31 36.5 34 35.5 37 38.5 C34 38.5 32 39 30 39 C28 39 26 38.5 23 38.5 Z', fill: ink }));
+      if (o.specs) { k.push(sv('circle', { cx: 24.5, cy: 31, r: 4.5, fill: 'none', stroke: ink, 'stroke-width': 1.8 })); k.push(sv('circle', { cx: 35.5, cy: 31, r: 4.5, fill: 'none', stroke: ink, 'stroke-width': 1.8 })); k.push(sv('path', { d: 'M29 31 L31 31', stroke: ink, 'stroke-width': 1.8 })); }
+      k.push(sv('path', { d: o.grin ? 'M25 40.5 C28 44.5 32 44.5 35 40.5 Z' : 'M26 41.5 C28.5 43.5 31.5 43.5 34 41.5', fill: o.grin ? '#fff' : 'none', stroke: ink, 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+    }
+    return sv('svg', { viewBox: '0 0 60 78', 'aria-hidden': 'true' }, k);
+  }
+  var SUSPECTS = [
+    { bg: '#FF4D00', skin: '#C98B5E', shirt: '#F4EFE3', hair: 'side', stache: true },
+    { bg: '#E6003D', skin: '#E0A878', shirt: '#2F6BFF', hair: 'curly', grin: true },
+    { bg: '#FFD600', skin: '#B97A4E', shirt: '#121212', spy: true },
+    { bg: '#00A859', skin: '#D9A06F', shirt: '#FF4D00', hair: 'bald', stache: true, specs: true },
+    { bg: '#7B2CBF', skin: '#C8875A', shirt: '#FFD600', hair: 'short', grin: true },
+  ];
+  function howToPlay() {
+    var m = h('div', { class: 'modal' });
+    function close() { if (m.parentNode) m.parentNode.removeChild(m); }
+    fill(m, h('div', { class: 'modal-in' }, h('h1', { style: 'font-size:22px' }, '🕵️ How to play'),
+      h('ol', { class: 'hm-howto' },
+        h('li', null, h('b', null, 'Everyone gets a secret word. '), 'Most get the same one (Civilians). The Undercover gets a slightly different word. Mr. White gets no word at all.'),
+        h('li', null, h('b', null, 'Take turns giving a one-line clue '), 'about your word. Not too obvious, not too vague.'),
+        h('li', null, h('b', null, 'Discuss and vote '), 'out who you think is the impostor.'),
+        h('li', null, h('b', null, 'Civilians win '), 'when every impostor is out. Impostors win if they survive till only one civilian is left.'),
+        h('li', null, h('b', null, 'Mr. White caught? '), 'He gets one guess at the word. Right guess = he wins!')),
+      h('button', { class: 'btn primary', type: 'button', onclick: close }, 'Samajh gaya 👍')));
+    m.addEventListener('click', function (e) { if (e.target === m) close(); });
+    document.body.appendChild(m);
+  }
   screens.menu = function () {
-    var root = h('div', null,
-      h('div', { class: 'poster' }, h('span', { class: 'poster-tag' }, '3–20 PLAYERS · DESI PARTY GAME'), h('h1', null, 'Under', h('br'), 'cover'),
-        h('p', null, 'Catch the Undercover & Mr. White before they blend into the adda!')),
-      h('div', { class: 'mode-card' }, h('div', { class: 'mode-head' }, h('span', { class: 'mode-title' }, 'Ek phone (circle)'), h('span', { class: 'pill green' }, 'Most played')),
-        h('p', { class: 'mute small' }, 'Sit in a circle and pass this phone clockwise. No internet needed once the page is open.')),
-      h('div', { class: 'mode-card' }, h('div', { class: 'mode-head' }, h('span', { class: 'mode-title' }, 'Online adda'), h('span', { class: 'pill violet' }, 'Own phones')),
-        h('p', { class: 'mute small' }, 'Everyone joins with a 4-letter room code. Type clues on a timer and vote together.')),
-      dock(
-        h('button', { class: 'btn primary', type: 'button', onclick: function () { mode = 'solo'; render(); } }, 'Play on this phone only →'),
-        h('div', { class: 'gap' }),
-        h('button', { class: 'btn yellow', type: 'button', onclick: function () { mode = 'online'; render(); } }, 'Play on separate phones')));
+    var cards = SUSPECTS.map(function (o, i) {
+      return h('button', { class: 'hm-sus' + (o.spy ? ' hm-spy' : ''), type: 'button', style: '--r:' + [-9, -4, 0, 4, 9][i] + 'deg;--d:' + (i * 0.35) + 's;--c:' + o.bg, 'aria-label': o.spy ? 'The undercover' : 'Suspect ' + (i + 1),
+        onclick: function (e) {
+          var b = e.currentTarget; b.classList.remove('hm-pop'); void b.offsetWidth; b.classList.add('hm-pop'); buzz(40);
+          toast(o.spy ? '🕵️ Pakda gaya! Too easy… in the game nobody wears a hat 😉' : ['Bas civilian hoon, bhai 🙋', 'Main nahi hoon! 😅', 'Shak mat kar 😤', 'Mera word mat pooch 🤐'][i % 4]);
+        } }, suspectFace(o));
+    });
+    var tick = 'BOL BHAI ★ KAUN HAI UNDERCOVER? ★ SHAK MAT KAR ★ MR. WHITE KO PAKDO ★ ';
+    var root = h('div', { class: 'hm-stage' },
+      h('div', { class: 'hm-spot' }),
+      h('div', { class: 'hm-stamp' }, h('span', null, 'DESI'), h('span', null, 'PARTY'), h('span', null, 'GAME')),
+      h('div', { class: 'hm-pl-tag' }, h('b', null, '3–20'), h('span', null, 'PLAYERS')),
+      h('div', { class: 'hm-lineup' }, cards),
+      h('h1', { class: 'hm-mtitle' }, 'Undercover'),
+      h('p', { class: 'hm-mtag' }, 'Catch the Undercover & Mr. White before they blend into the adda!'),
+      h('div', { class: 'hm-ticker', 'aria-hidden': 'true' }, h('div', { class: 'hm-tk' }, h('span', null, tick + tick), h('span', null, tick + tick))),
+      h('div', { class: 'hm-tix' },
+        h('button', { class: 'hm-tkt hm-one', type: 'button', onclick: function () { mode = 'solo'; render(); } },
+          h('span', { class: 'hm-tk-main' }, h('small', null, '🔥 MOST PLAYED'), h('b', null, 'Play on', h('br'), 'this phone'), h('i', { class: 'hm-arr' }, '→')),
+          h('span', { class: 'hm-tk-stub' }, h('span', { class: 'hm-ico' }, '📱'), h('span', null, 'one phone,', h('br'), 'pass it around'))),
+        h('button', { class: 'hm-tkt hm-two', type: 'button', onclick: function () { mode = 'online'; render(); } },
+          h('span', { class: 'hm-tk-stub' }, h('span', null, 'join with a', h('br'), '4-letter code'), h('i', { class: 'hm-bars' })),
+          h('span', { class: 'hm-tk-main' }, h('small', null, '📶 OWN PHONES'), h('b', null, 'Play on', h('br'), 'separate phones'), h('i', { class: 'hm-arr' }, '→')))),
+      h('button', { class: 'hm-howlink', type: 'button', onclick: howToPlay }, '🤚 How to play?'));
     return { root: root, update: function () {} };
   };
 
   /* ---------- small animation helpers ---------- */
   var RM = false; try { RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { RM = false; }
-  function buzz(ms) { try { if (load('uc.haptic') !== 'off' && navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
+  // Chrome only lets a page vibrate after the person has tapped it at least once since the page loaded
+  // (a reload or auto-rejoin starts with no tap, so buzzes were silently dropped). Show a one-tap unlock.
+  var vibBar = null;
+  function vibLocked() { try { return !!(navigator.userActivation && !navigator.userActivation.hasBeenActive); } catch (e) { return false; } }
+  function showVibBar() {
+    if (vibBar) return;
+    vibBar = h('button', { class: 'vibbar', type: 'button', onclick: function () { try { navigator.vibrate(200); } catch (e) {} hideVibBar(); } }, '📳 Tap here once to switch on vibration');
+    document.body.appendChild(vibBar);
+  }
+  function hideVibBar() { if (vibBar && vibBar.parentNode) vibBar.parentNode.removeChild(vibBar); vibBar = null; }
+  document.addEventListener('pointerdown', function () { setTimeout(hideVibBar, 0); }, true);
+  function buzz(ms) {
+    try {
+      if (load('uc.haptic') === 'off' || !navigator.vibrate) return;
+      if (vibLocked()) { showVibBar(); return; }
+      navigator.vibrate(ms);
+    } catch (e) {}
+  }
   function later(fn, ms) { return RM ? (fn(), 0) : setTimeout(fn, ms); }
   function confetti() {
     if (RM) return;
@@ -1512,7 +1651,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
   /* Hand the phone to one person, then show them a private screen. */
   function passAndPeekGate(p, inner) {
     var wrap = h('div');
-    buzz(70);
+    buzz(200);
     fill(wrap, h('div', { class: 'pass' }, h('span', { class: 'pill ink' }, 'Only ' + p.name + ' looks!'), h('div', { class: 'to' }, 'HAND THE PHONE TO'), h('div', { class: 'who' }, p.name),
       h('p', null, 'Everyone else, eyes off the screen.')),
       dock(h('button', { class: 'btn primary', type: 'button', onclick: function () { fill(wrap, inner()); } }, 'I am ' + p.name + ' — open')));
@@ -1522,7 +1661,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
   function passAndPeek(p, opts) {
     var box = h('div', { class: 'grow' }), dk = h('div', { class: 'dock' }), wrap = h('div', null, box, dk);
     function gate() {
-      buzz(70);
+      buzz(200);
       fill(box, opts.top || null,
         h('div', { class: 'pass' }, h('span', { class: 'pill ink' }, 'Neighbours, eyes off!'), h('div', { class: 'to' }, 'HAND THE PHONE TO'), h('div', { class: 'who' }, p.name),
           h('p', null, 'Make sure nobody next to you can see the screen.')),
@@ -1862,7 +2001,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
       var pendingUc = L.cfg.ucGuess ? ids.filter(function (i) { return P[i].role === 'undercover' && !(i in L.last.ucg); }) : [];
       if (pendingUc.length) return ucScene(pendingUc[0]);
       var first = !L.last.shown, c = counts(), w = soloWin();
-      if (first) { L.last.shown = true; saveSolo(); later(function () { buzz([40, 60, 40]); }, 450); }
+      if (first) { L.last.shown = true; saveSolo(); later(function () { buzz([150, 80, 150]); }, 450); }
       var cont = h('button', { class: 'btn primary', type: 'button', onclick: function () {
         if (w) { L.winner = w; scoreGame(); return go('over'); }
         go('play');
@@ -1935,6 +2074,7 @@ html[data-theme=dark] .hostbar .btn.small{color:#121212;background:var(--yellow)
   function render() {
     renderHeader();
     var key = keyFor();
+    document.body.classList.toggle("menu", key === "menu");
     if (key !== curKey) {
       curKey = key; clear(app);
       cur = (key === 'home' ? screens.home : key.indexOf('lobby') === 0 ? screens.lobby : screens[key])();
