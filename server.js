@@ -728,7 +728,8 @@ function fbCheck(room) { // somebody left: make sure both teams still have a pla
   broadcast(room);
 }
 // ---------------------------------------------------------------- Beach Buggy race
-// Each phone drives its own buggy (nobody sees the others), so the server only keeps the standings.
+// Each phone drives its own buggy. The server keeps the standings and passes everyone's position on (10 times a second)
+// so phones can draw the other buggies and bump into them.
 const RACE_LAPS = 3, RACE_MIN_MS = 20000, RACE_AFTER_FIRST = 45000, RACE_MAX_MS = 6 * 60 * 1000;
 const racers = (room) => (room.rc ? room.rc.ids.map((id) => room.players.get(id)).filter((p) => p && !p.left) : []);
 function raceRank(room) {
@@ -738,10 +739,10 @@ function raceRank(room) {
     .sort((a, b) => (a[2] != null && b[2] != null ? a[2] - b[2] : a[2] != null ? -1 : b[2] != null ? 1 : b[1] - a[1]));
 }
 function raceStart(room) {
-  const sel = [...room.players.values()].filter((p) => !p.left && p.connected).slice(0, 10);
+  const sel = [...room.players.values()].filter((p) => !p.left && p.connected).slice(0, 12);
   if (!sel.length) return 'Need at least 1 player';
   for (const p of room.players.values()) p.watch = !sel.includes(p);
-  room.rc = { ids: sel.map((p) => p.id), startAt: Date.now() + 4500, prog: {}, fin: {}, results: null, firstFin: false };
+  room.rc = { ids: sel.map((p) => p.id), startAt: Date.now() + 4500, prog: {}, fin: {}, cars: {}, results: null, firstFin: false };
   setPhase(room, 'rrace');
   schedule(room, RACE_MAX_MS, () => raceEnd(room));
   broadcast(room);
@@ -768,6 +769,15 @@ setInterval(() => { // live standings, 3 times a second, only while racing
     for (const q of room.players.values()) if (q.ws && q.connected) send(q.ws, { t: 'rrank', list });
   }
 }, 333);
+setInterval(() => { // where every buggy is, 10 times a second (only when 2+ are racing)
+  for (const room of rooms.values()) {
+    const r = room.rc;
+    if (room.phase !== 'rrace' || !r || r.ids.length < 2 || !r.cars) continue;
+    const l = r.ids.filter((id) => r.cars[id] && r.fin[id] == null && room.players.get(id) && !room.players.get(id).left).map((id) => r.cars[id]);
+    if (!l.length) continue;
+    for (const q of room.players.values()) if (q.ws && q.connected) send(q.ws, { t: 'rcars', l });
+  }
+}, 100);
 function notice(room, msg) { for (const p of room.players.values()) if (p.ws && p.connected) send(p.ws, { t: 'notice', msg }); }
 function backToLobby(room) {
   for (const [id, p] of room.players) if (p.left) room.players.delete(id);
@@ -1045,12 +1055,28 @@ function handle(ws, m) {
       r.prog[p.id] = Math.max(0, Math.min(RACE_LAPS - 0.001, d));
       return;
     }
+    case 'rpos': { // this phone's buggy: distance, side position, speed, flags (turbo/drift/shield/air…), height
+      const r = room.rc;
+      if (room.phase !== 'rrace' || !r || !r.cars || !r.ids.includes(p.id) || r.fin[p.id] != null) return;
+      const d = Number(m.d), x = Number(m.x), sp = Number(m.sp), hh = Number(m.h) || 0;
+      if (![d, x, sp].every(Number.isFinite)) return;
+      r.cars[p.id] = [p.id, Math.round(d), Math.round(Math.max(-3, Math.min(3, x)) * 1000) / 1000, Math.round(Math.max(0, Math.min(40000, sp))), (Number(m.f) | 0) & 127, Math.round(Math.max(0, Math.min(5000, hh)))];
+      return;
+    }
+    case 'rbump': { // a buggy hit another one: tell the other phone so it gets pushed too
+      const r = room.rc;
+      if (room.phase !== 'rrace' || !r || !r.ids.includes(p.id) || !r.ids.includes(m.to) || m.to === p.id) return;
+      const now = Date.now(); if (now - (p.bumpAt || 0) < 120) return; p.bumpAt = now;
+      const q = room.players.get(m.to); if (!q || !q.ws || !q.connected || r.fin[q.id] != null) return;
+      send(q.ws, { t: 'rbump', from: p.id, sx: Number(m.sx) > 0 ? 1 : -1, k: Math.max(0, Math.min(4, Number(m.k) || 0)), sp: Math.max(0, Math.min(40000, Number(m.sp) || 0)), rel: Math.max(-1000, Math.min(1000, Number(m.rel) || 0)) });
+      return;
+    }
     case 'rfin': {
       const r = room.rc;
       if (room.phase !== 'rrace' || !r || !r.ids.includes(p.id) || r.fin[p.id] != null) return;
       const ms = Math.round(Number(m.ms)), real = Date.now() - r.startAt;
       if (!Number.isFinite(ms) || ms < RACE_MIN_MS || real < RACE_MIN_MS - 2000) return errTo(ws, 'That was too fast 🤨');
-      r.fin[p.id] = Math.min(ms, real + 1500);
+      r.fin[p.id] = Math.min(ms, real + 1500); if (r.cars) delete r.cars[p.id];
       const place = Object.keys(r.fin).length;
       notice(room, '🏁 ' + p.name + ' finished ' + (place <= 3 ? ['1st', '2nd', '3rd'][place - 1] : place + 'th') + '!');
       if (!r.firstFin) { r.firstFin = true; if (racers(room).some((q) => r.fin[q.id] == null)) schedule(room, RACE_AFTER_FIRST, () => raceEnd(room)); }
