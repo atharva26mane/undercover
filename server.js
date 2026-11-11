@@ -12,52 +12,58 @@ const PAIRS = require('./words');
 const PORT = Number(process.env.PORT) || 3000;
 // Gully Football physics (kept inside this file so only server.js needs uploading)
 const FB = (() => {
-// Gully Football physics. Server-authoritative: every turn all players aim secretly, the server plays the
-// whole turn out here and sends the recorded frames to every phone, so everyone sees the exact same result.
-const W = 300, H = 480;          // pitch, in units (goals are at y=0 (top) and y=H (bottom))
+// Gully Football physics. The server decides each turn, but phones run this SAME code on the same numbers,
+// so only the aims travel over the network (tiny messages, no download wait). Keep it deterministic:
+// only + - * / and Math.sqrt inside simulate (no sin / cos / pow), a fixed time step, and rounded inputs.
 const DR = 20, BR = 11, POST = 5; // disc radius, ball radius, goal post radius
-const GW = 100, GW_SUDDEN = 170;  // goal mouth width (wider in sudden death)
 const NET = 26;                   // depth of the net behind each goal line
 const MAXV = 840;                 // flick speed at full power (units / second)
 const DT = 1 / 60;
 const FR_DISC = 0.978, FR_BALL = 0.986, REST_WALL = 0.82, REST_HIT = 0.92;
 const M_DISC = 1, M_BALL = 0.45;
 const MAX_STEPS = 60 * 7;
+const rd3 = (v) => Math.round(v * 1000) / 1000;
 
-const goalX = (sudden) => { const g = sudden ? GW_SUDDEN : GW; return [(W - g) / 2, (W + g) / 2]; };
+// Pitch grows with the number of players. gw = goal mouth, gws = wider goal for sudden death.
+function size(n) {
+  const [W, H] = n <= 4 ? [300, 480] : n <= 8 ? [340, 560] : [380, 640];
+  return { W, H, gw: Math.round(100 * W / 300), gws: Math.round(170 * W / 300) };
+}
 
 // Kick-off layout. Team 0 defends the bottom goal and attacks the top one; team 1 is the mirror image.
-function layout(ids, team) {
+function layout(ids, team, W, H) {
   const pos = {};
   for (const t of [0, 1]) {
     const mine = ids.filter((id) => team[id] === t);
     const rows = mine.length > 3 ? [mine.slice(0, 3), mine.slice(3)] : [mine];
     rows.forEach((row, r) => {
       row.forEach((id, k) => {
-        const x = W * (k + 1) / (row.length + 1) + (r ? 0 : 0);
+        const x = W * (k + 1) / (row.length + 1);
         const dy = r === 0 ? 0.30 : 0.18; // distance from own goal line, as a share of the pitch
-        pos[id] = t === 0 ? [x, H * (1 - dy)] : [W - x, H * dy];
+        pos[id] = t === 0 ? [rd3(x), rd3(H * (1 - dy))] : [rd3(W - x), rd3(H * dy)];
       });
     });
   }
   return pos;
 }
 
-// Plays one turn. fb = { ids, pos:{id:[x,y]}, ball:[x,y], sudden }, aims = { id: {dx,dy,pw} }.
-// Returns { frames, goal: 0|1|null (team that scored), by: id|null }. Also writes the final positions back to fb.
-function simulate(fb, aims) {
-  const [gx0, gx1] = goalX(fb.sudden);
+// Turns an aim {dx,dy,pw} into a rounded velocity [vx,vy] (done once, on the server).
+function aimVel(a) {
+  const len = Math.hypot(a.dx, a.dy) || 1;
+  const pw = Math.max(0, Math.min(1, a.pw));
+  return [rd3(a.dx / len * pw * MAXV), rd3(a.dy / len * pw * MAXV)];
+}
+
+// Plays one turn. fb = { ids, pos:{id:[x,y]}, ball:[x,y], sudden, W, H, gw, gws }, vel = { id: [vx,vy] }.
+// Returns { frames, goal: 0|1|null (team that scored), by: id|null, pos, ball } (final positions, rounded). Does not change fb.
+function simulate(fb, vel) {
+  const W = fb.W, H = fb.H, g = fb.sudden ? fb.gws : fb.gw;
+  const gx0 = (W - g) / 2, gx1 = (W + g) / 2;
   const ids = fb.ids;
   const B = ids.map((id) => ({ id, r: DR, m: M_DISC, x: fb.pos[id][0], y: fb.pos[id][1], vx: 0, vy: 0, disc: true }));
   const ball = { id: null, r: BR, m: M_BALL, x: fb.ball[0], y: fb.ball[1], vx: 0, vy: 0, disc: false };
   const all = [ball].concat(B);
-  for (const b of B) {
-    const a = aims[b.id];
-    if (!a) continue;
-    const len = Math.hypot(a.dx, a.dy) || 1;
-    const pw = Math.max(0, Math.min(1, a.pw));
-    b.vx = (a.dx / len) * pw * MAXV; b.vy = (a.dy / len) * pw * MAXV;
-  }
+  for (const b of B) { const v = vel[b.id]; if (v) { b.vx = v[0]; b.vy = v[1]; } }
   const posts = [[gx0, 0], [gx1, 0], [gx0, H], [gx1, H]];
   const r1 = (v) => Math.round(v * 10) / 10;
   const snap = () => { const f = [r1(ball.x), r1(ball.y)]; for (const b of B) f.push(r1(b.x), r1(b.y)); return f; };
@@ -94,7 +100,7 @@ function simulate(fb, aims) {
         if (!inMouth) {
           if (b.y < b.r) { b.y = b.r; b.vy = Math.abs(b.vy) * REST_WALL; }
           if (b.y > H - b.r) { b.y = H - b.r; b.vy = -Math.abs(b.vy) * REST_WALL; }
-        } else if (b.disc) { /* unreachable */ }
+        }
       }
       for (const b of B) { // discs stay out of the goals completely
         if (b.y < b.r) { b.y = b.r; b.vy = Math.abs(b.vy) * REST_WALL; }
@@ -129,11 +135,11 @@ function simulate(fb, aims) {
     if (calm > 6) break;
   }
   frames.push(snap());
-  if (goal === null) { fb.ball = [ball.x, ball.y]; B.forEach((b) => { fb.pos[b.id] = [b.x, b.y]; }); }
-  return { frames, goal, by };
+  const pos = {}; B.forEach((b) => { pos[b.id] = [rd3(b.x), rd3(b.y)]; });
+  return { frames, goal, by, pos, ball: [rd3(ball.x), rd3(ball.y)] };
 }
 
-return { W, H, DR, BR, GW, GW_SUDDEN, NET, MAXV, goalX, layout, simulate };
+return { DR, BR, NET, MAXV, size, layout, aimVel, simulate, rd3 };
 })();
 const MAX_PLAYERS = 20;
 const MIN_PLAYERS = 3;
@@ -330,7 +336,7 @@ function shareWords(room) { // phones save the updated memory
 function makeRoom(words) {
   const room = {
     code: newCode(), hostId: null, supervisorId: null, players: new Map(),
-    game: 'undercover', fbSet: { goals: 3, secs: 8 }, fb: null, rc: null,
+    game: 'undercover', fbSet: { goals: 3, secs: 8, mode: 'match', tie: 'pens' }, fb: null, rc: null,
     phase: 'lobby', round: 0, seq: 0, timer: null, endsAt: 0,
     settings: { describeSecs: 30, autoRoles: true, undercover: 1, white: 1, whiteGuess: true, hint: false, board: true, reacts: true, modes: ['mix'], joker: false, chat: true, chatSlow: 5, reactCd: 3, ucGuess: true, whiteTries: 2, sheriff: true },
     words: words || { used: new Set(), recent: [] }, pair: null, nextPair: null, customPair: null, supReq: null,
@@ -430,10 +436,13 @@ function view(room, p) {
     v.fbSet = room.fbSet;
     if (room.fb) {
       const f = room.fb;
-      v.fb = { ids: f.ids, team: f.team, pos: f.pos, ball: f.ball, score: f.score, turn: f.turn, sudden: f.sudden, gw: f.sudden ? FB.GW_SUDDEN : FB.GW,
+      v.fb = { ids: f.ids, team: f.team, pos: f.pos, ball: f.ball, score: f.score, turn: f.turn, sudden: f.sudden, W: f.W, H: f.H, gw: f.sudden ? f.gws : f.gw,
         goals: f.goals, aimed: Object.keys(f.aims), winner: f.winner, last: f.last, lastTurn: f.lastTurn };
+      if (f.pk) { // penalties: never include anybody's secret pick, only whether they have picked
+        const k = f.pk, pk = room.pkPick || {};
+        v.fb.pk = { why: k.why, score: k.score, hist: k.hist, cur: k.cur, sd: k.sd, kdone: !!pk.k, sdone: !!pk.s, res: k.res, n: k.n };
+      }
     }
-    if (v.fb) { v.fb.pos = f2(v.fb.pos); v.fb.ball = [Math.round(v.fb.ball[0] * 10) / 10, Math.round(v.fb.ball[1] * 10) / 10]; }
   }
   if (room.game === 'race' && room.rc) {
     const r = room.rc;
@@ -655,7 +664,7 @@ function undoKick(room) { // host: put the last voted-out player back and vote a
   broadcast(room);
 }
 // ---------------------------------------------------------------- Gully Football
-const FB_MAX = 10, FB_TURNS = 20;
+const FB_MAX = 12, FB_TURNS = 20;
 const fbPlayers = (room) => (room.fb ? room.fb.ids.map((id) => room.players.get(id)).filter((p) => p && !p.left) : []);
 function fbSend(room, obj) { for (const q of room.players.values()) if (q.ws && q.connected) send(q.ws, obj); }
 function fbStart(room) {
@@ -667,9 +676,11 @@ function fbStart(room) {
   const ids = sel.map((p) => p.id), team = {};
   ids.forEach((id, i) => { team[id] = i % 2; });
   for (const p of cands) if (!ids.includes(p.id)) p.watch = true;
-  room.fb = { ids, team, pos: FB.layout(ids, team), ball: [FB.W / 2, FB.H / 2], score: [0, 0], turn: 0, sudden: false, aims: {}, goals: [], winner: null, last: null, lastTurn: -1, sim: null };
-  fbAim(room);
-  for (const p of sel) notify(room, p, '⚽ Football started', 'Open the game and flick!', [100, 60, 100]);
+  const sz = FB.size(ids.length);
+  room.pkPick = null;
+  room.fb = { ids, team, W: sz.W, H: sz.H, gw: sz.gw, gws: sz.gws, pos: FB.layout(ids, team, sz.W, sz.H), ball: [sz.W / 2, sz.H / 2], score: [0, 0], turn: 0, sudden: false, aims: {}, goals: [], winner: null, last: null, lastTurn: -1, sim: null, pk: null };
+  if (room.fbSet.mode === 'pens') pkStart(room, 'fun'); else fbAim(room);
+  for (const p of sel) notify(room, p, '⚽ Football started', 'Open the game and play!', [100, 60, 100]);
   return null;
 }
 function fbAim(room) {
@@ -678,30 +689,37 @@ function fbAim(room) {
   schedule(room, room.fbSet.secs * 1000, () => fbFire(room));
   broadcast(room);
 }
+function fgoMsg(f) {
+  const s = f.sim;
+  return { t: 'fgo', turn: f.turn, startAt: s.startAt, ids: f.ids, pos: f.pos, ball: f.ball, v: s.v, sudden: f.sudden, W: f.W, H: f.H, gw: f.gw, gws: f.gws, goal: s.goal, by: s.by };
+}
 function fbFire(room) {
   if (room.phase !== 'faim' || !room.fb) return;
   const f = room.fb;
-  const sim = FB.simulate(f, f.aims);
-  f.sim = { turn: f.turn, ids: f.ids, frames: sim.frames, goal: sim.goal, by: sim.by };
+  const v = {}; for (const id of Object.keys(f.aims)) v[id] = FB.aimVel(f.aims[id]);
+  const sim = FB.simulate(f, v);
+  f.sim = { turn: f.turn, goal: sim.goal, by: sim.by, v, end: { pos: sim.pos, ball: sim.ball }, startAt: Date.now() + 250 };
   setPhase(room, 'fplay');
-  fbSend(room, { t: 'fsim', turn: f.turn, ids: f.ids, frames: sim.frames, goal: sim.goal, by: sim.by });
+  fbSend(room, fgoMsg(f));
   broadcast(room);
-  const ms = Math.round(sim.frames.length * 1000 / 30) + (sim.goal !== null ? 3600 : 700);
+  const ms = 250 + Math.round(sim.frames.length * 1000 / 30) + (sim.goal !== null ? 3600 : 250);
   schedule(room, ms, () => fbAfter(room));
 }
 function fbAfter(room) {
   if (room.phase !== 'fplay' || !room.fb) return;
   const f = room.fb, s = f.sim;
+  if (s) { f.pos = s.end.pos; f.ball = s.end.ball; }
   if (s && s.goal !== null) {
     f.score[s.goal]++;
     f.last = { team: s.goal, by: s.by, turn: f.turn }; f.lastTurn = f.turn;
     f.goals.push({ team: s.goal, by: s.by, own: s.by != null && f.team[s.by] !== s.goal });
-    f.pos = FB.layout(f.ids, f.team); f.ball = [FB.W / 2, FB.H / 2];
+    f.pos = FB.layout(f.ids, f.team, f.W, f.H); f.ball = [f.W / 2, f.H / 2];
     if (f.score[s.goal] >= room.fbSet.goals || f.sudden) return fbEnd(room, s.goal);
   }
   f.turn++;
   if (f.turn >= FB_TURNS && !f.sudden) {
     if (f.score[0] !== f.score[1]) return fbEnd(room, f.score[0] > f.score[1] ? 0 : 1);
+    if (room.fbSet.tie === 'pens') { notice(room, '🥅 Level after 20 turns! PENALTY SHOOTOUT'); return pkStart(room, 'tie'); }
     f.sudden = true; notice(room, '⚡ SUDDEN DEATH! The goals get wider. Next goal wins');
   }
   fbAim(room);
@@ -709,17 +727,89 @@ function fbAfter(room) {
 function fbEnd(room, team) {
   setPhase(room, 'fover');
   room.fb.winner = team;
-  for (const p of fbPlayers(room)) notify(room, p, '🏁 Full time', (team === 0 ? 'ORANGE' : 'VIOLET') + ' win ' + room.fb.score.join('–'), [70, 50, 70, 50, 70]);
+  for (const p of fbPlayers(room)) notify(room, p, '🏁 Full time', 'Final score ' + room.fb.score.join('–'), [70, 50, 70, 50, 70]);
   broadcast(room);
 }
+// ---- penalty shootout: kicker swipes to a zone and stops a power bar, keeper swipes to a zone. Same zone = saved.
+const PK_ZONES = ['TL', 'TR', 'M', 'BL', 'BR'], PK_KICKS = 5, PK_SECS = 9;
+function pkStart(room, why) {
+  const f = room.fb;
+  const m = [0, 1].map((t) => f.ids.filter((id) => f.team[id] === t));
+  f.pk = { why, score: [0, 0], hist: [[], []], taken: [0, 0], cur: null, sd: false, res: null, n: 0, m };
+  pkNext(room);
+}
+function pkNext(room) {
+  const f = room.fb, k = f.pk;
+  const solo = !k.m[0].length || !k.m[1].length;
+  let t = k.taken[0] <= k.taken[1] ? 0 : 1;
+  if (!k.m[t].length) t = 1 - t;
+  const mine = k.m[t], other = k.m[1 - t], i = k.taken[t];
+  k.cur = { team: t, kicker: mine[i % mine.length], keeper: other.length ? other[i % other.length] : null };
+  k.sd = k.taken[0] >= PK_KICKS && k.taken[1] >= PK_KICKS && !solo;
+  k.res = null; k.n++;
+  room.pkPick = {};
+  setPhase(room, 'pkaim');
+  const up = (id) => { const q = id && room.players.get(id); return q && !q.left && q.connected; };
+  if (!up(k.cur.kicker)) room.pkPick.k = { z: PK_ZONES[Math.floor(Math.random() * 5)], pw: 0.2, auto: true };
+  if (k.cur.keeper && !up(k.cur.keeper)) room.pkPick.s = PK_ZONES[Math.floor(Math.random() * 5)];
+  schedule(room, PK_SECS * 1000, () => pkResolve(room));
+  broadcast(room);
+  pkMaybe(room);
+}
+function pkMaybe(room) { // both picks in: resolve shortly
+  const f = room.fb, k = f.pk, pk = room.pkPick;
+  if (room.phase !== 'pkaim' || !pk || !pk.k) return;
+  if (k.cur.keeper && !pk.s) return;
+  if (pk.go) return; pk.go = true;
+  const wait = pk.k.auto || !k.cur.keeper || pk.s ? 400 : 0;
+  schedule(room, wait, () => pkResolve(room));
+}
+function pkResolve(room) {
+  if (room.phase !== 'pkaim' || !room.fb || !room.fb.pk) return;
+  const f = room.fb, k = f.pk, c = k.cur, pk = room.pkPick || {};
+  const rz = () => PK_ZONES[Math.floor(Math.random() * 5)];
+  const kz = pk.k ? pk.k.z : rz(), pw = pk.k ? pk.k.pw : 0.2;
+  const sz = pk.s || (c.keeper ? 'M' : rz());
+  const pc = pw < 0.45 ? 'green' : pw < 0.75 ? 'orange' : 'red';
+  const on = pc === 'green' ? true : pc === 'orange' ? Math.random() < 0.85 : Math.random() < 0.35;
+  let out;
+  if (!on) out = pc === 'orange' ? 'post' : 'over';
+  else if (pc === 'red') out = 'goal';
+  else if (kz === sz) out = pc === 'green' ? 'save' : (Math.random() < 0.5 ? 'save' : 'goal');
+  else out = 'goal';
+  const side = (z) => (z === 'M' ? 'M' : z[1]);
+  const tip = out === 'goal' && on && kz !== sz && side(kz) === side(sz) && kz !== 'M';
+  k.taken[c.team]++;
+  k.hist[c.team].push(out === 'goal' ? 'g' : out === 'save' ? 's' : out === 'post' ? 'p' : 'o');
+  if (out === 'goal') k.score[c.team]++;
+  k.res = { kz, sz, pc, out, tip, kicker: c.kicker, keeper: c.keeper, team: c.team };
+  room.pkPick = null;
+  setPhase(room, 'pkshow');
+  broadcast(room);
+  schedule(room, 3300, () => pkAfter(room));
+}
+function pkAfter(room) {
+  if (room.phase !== 'pkshow' || !room.fb || !room.fb.pk) return;
+  const f = room.fb, k = f.pk, a = k.taken[0], b = k.taken[1], s0 = k.score[0], s1 = k.score[1];
+  const solo = !k.m[0].length || !k.m[1].length;
+  let win = null;
+  if (solo) { const t = k.m[0].length ? 0 : 1; if (k.taken[t] >= PK_KICKS) win = k.score[t] >= 3 ? t : 1 - t; }
+  else if (a >= PK_KICKS && b >= PK_KICKS) { if (a === b && s0 !== s1) win = s0 > s1 ? 0 : 1; }
+  else if (Math.max(a, b) <= PK_KICKS) {
+    const r0 = PK_KICKS - a, r1 = PK_KICKS - b;
+    if (s0 > s1 + r1) win = 0; else if (s1 > s0 + r0) win = 1;
+  }
+  if (win == null) return pkNext(room);
+  return fbEnd(room, win);
+}
 function fbBack(room) { // back to the football lobby
-  setPhase(room, 'lobby'); room.fb = null;
+  setPhase(room, 'lobby'); room.fb = null; room.pkPick = null;
   for (const [id, p] of room.players) if (p.left) room.players.delete(id);
   for (const p of room.players.values()) p.watch = false;
   broadcast(room);
 }
 function fbCheck(room) { // somebody left: make sure both teams still have a player
-  if (!room.fb || !['faim', 'fplay'].includes(room.phase)) return broadcast(room);
+  if (!room.fb || !['faim', 'fplay', 'pkaim', 'pkshow'].includes(room.phase)) return broadcast(room);
   const live = fbPlayers(room), had = (t) => room.fb.ids.some((id) => room.fb.team[id] === t);
   if (!live.length || (had(0) && !live.some((p) => room.fb.team[p.id] === 0)) || (had(1) && !live.some((p) => room.fb.team[p.id] === 1))) {
     notice(room, 'A team has no players left. Back to the lobby');
@@ -848,7 +938,7 @@ function attach(ws, room, p) {
   const photos = {}; for (const q of room.players.values()) if (q.photo && !q.left) photos[q.name] = q.photo;
   send(ws, { t: 'photos', map: photos });
   send(ws, { t: 'chatlog', list: room.chat || [] });
-  if (room.game === 'football' && room.phase === 'fplay' && room.fb && room.fb.sim) { const x = room.fb.sim; send(ws, { t: 'fsim', turn: x.turn, ids: x.ids, frames: x.frames, goal: x.goal, by: x.by, late: true }); }
+  if (room.game === 'football' && room.phase === 'fplay' && room.fb && room.fb.sim) send(ws, fgoMsg(room.fb));
   broadcast(room);
 }
 
@@ -1015,8 +1105,10 @@ function handle(ws, m) {
     }
     case 'fset': {
       if (!hostOnly() || room.game !== 'football' || room.phase !== 'lobby') return;
-      if ([2, 3, 5].includes(Number(m.goals))) room.fbSet.goals = Number(m.goals);
-      if ([6, 8, 12].includes(Number(m.secs))) room.fbSet.secs = Number(m.secs);
+      if ([1, 2, 3, 5].includes(Number(m.goals))) room.fbSet.goals = Number(m.goals);
+      if ([4, 6, 8, 12].includes(Number(m.secs))) room.fbSet.secs = Number(m.secs);
+      if (['match', 'pens'].includes(m.mode)) room.fbSet.mode = m.mode;
+      if (['pens', 'sudden'].includes(m.tie)) room.fbSet.tie = m.tie;
       return broadcast(room);
     }
     case 'fstart': {
@@ -1025,7 +1117,7 @@ function handle(ws, m) {
       return err ? errTo(ws, err) : undefined;
     }
     case 'flobby':
-      if (!hostOnly() || room.game !== 'football' || !['fover', 'faim', 'fplay'].includes(room.phase)) return;
+      if (!hostOnly() || room.game !== 'football' || !['fover', 'faim', 'fplay', 'pkaim', 'pkshow'].includes(room.phase)) return;
       return fbBack(room);
     case 'faim': {
       if (room.phase !== 'faim' || !room.fb || !room.fb.ids.includes(p.id)) return;
@@ -1033,8 +1125,25 @@ function handle(ws, m) {
       if (![dx, dy, pw].every(Number.isFinite) || Math.hypot(dx, dy) < 0.001) return;
       room.fb.aims[p.id] = { dx, dy, pw: Math.max(0, Math.min(1, pw)) };
       const need = fbPlayers(room).filter((q) => q.connected);
-      if (need.length && need.every((q) => room.fb.aims[q.id])) schedule(room, 1500, () => fbFire(room)); // everyone locked in: fire soon
+      if (need.length && need.every((q) => room.fb.aims[q.id])) schedule(room, 300, () => fbFire(room)); // everyone locked in: fire soon
       return broadcast(room);
+    }
+    case 'pkick': { // kicker: zone + power bar position (0..1), locked
+      const f = room.fb, pk = room.pkPick;
+      if (room.phase !== 'pkaim' || !f || !f.pk || !pk || f.pk.cur.kicker !== p.id || pk.k) return;
+      const pw = Number(m.pw);
+      if (!PK_ZONES.includes(m.z) || !Number.isFinite(pw)) return;
+      pk.k = { z: m.z, pw: Math.max(0, Math.min(1, pw)) };
+      broadcast(room);
+      return pkMaybe(room);
+    }
+    case 'psave': { // keeper: zone (can change until the kicker has locked)
+      const f = room.fb, pk = room.pkPick;
+      if (room.phase !== 'pkaim' || !f || !f.pk || !pk || f.pk.cur.keeper !== p.id || pk.go) return;
+      if (!PK_ZONES.includes(m.z)) return;
+      pk.s = m.z;
+      broadcast(room);
+      return pkMaybe(room);
     }
     case 'rstart': {
       if (!hostOnly() || room.game !== 'race' || !['lobby', 'rover'].includes(room.phase)) return;

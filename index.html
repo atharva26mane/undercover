@@ -818,31 +818,63 @@ body.racing .reactbar,body.racing .chatbtn,body.racing .cfloats,body.racing .hos
 @keyframes fbRoll{0%,100%{transform:translateX(-4px) rotate(-20deg)}50%{transform:translateX(6px) rotate(25deg)}}
 .hm-ft{display:flex;flex-direction:column;gap:1px;min-width:0}.hm-ft small{font:800 10px var(--f-mono);letter-spacing:.12em;color:#FFD600}
 .hm-ft b{font:800 21px var(--f-disp);text-transform:uppercase;line-height:1.05}.hm-ft span{font:700 12px var(--f-body);opacity:.92}
+body.fbmode #hdr,body.fbmode .reactbar,body.fbmode .hostline,body.fbmode .vibbar{display:none!important}
+body.fbmode #app{padding-top:8px}
 .fgame{padding-bottom:8px}
-.fscore{display:flex;align-items:stretch;gap:8px;margin:4px 0 8px}
-.fsc{flex:1;display:flex;align-items:center;gap:6px;position:relative;border:3px solid #121212;border-radius:14px;padding:6px 10px;color:#fff;box-shadow:3px 3px 0 #121212;min-width:0}
-.fsc.t0{background:#FF4D00}.fsc.t1{background:#7B2CBF;flex-direction:row-reverse;text-align:right}
-.fsc b{font:800 12px var(--f-mono);letter-spacing:.06em;flex:1;overflow:hidden;text-overflow:ellipsis}
-.fsc .fte{font-size:16px}.fsc .fnum{font:800 34px/1 var(--f-mono);font-style:normal;text-shadow:2px 2px 0 #121212}
-.fsc em{position:absolute;top:-9px;left:10px;font:800 9px var(--f-mono);font-style:normal;background:#FFD600;color:#121212;border:2px solid #121212;border-radius:999px;padding:0 6px}
-.fsc.t1 em{left:auto;right:10px}
-.fsc.mine{outline:3px solid #FFD600;outline-offset:1px}
+.fscore{display:flex;align-items:stretch;gap:8px;margin:0 0 6px}
+.fsc{flex:1;display:flex;align-items:center;gap:6px;position:relative;border:3px solid #121212;border-radius:14px;padding:4px 10px;color:#fff;box-shadow:3px 3px 0 #121212;min-width:0}
+.fsc.us{background:#1E6BFF}.fsc.them{background:#E6003D;flex-direction:row-reverse;text-align:right}
+.fsc b{font:800 13px var(--f-mono);letter-spacing:.06em;flex:1;overflow:hidden;text-overflow:ellipsis}
+.fsc .fte{font-size:16px}.fsc .fnum{font:800 32px/1 var(--f-mono);font-style:normal;text-shadow:2px 2px 0 #121212}
+.fsc.us{outline:3px solid #FFD600;outline-offset:1px}
 .fmid{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none;font:800 11px var(--f-mono)}.fmid small{font-size:9px;opacity:.7}
-.fstat{margin:0 0 6px;text-align:center;font-weight:800}.fstat .fsec{font:800 17px var(--f-mono)}
+.fstat{margin:0 0 5px;padding:6px 10px;text-align:center;font-weight:800;font-size:13px}.fstat .fsec{font:800 17px var(--f-mono)}
 .fsud{margin-top:4px;color:#E6003D;font:800 12px var(--f-mono)}
-.fbar{height:8px;border:2px solid #121212;border-radius:999px;background:#fff;overflow:hidden;margin:0 0 8px}
+.fbar{height:7px;border:2px solid #121212;border-radius:999px;background:#fff;overflow:hidden;margin:0 0 6px}
 .fbar i{display:block;height:100%;width:0;background:#00A859;transition:width .3s linear}.fbar.low i{background:#E6003D}
-.fpitch{position:relative;width:min(100%,max(250px,calc((100dvh - 300px) * .5639)));aspect-ratio:300/532;margin:0 auto 10px;border:3px solid #121212;border-radius:16px;overflow:hidden;background:#15161f;touch-action:none;user-select:none;-webkit-user-select:none;box-shadow:5px 5px 0 #121212}
+.fpitch{position:relative;width:min(100%,max(250px,calc((100dvh - 150px) * var(--ar,.5639))));margin:0 auto 8px;border:3px solid #121212;border-radius:16px;overflow:hidden;background:#15161f;touch-action:none;user-select:none;-webkit-user-select:none;box-shadow:5px 5px 0 #121212}
 .fsvg,.faimsvg{position:absolute;inset:0;width:100%;height:100%;display:block}.faimsvg{pointer-events:none;z-index:6;display:none}
 .flayer{position:absolute;inset:0;z-index:3}
 .fd{position:absolute;left:0;top:0;aspect-ratio:1;will-change:transform}
 .fd .av{width:100%;height:100%;border:2px solid #121212;box-shadow:0 0 0 3px var(--tc),0 3px 0 3px rgba(0,0,0,.35)}
+.fd.opp .av{opacity:.88}
 .fdn{position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:3px;font:800 9px var(--f-mono);color:#fff;text-shadow:0 1px 0 #000,1px 0 0 #000,-1px 0 0 #000;white-space:nowrap;pointer-events:none}
-.fd.me{z-index:2}.fd.me .av{animation:fdPulse 1.3s ease-in-out infinite}.fd.me .fdn{background:#FFD600;color:#121212;text-shadow:none;padding:0 5px;border-radius:6px;border:1.5px solid #121212}
-@keyframes fdPulse{0%,100%{box-shadow:0 0 0 3px var(--tc),0 0 0 3px rgba(255,214,0,0)}50%{box-shadow:0 0 0 3px var(--tc),0 0 0 9px rgba(255,214,0,.7)}}
+.fd.me{z-index:2}.fd.me .av{box-shadow:0 0 0 3px #fff,0 0 0 6px var(--tc);animation:fdPulse 1.3s ease-in-out infinite}.fd.me .fdn{background:#FFD600;color:#121212;text-shadow:none;padding:0 5px;border-radius:6px;border:1.5px solid #121212}
+@keyframes fdPulse{0%,100%{box-shadow:0 0 0 3px #fff,0 0 0 6px var(--tc),0 0 0 6px rgba(255,214,0,0)}50%{box-shadow:0 0 0 3px #fff,0 0 0 6px var(--tc),0 0 0 12px rgba(255,214,0,.7)}}
 .fball{position:absolute;left:0;top:0;z-index:4;aspect-ratio:1;display:flex;align-items:center;justify-content:center;line-height:1;will-change:transform;filter:drop-shadow(0 2px 0 rgba(0,0,0,.4));pointer-events:none}
-.fteams{margin-bottom:10px}
+.fteams{margin-bottom:10px}.fwait{width:100%;font:800 12px var(--f-mono);margin-bottom:6px}
+.fcard{position:absolute;inset:0;z-index:9;display:none;align-items:center;justify-content:center;background:rgba(18,18,18,.72);pointer-events:none}
+.fcard-in{text-align:center;color:#fff;padding:16px}.fcard-in small{font:800 11px var(--f-mono);letter-spacing:.2em;color:#FFD600}
+.fcard-in b{display:block;font:800 21px var(--f-disp);margin:6px 0;color:#7DB0FF}.fcard-in p{margin:4px 0;font-weight:800;font-size:14px}.fcard-in .vsl{color:#FF8FA9}.fcard-in .up{margin-top:12px;color:#FFD600}
 .fgoalpop .wg-in{border-color:var(--tc,#121212)}
+.pscore{display:flex;flex-direction:column;gap:5px;margin:0 0 6px}
+.prow{display:flex;align-items:center;gap:6px;border:3px solid #121212;border-radius:12px;background:#fff;padding:3px 8px;box-shadow:3px 3px 0 #121212}
+.prow b{font:800 12px var(--f-mono);width:44px}.prow i{margin-left:auto;font:800 24px var(--f-mono);font-style:normal}
+.pdot{width:26px;height:26px;border-radius:50%;border:2px solid #121212;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;background:#e9e9e9}
+.pdot.g{background:#7CFF9B}.pdot.x{background:#FFB3C1}
+.pdr{display:flex;align-items:center;gap:5px;margin:4px 0}.pdr b{width:44px;font:800 12px var(--f-mono)}
+.pwho{display:flex;gap:6px;margin:0 0 6px;font:800 12px var(--f-mono)}.pw{flex:1;display:flex;align-items:center;gap:4px;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.pstage{position:relative;width:min(100%,calc((100dvh - 330px) * .85));aspect-ratio:17/20;margin:0 auto 6px;border:3px solid #121212;border-radius:16px;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;box-shadow:5px 5px 0 #121212;background:linear-gradient(#1b2a4a 0 6%,#2d7a4b 6% 100%)}
+.pstage:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.05) 0 7%,rgba(0,0,0,0) 7% 14%)}
+.pstage.mine{box-shadow:5px 5px 0 #121212,0 0 0 4px #FFD600}
+.pgoal{position:absolute;left:9%;right:9%;top:5%;height:36%;border:5px solid #fff;border-bottom:0;border-radius:6px 6px 0 0;background:repeating-linear-gradient(90deg,rgba(255,255,255,.22) 0 1px,transparent 1px 14px),repeating-linear-gradient(0deg,rgba(255,255,255,.22) 0 1px,transparent 1px 14px),rgba(20,30,50,.55)}
+.pz{position:absolute;width:20%;aspect-ratio:1;transform:translate(-50%,-50%);border:3px dashed rgba(255,255,255,.55);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.pz.on{border-color:#FFD600;background:rgba(255,214,0,.3);box-shadow:0 0 0 4px rgba(255,214,0,.35)}
+.pkeeper{position:absolute;width:15%;aspect-ratio:1;z-index:3;transform:translate(-50%,-50%)}.pkeeper .av,.pkicker .av{width:100%;height:100%;border:3px solid #121212;box-shadow:0 3px 0 rgba(0,0,0,.4)}
+.pkeeper:after{content:"🧤";position:absolute;right:-12px;bottom:-6px;font-size:22px}.pbot{font-size:40px}
+.pball{position:absolute;width:9%;aspect-ratio:1;z-index:4;font-size:clamp(18px,6vw,30px);display:flex;align-items:center;justify-content:center;line-height:1;transform:translate(-50%,-50%);filter:drop-shadow(0 3px 0 rgba(0,0,0,.4))}
+.pkicker{position:absolute;left:50%;bottom:-3%;width:26%;aspect-ratio:1;transform:translateX(-50%);z-index:2}.pkicker .av{border-width:4px;border-style:solid;border-color:inherit;box-shadow:0 0 0 3px #fff}
+.pkicker .fdn{top:auto;bottom:-3px}
+.pstamp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.3) rotate(-6deg);opacity:0;z-index:8;white-space:nowrap;font:800 clamp(24px,8vw,38px) var(--f-disp);color:#fff;border:4px solid #121212;border-radius:14px;padding:6px 14px;box-shadow:4px 4px 0 #121212;transition:transform .25s cubic-bezier(.3,1.6,.5,1),opacity .2s}
+.pstamp.show{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-6deg)}.pstamp.g{background:#00A859}.pstamp.x{background:#E6003D}
+.pstage.shake .pgoal{animation:pkShake .5s}@keyframes pkShake{0%,100%{transform:none}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+.plegend{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:0 0 6px;font:800 11px var(--f-mono);opacity:.8}
+.pctl{max-width:420px;margin:0 auto 8px}
+.pmeter{position:relative;display:flex;height:34px;border:3px solid #121212;border-radius:999px;overflow:hidden;margin-bottom:8px;touch-action:none}
+.pmeter i{display:block;height:100%}.pmeter .g{width:45%;background:#00C853}.pmeter .o{width:30%;background:#FF9100}.pmeter .r{width:25%;background:#E6003D}
+.pmark{position:absolute;top:-3px;bottom:-3px;width:8px;margin-left:-4px;background:#fff;border:2px solid #121212;border-radius:4px}
+.pshoot{width:100%;font-size:20px}
+
 .shbtn{background:#FFD600;color:#121212;animation:none}.shbtn small{background:#121212;color:#FFD600}
 .ucbtn{background:#121212;color:#FFD600;animation:none;border-style:dashed;border-color:#FFD600}
 .ucline{margin:0 0 12px;padding:8px 12px;border:2px dashed var(--ink,#121212);border-radius:12px;font-weight:800;font-size:13px}
@@ -1027,7 +1059,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
     else if (m.t === 'rrank') { rRank = m.list || []; if (cur && cur.rank) cur.rank(); }
     else if (m.t === 'rcars') { if (cur && cur.cars) cur.cars(m.l); }
     else if (m.t === 'rbump') { if (cur && cur.bumped) cur.bumped(m); }
-    else if (m.t === 'fsim') { fsim = m; m.t0 = performance.now() - (m.late ? 0 : 0); if (S) render(); }
+    else if (m.t === 'fgo') { fgoIn(m); if (S) render(); }
     else if (m.t === 'photos') { photoMap = {}; Object.keys(m.map || {}).forEach(function (n) { photoMap[n.trim().toLowerCase()] = m.map[n]; }); if (S) render(); }
     else if (m.t === 'photo') { var pk = String(m.name).trim().toLowerCase(); if (m.data) photoMap[pk] = m.data; else delete photoMap[pk]; if (S) render(); }
     else if (m.t === 'chatlog') { chatList = m.list || []; chatUnread = 0; paintChat(); }
@@ -2651,8 +2683,147 @@ html[data-theme=dark] .cbub{border-color:#121212}
   /* ================= Gully Football ================= */
   var wantGame = null;
   var FW = 300, FH = 480, FDR = 20, FBR = 11, FNET = 26, FPULL = 120;
-  var TEAMS = [{ n: 'ORANGE', c: '#FF4D00', e: '🟠' }, { n: 'VIOLET', c: '#7B2CBF', e: '🟣' }];
+  var FBS = (function () {
+  // Gully Football physics. The server decides each turn, but phones run this SAME code on the same numbers,
+  // so only the aims travel over the network (tiny messages, no download wait). Keep it deterministic:
+  // only + - * / and Math.sqrt inside simulate (no sin / cos / pow), a fixed time step, and rounded inputs.
+  const DR = 20, BR = 11, POST = 5; // disc radius, ball radius, goal post radius
+  const NET = 26;                   // depth of the net behind each goal line
+  const MAXV = 840;                 // flick speed at full power (units / second)
+  const DT = 1 / 60;
+  const FR_DISC = 0.978, FR_BALL = 0.986, REST_WALL = 0.82, REST_HIT = 0.92;
+  const M_DISC = 1, M_BALL = 0.45;
+  const MAX_STEPS = 60 * 7;
+  const rd3 = (v) => Math.round(v * 1000) / 1000;
+  
+  // Pitch grows with the number of players. gw = goal mouth, gws = wider goal for sudden death.
+  function size(n) {
+    const [W, H] = n <= 4 ? [300, 480] : n <= 8 ? [340, 560] : [380, 640];
+    return { W, H, gw: Math.round(100 * W / 300), gws: Math.round(170 * W / 300) };
+  }
+  
+  // Kick-off layout. Team 0 defends the bottom goal and attacks the top one; team 1 is the mirror image.
+  function layout(ids, team, W, H) {
+    const pos = {};
+    for (const t of [0, 1]) {
+      const mine = ids.filter((id) => team[id] === t);
+      const rows = mine.length > 3 ? [mine.slice(0, 3), mine.slice(3)] : [mine];
+      rows.forEach((row, r) => {
+        row.forEach((id, k) => {
+          const x = W * (k + 1) / (row.length + 1);
+          const dy = r === 0 ? 0.30 : 0.18; // distance from own goal line, as a share of the pitch
+          pos[id] = t === 0 ? [rd3(x), rd3(H * (1 - dy))] : [rd3(W - x), rd3(H * dy)];
+        });
+      });
+    }
+    return pos;
+  }
+  
+  // Turns an aim {dx,dy,pw} into a rounded velocity [vx,vy] (done once, on the server).
+  function aimVel(a) {
+    const len = Math.hypot(a.dx, a.dy) || 1;
+    const pw = Math.max(0, Math.min(1, a.pw));
+    return [rd3(a.dx / len * pw * MAXV), rd3(a.dy / len * pw * MAXV)];
+  }
+  
+  // Plays one turn. fb = { ids, pos:{id:[x,y]}, ball:[x,y], sudden, W, H, gw, gws }, vel = { id: [vx,vy] }.
+  // Returns { frames, goal: 0|1|null (team that scored), by: id|null, pos, ball } (final positions, rounded). Does not change fb.
+  function simulate(fb, vel) {
+    const W = fb.W, H = fb.H, g = fb.sudden ? fb.gws : fb.gw;
+    const gx0 = (W - g) / 2, gx1 = (W + g) / 2;
+    const ids = fb.ids;
+    const B = ids.map((id) => ({ id, r: DR, m: M_DISC, x: fb.pos[id][0], y: fb.pos[id][1], vx: 0, vy: 0, disc: true }));
+    const ball = { id: null, r: BR, m: M_BALL, x: fb.ball[0], y: fb.ball[1], vx: 0, vy: 0, disc: false };
+    const all = [ball].concat(B);
+    for (const b of B) { const v = vel[b.id]; if (v) { b.vx = v[0]; b.vy = v[1]; } }
+    const posts = [[gx0, 0], [gx1, 0], [gx0, H], [gx1, H]];
+    const r1 = (v) => Math.round(v * 10) / 10;
+    const snap = () => { const f = [r1(ball.x), r1(ball.y)]; for (const b of B) f.push(r1(b.x), r1(b.y)); return f; };
+    const frames = [snap()];
+    let touch = null, goal = null, by = null, calm = 0, extra = 0;
+  
+    const hit = (a, b) => { // circle vs circle, elastic with a little loss
+      const dx = b.x - a.x, dy = b.y - a.y; const d2 = dx * dx + dy * dy, rr = a.r + b.r;
+      if (d2 >= rr * rr || d2 === 0) return false;
+      const d = Math.sqrt(d2), nx = dx / d, ny = dy / d;
+      const im1 = a.fixed ? 0 : 1 / a.m, im2 = b.fixed ? 0 : 1 / b.m;
+      const push = (rr - d) / (im1 + im2);
+      a.x -= nx * push * im1; a.y -= ny * push * im1; b.x += nx * push * im2; b.y += ny * push * im2;
+      const rv = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+      if (rv < 0) {
+        const j = -(1 + REST_HIT) * rv / (im1 + im2);
+        a.vx -= j * im1 * nx; a.vy -= j * im1 * ny; b.vx += j * im2 * nx; b.vy += j * im2 * ny;
+      }
+      return true;
+    };
+  
+    for (let step = 1; step <= MAX_STEPS; step++) {
+      if (goal === null) {
+        for (const b of all) {
+          b.x += b.vx * DT; b.y += b.vy * DT;
+          const fr = b.disc ? FR_DISC : FR_BALL; b.vx *= fr; b.vy *= fr;
+          if (b.vx * b.vx + b.vy * b.vy < 36) { b.vx = 0; b.vy = 0; }
+        }
+        // walls (discs can never enter a goal; the ball can, through the mouth)
+        for (const b of all) {
+          if (b.x < b.r) { b.x = b.r; b.vx = Math.abs(b.vx) * REST_WALL; }
+          if (b.x > W - b.r) { b.x = W - b.r; b.vx = -Math.abs(b.vx) * REST_WALL; }
+          const inMouth = !b.disc && b.x > gx0 && b.x < gx1;
+          if (!inMouth) {
+            if (b.y < b.r) { b.y = b.r; b.vy = Math.abs(b.vy) * REST_WALL; }
+            if (b.y > H - b.r) { b.y = H - b.r; b.vy = -Math.abs(b.vy) * REST_WALL; }
+          }
+        }
+        for (const b of B) { // discs stay out of the goals completely
+          if (b.y < b.r) { b.y = b.r; b.vy = Math.abs(b.vy) * REST_WALL; }
+          if (b.y > H - b.r) { b.y = H - b.r; b.vy = -Math.abs(b.vy) * REST_WALL; }
+        }
+        for (const p of posts) { // posts are tiny fixed circles
+          const post = { x: p[0], y: p[1], vx: 0, vy: 0, r: POST, m: 1, fixed: true };
+          for (const b of all) hit(b, post);
+        }
+        for (let i = 0; i < all.length; i++) for (let k = i + 1; k < all.length; k++) {
+          if (hit(all[i], all[k]) && (all[i] === ball || all[k] === ball)) touch = (all[i] === ball ? all[k] : all[i]).id;
+        }
+        // goal?
+        if (ball.x > gx0 && ball.x < gx1) {
+          if (ball.y < 0) { goal = 0; by = touch; }       // top goal: team 0 scores
+          else if (ball.y > H) { goal = 1; by = touch; }  // bottom goal: team 1 scores
+        }
+        if (goal !== null) { for (const b of B) { b.vx = 0; b.vy = 0; } }
+      } else {
+        // the ball runs into the net and settles
+        ball.x += ball.vx * DT; ball.y += ball.vy * DT; ball.vx *= 0.82; ball.vy *= 0.82;
+        const top = goal === 0;
+        if (top && ball.y < -NET + BR) { ball.y = -NET + BR; ball.vy = 0; }
+        if (!top && ball.y > H + NET - BR) { ball.y = H + NET - BR; ball.vy = 0; }
+        ball.x = Math.max(gx0 + BR, Math.min(gx1 - BR, ball.x));
+        extra++;
+      }
+      if (step % 2 === 0) frames.push(snap());
+      if (goal !== null) { if (extra >= 16) break; continue; }
+      let moving = false; for (const b of all) if (b.vx || b.vy) { moving = true; break; }
+      calm = moving ? 0 : calm + 1;
+      if (calm > 6) break;
+    }
+    frames.push(snap());
+    const pos = {}; B.forEach((b) => { pos[b.id] = [rd3(b.x), rd3(b.y)]; });
+    return { frames, goal, by, pos, ball: [rd3(ball.x), rd3(ball.y)] };
+  }
+  
+  return { DR, BR, NET, MAXV, size, layout, aimVel, simulate, rd3 };
+  })();
+  var FBLUE = '#1E6BFF', FRED = '#E6003D';
+  // Colours are relative on every phone: YOUR team is always blue (and defends the bottom goal), the other team red.
+  function myFTeam() { return S && S.fb && S.fb.team[S.me.id] != null ? S.fb.team[S.me.id] : -1; }
+  function tm(t) { var m = myFTeam(), me = m >= 0, mine = me ? m : 0; return t === mine ? { n: me ? 'US' : 'BLUE', c: FBLUE, e: '🔵' } : { n: me ? 'THEM' : 'RED', c: FRED, e: '🔴' }; }
   var fsim = null, fOverShown = '';
+  // the server sends only the flicks; this phone plays the very same physics (code copied from the server)
+  function fgoIn(m) {
+    var r = FBS.simulate({ ids: m.ids, pos: m.pos, ball: m.ball, sudden: m.sudden, W: m.W, H: m.H, gw: m.gw, gws: m.gws }, m.v);
+    fsim = { turn: m.turn, ids: m.ids, frames: r.frames, goal: m.goal, by: m.by, startAt: m.startAt };
+  }
+  function leaveLink() { return h('button', { class: 'link', type: 'button', onclick: function () { if (confirm('Leave this game?')) send({ t: 'leave' }); } }, 'Leave game'); }
   function logoText() { var g = S ? S.game : wantGame; return g === 'football' ? 'Football' : g === 'race' ? 'Buggy' : 'Undercover'; }
 
   screens.flobby = function () {
@@ -2661,30 +2832,34 @@ html[data-theme=dark] .cbub{border-color:#121212}
       h('p', { class: 'sub' }, 'Your face is your disc. Everyone flicks at the same time!'),
       h('div', { class: 'card' }, count, list), setBox, act,
       h('details', { class: 'card' }, h('summary', null, 'How to play'),
-        h('p', null, 'Two random teams. Every turn ', h('b', null, 'all players aim at once'), ': drag back from YOUR disc like a slingshot. A dotted line shows where it will go, and a longer pull means more power.'),
-        h('p', null, 'When the timer ends (or everyone is locked in) all discs fire together. Get the ball into the other goal. First team to the goal target wins. Still level after 20 turns? Sudden death with wider goals!')));
+        h('p', null, 'Two random teams. On every phone ', h('b', null, 'your team is BLUE'), ' (your goal is at the bottom) and the other team is ', h('b', null, 'RED'), '. Every turn ', h('b', null, 'all players aim at once'), ': drag back from YOUR disc like a slingshot. A longer pull means more power.'),
+        h('p', null, 'When everyone is locked in (or the timer ends) all discs fire together. Get the ball into the red goal at the top. First team to the goal target wins. Level after 20 turns? Penalty shootout or sudden death (host chooses).'),
+        h('p', null, h('b', null, '🥅 Penalties: '), 'the kicker swipes to a corner (up-left / up-right = top corners, sideways = low corners, straight up = middle) and taps SHOOT when the bar is green. Orange is harder to save but can hit the post. Red often flies over! The keeper swipes to where he dives. Same spot = saved.')));
     return { root: root, update: function () {
       var ps = S.players.filter(function (p) { return !p.left; });
-      fill(count, 'Players (' + ps.length + ') · 1 to 10 play');
+      fill(count, 'Players (' + ps.length + ') · 1 to 12 play');
       fill(list, ps.map(function (p) { return playerRow(p); }));
-      var fs = S.fbSet || { goals: 3, secs: 8 };
+      var fs = S.fbSet || { goals: 3, secs: 8, mode: 'match', tie: 'pens' };
+      var pens = fs.mode === 'pens';
       fill(setBox, h('div', { class: 'card tight' }, S.me.host ? [
-        h('div', { class: 'set' }, h('div', { class: 'lbl' }, '🥅 Goals to win'), seg([[2, '2'], [3, '3'], [5, '5']], fs.goals, function (v) { send({ t: 'fset', goals: v }); })),
-        h('div', { class: 'set' }, h('div', { class: 'lbl' }, '⏱ Aim time'), seg([[6, '6s'], [8, '8s'], [12, '12s']], fs.secs, function (v) { send({ t: 'fset', secs: v }); }))]
-        : h('p', { class: 'mute', style: 'margin:0' }, '🥅 First to ' + fs.goals + ' goals · ⏱ ' + fs.secs + 's to aim')));
+        h('div', { class: 'set' }, h('div', { class: 'lbl' }, '🎮 Mode'), seg([['match', '⚽ Match'], ['pens', '🥅 Penalties']], fs.mode || 'match', function (v) { send({ t: 'fset', mode: v }); })),
+        pens ? null : h('div', { class: 'set' }, h('div', { class: 'lbl' }, '🥅 Goals to win'), seg([[1, '1 golden'], [2, '2'], [3, '3'], [5, '5']], fs.goals, function (v) { send({ t: 'fset', goals: v }); })),
+        pens ? null : h('div', { class: 'set' }, h('div', { class: 'lbl' }, '⏱ Aim time'), seg([[4, '4s'], [6, '6s'], [8, '8s'], [12, '12s']], fs.secs, function (v) { send({ t: 'fset', secs: v }); })),
+        pens ? null : h('div', { class: 'set' }, h('div', { class: 'lbl' }, '🤝 If level after 20 turns'), seg([['pens', '🥅 Penalties'], ['sudden', '⚡ Sudden death']], fs.tie || 'pens', function (v) { send({ t: 'fset', tie: v }); }))]
+        : h('p', { class: 'mute', style: 'margin:0' }, pens ? '🥅 Penalty shootout · 5 kicks each' : '🥅 First to ' + fs.goals + ' goals · ⏱ ' + fs.secs + 's to aim · level = ' + (fs.tie === 'sudden' ? 'sudden death' : 'penalties'))));
       fill(act, S.me.host ? h('button', { class: 'btn primary', type: 'button', onclick: function () { send({ t: 'fstart' }); } }, ps.length < 2 ? '⚽ Kick off (practice solo)' : '⚽ Kick off!')
         : h('p', { class: 'mute center' }, 'Waiting for the host to kick off…'));
     } };
   };
 
   screens.fgame = function () {
-    var VB = '0 -' + FNET + ' ' + FW + ' ' + (FH + 2 * FNET);
-    var sc = 1, built = '', fieldKey = '', running = false, lastKey = '', locked = null, drag = null, popTimer = 0;
-    var field = sv('svg', { class: 'fsvg', viewBox: VB, preserveAspectRatio: 'none' });
-    var aimSvg = sv('svg', { class: 'faimsvg', viewBox: VB, preserveAspectRatio: 'none' });
+    var sc = 1, built = '', fieldKey = '', running = false, lastKey = '', locked = null, drag = null, cardKey = '', cardT = 0;
+    var field = sv('svg', { class: 'fsvg', viewBox: '0 0 300 532', preserveAspectRatio: 'none' });
+    var aimSvg = sv('svg', { class: 'faimsvg', viewBox: '0 0 300 532', preserveAspectRatio: 'none' });
     var layer = h('div', { class: 'flayer' });
-    var ball = h('div', { class: 'fball', style: 'width:' + (2 * FBR / FW * 100) + '%' }, '⚽');
-    var pitch = h('div', { class: 'fpitch' }, field, layer, ball, aimSvg);
+    var ball = h('div', { class: 'fball' }, '⚽');
+    var card = h('div', { class: 'fcard' });
+    var pitch = h('div', { class: 'fpitch' }, field, layer, ball, aimSvg, card);
     var discs = {};
     var gPull = sv('line', { stroke: '#ffffff', 'stroke-width': 2, 'stroke-opacity': '.55', 'stroke-linecap': 'round' });
     var gDir = sv('line', { stroke: '#FFD600', 'stroke-width': 4, 'stroke-dasharray': '1 9', 'stroke-linecap': 'round' });
@@ -2695,19 +2870,20 @@ html[data-theme=dark] .cbub{border-color:#121212}
     var teamsBox = h('div', { class: 'vstat fteams' }), over = h('div'), hostRow = h('div', { class: 'row' });
     var root = h('div', { class: 'fgame' }, scoreBar, status, bar, pitch, teamsBox, over, hostRow);
 
-    function myTeam() { return S.fb && S.fb.team[S.me.id] != null ? S.fb.team[S.me.id] : -1; }
+    function myTeam() { return myFTeam(); }
     function flipV() { return myTeam() === 1; }
     function view(x, y) { return flipV() ? [FW - x, FH - y] : [x, y]; }
     function place(el, x, y, r) { var v = view(x, y); el.style.transform = 'translate3d(' + ((v[0] - r) * sc).toFixed(1) + 'px,' + ((v[1] + FNET - r) * sc).toFixed(1) + 'px,0)'; }
     function canAim() { return S && S.phase === 'faim' && S.fb && S.fb.ids.indexOf(S.me.id) >= 0 && secsLeft() > 0; }
 
-    function drawField(gw, flip) {
-      var gx0 = (FW - gw) / 2, gx1 = (FW + gw) / 2, W = '#ffffff', i;
-      var topT = TEAMS[flip ? 0 : 1], botT = TEAMS[flip ? 1 : 0];
+    function drawField(gw) {
+      var gx0 = (FW - gw) / 2, gx1 = (FW + gw) / 2, W = '#ffffff', i, n = Math.round(FH / 60), sh = FH / n;
+      var VB = '0 -' + FNET + ' ' + FW + ' ' + (FH + 2 * FNET);
+      field.setAttribute('viewBox', VB); aimSvg.setAttribute('viewBox', VB);
       clear(field);
       var add2 = function (e) { field.appendChild(e); };
       add2(sv('rect', { x: 0, y: -FNET, width: FW, height: FH + 2 * FNET, fill: '#15161f' }));
-      for (i = 0; i < 8; i++) add2(sv('rect', { x: 0, y: i * 60, width: FW, height: 60, fill: i % 2 ? '#2fa05c' : '#37b066' }));
+      for (i = 0; i < n; i++) add2(sv('rect', { x: 0, y: i * sh, width: FW, height: sh, fill: i % 2 ? '#2fa05c' : '#37b066' }));
       var ln = { fill: 'none', stroke: W, 'stroke-width': 2.5, 'stroke-opacity': '.9' };
       add2(sv('rect', Object.assign({ x: 2, y: 2, width: FW - 4, height: FH - 4 }, ln)));
       add2(sv('line', Object.assign({ x1: 2, y1: FH / 2, x2: FW - 2, y2: FH / 2 }, ln)));
@@ -2715,22 +2891,26 @@ html[data-theme=dark] .cbub{border-color:#121212}
       add2(sv('circle', { cx: FW / 2, cy: FH / 2, r: 3.5, fill: W }));
       add2(sv('rect', Object.assign({ x: (FW - 176) / 2, y: 2, width: 176, height: 72 }, ln)));
       add2(sv('rect', Object.assign({ x: (FW - 176) / 2, y: FH - 74, width: 176, height: 72 }, ln)));
-      [[-FNET, topT, 0], [FH, botT, 1]].forEach(function (g) {
-        add2(sv('rect', { x: gx0, y: g[0], width: gw, height: FNET, fill: '#eef8f1', 'fill-opacity': '.92' }));
-        for (var x = gx0; x <= gx1 + 1; x += 10) add2(sv('line', { x1: x, y1: g[0], x2: x, y2: g[0] + FNET, stroke: '#8fb3a0', 'stroke-width': .8 }));
-        for (var y = g[0]; y <= g[0] + FNET + 1; y += 9) add2(sv('line', { x1: gx0, y1: y, x2: gx1, y2: y, stroke: '#8fb3a0', 'stroke-width': .8 }));
+      // a big faint arrow: this is the way YOUR team attacks (always up on your phone)
+      add2(sv('polygon', { points: (FW / 2) + ',' + (FH * 0.5 + 62) + ' ' + (FW / 2 + 34) + ',' + (FH * 0.5 + 112) + ' ' + (FW / 2 + 12) + ',' + (FH * 0.5 + 112) + ' ' + (FW / 2 + 12) + ',' + (FH * 0.5 + 150) + ' ' + (FW / 2 - 12) + ',' + (FH * 0.5 + 150) + ' ' + (FW / 2 - 12) + ',' + (FH * 0.5 + 112) + ' ' + (FW / 2 - 34) + ',' + (FH * 0.5 + 112), fill: '#fff', 'fill-opacity': '.12' }));
+      // top goal = the RED goal you attack, bottom goal = your BLUE goal
+      [[-FNET, FRED, 0], [FH, FBLUE, 1]].forEach(function (g) {
+        add2(sv('rect', { x: gx0, y: g[0], width: gw, height: FNET, fill: g[1], 'fill-opacity': '.22' }));
+        for (var x = gx0; x <= gx1 + 1; x += 10) add2(sv('line', { x1: x, y1: g[0], x2: x, y2: g[0] + FNET, stroke: g[1], 'stroke-opacity': '.7', 'stroke-width': .8 }));
+        for (var y = g[0]; y <= g[0] + FNET + 1; y += 9) add2(sv('line', { x1: gx0, y1: y, x2: gx1, y2: y, stroke: g[1], 'stroke-opacity': '.7', 'stroke-width': .8 }));
         var gy = g[2] ? FH : 0;
-        add2(sv('line', { x1: gx0, y1: gy, x2: gx1, y2: gy, stroke: g[1].c, 'stroke-width': 4 }));
-        add2(sv('circle', { cx: gx0, cy: gy, r: 6, fill: g[1].c, stroke: '#121212', 'stroke-width': 2 }));
-        add2(sv('circle', { cx: gx1, cy: gy, r: 6, fill: g[1].c, stroke: '#121212', 'stroke-width': 2 }));
+        add2(sv('line', { x1: gx0, y1: gy, x2: gx1, y2: gy, stroke: g[1], 'stroke-width': 5 }));
+        add2(sv('circle', { cx: gx0, cy: gy, r: 6, fill: '#fff', stroke: g[1], 'stroke-width': 3 }));
+        add2(sv('circle', { cx: gx1, cy: gy, r: 6, fill: '#fff', stroke: g[1], 'stroke-width': 3 }));
       });
     }
     function buildDiscs() {
-      var fb = S.fb; clear(layer); discs = {};
+      var fb = S.fb, mt = myTeam(); clear(layer); discs = {};
+      ball.style.width = (2 * FBR / FW * 100) + '%';
       fb.ids.forEach(function (id) {
-        var nm = nameOf(id), t = fb.team[id];
-        var el = h('div', { class: 'fd' + (id === S.me.id ? ' me' : ''), style: '--tc:' + TEAMS[t].c + ';width:' + (2 * FDR / FW * 100) + '%' },
-          avatar(nm, pidx(id), null), h('span', { class: 'fdn' }, id === S.me.id ? 'YOU' : nm.length > 7 ? nm.slice(0, 7) + '…' : nm));
+        var nm = nameOf(id), t = fb.team[id], mine = id === S.me.id, opp = mt >= 0 && t !== mt;
+        var el = h('div', { class: 'fd' + (mine ? ' me' : '') + (opp ? ' opp' : ''), style: '--tc:' + tm(t).c + ';width:' + (2 * FDR / FW * 100) + '%' },
+          avatar(nm, pidx(id), null), h('span', { class: 'fdn' }, mine ? 'YOU' : nm.length > 7 ? nm.slice(0, 7) + '…' : nm));
         layer.appendChild(el); discs[id] = el;
       });
     }
@@ -2744,7 +2924,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
       ball.style.fontSize = (sc * FBR * 1.75).toFixed(1) + 'px';
       if (!S || !S.fb) return;
       if (S.phase === 'fplay' && fsim && fsim.turn === S.fb.turn) {
-        var fi = (performance.now() - fsim.t0) / (1000 / 30), n = fsim.frames.length - 1;
+        var fi = Math.max(0, (Date.now() + offset - fsim.startAt) / (1000 / 30)), n = fsim.frames.length - 1;
         var i = Math.min(n, Math.floor(fi)), j = Math.min(n, i + 1), a = Math.min(1, fi - i), A = fsim.frames[i], B = fsim.frames[j];
         place(ball, A[0] + (B[0] - A[0]) * a, A[1] + (B[1] - A[1]) * a, FBR);
         fsim.ids.forEach(function (id, k) { if (discs[id]) place(discs[id], A[2 + 2 * k] + (B[2 + 2 * k] - A[2 + 2 * k]) * a, A[3 + 2 * k] + (B[3 + 2 * k] - A[3 + 2 * k]) * a, FDR); });
@@ -2755,16 +2935,16 @@ html[data-theme=dark] .cbub{border-color:#121212}
     function loop() { if (!document.body.contains(root)) { running = false; return; } frame(); requestAnimationFrame(loop); }
 
     function goalPop(sim) {
-      var fb = S.fb, by = sim.by, nm = by ? nameOf(by) : '', own = !!by && fb.team[by] !== sim.goal, sc2 = fb.score.slice();
+      var fb = S.fb, by = sim.by, nm = by ? nameOf(by) : '', own = !!by && fb.team[by] !== sim.goal, sc2 = fb.score.slice(), mt = myTeam(), mine = mt >= 0 ? mt : 0;
       sc2[sim.goal]++;
-      var m = h('div', { class: 'wgpop fgoalpop' });
-      fill(m, h('div', { class: 'wg-in', style: '--tc:' + TEAMS[sim.goal].c }, h('small', null, own ? '😂 OWN GOAL!' : '⚽ GOAAAL!'), by ? avatar(nm, pidx(by), 'xl') : null,
-        h('div', { class: 'wg-name' }, by ? nm : 'Nobody touched it'), h('div', { class: 'wg-stamp', style: 'background:' + TEAMS[sim.goal].c }, TEAMS[sim.goal].e + ' ' + TEAMS[sim.goal].n + ' SCORE'),
-        h('p', null, TEAMS[0].e + ' ' + sc2[0] + '  –  ' + sc2[1] + ' ' + TEAMS[1].e)));
+      var m = h('div', { class: 'wgpop fgoalpop' }), T = tm(sim.goal);
+      fill(m, h('div', { class: 'wg-in', style: '--tc:' + T.c }, h('small', null, own ? '😂 OWN GOAL!' : '⚽ GOAAAL!'), by ? avatar(nm, pidx(by), 'xl') : null,
+        h('div', { class: 'wg-name' }, by ? nm : 'Nobody touched it'), h('div', { class: 'wg-stamp', style: 'background:' + T.c }, T.e + ' ' + T.n + ' SCORE'),
+        h('p', null, tm(mine).n + ' ' + sc2[mine] + '  –  ' + sc2[1 - mine] + ' ' + tm(1 - mine).n)));
       m.addEventListener('click', function () { if (m.parentNode) m.parentNode.removeChild(m); });
       document.body.appendChild(m);
-      buzz(sim.goal === myTeam() && !own ? [150, 80, 150, 80, 400] : [300, 100, 300]);
-      if (sim.goal === myTeam() && typeof confetti === 'function') confetti();
+      buzz(sim.goal === mt && !own ? [150, 80, 150, 80, 400] : [300, 100, 300]);
+      if (sim.goal === mt && typeof confetti === 'function') confetti();
       setTimeout(function () { if (m.parentNode) m.parentNode.removeChild(m); }, 3100);
     }
 
@@ -2829,34 +3009,52 @@ html[data-theme=dark] .cbub{border-color:#121212}
       if (S.phase === 'faim') {
         if (!iPlay) fill(status, '👀 You are watching this match. You play in the next one. ', secEl);
         else if (isLocked) fill(status, '✅ Locked in! Re-drag to change it · ', secEl);
-        else fill(status, fb.turn === 0 ? 'You are ' + TEAMS[t].e + ' ' + TEAMS[t].n + '. Attack the TOP goal ⬆️. Drag back from YOUR disc · ' : '🎯 AIM! Drag back from YOUR disc · ', secEl);
+        else fill(status, '🎯 Drag back from YOUR disc (white ring) · ', secEl);
         if (fb.sudden) status.appendChild(h('div', { class: 'fsud' }, '⚡ SUDDEN DEATH · wider goals · next goal wins'));
       } else if (S.phase === 'fplay') fill(status, '💥 Shots fired…');
       else fill(status, '🏁 Full time!');
     }
     function paintScore() {
-      var fb = S.fb, t = myTeam();
-      var side = function (k) { return h('div', { class: 'fsc t' + k + (t === k ? ' mine' : '') }, h('span', { class: 'fte' }, TEAMS[k].e), h('b', null, TEAMS[k].n), t === k ? h('em', null, 'YOU') : null, h('i', { class: 'fnum' }, String(fb.score[k]))); };
-      fill(scoreBar, side(0), h('div', { class: 'fmid' }, h('small', null, 'FIRST TO ' + (S.fbSet ? S.fbSet.goals : 3)), h('span', null, fb.sudden ? '⚡ SUDDEN' : 'TURN ' + Math.min(fb.turn + 1, 20) + '/20')), side(1));
+      var fb = S.fb, t = myTeam(), mine = t >= 0 ? t : 0, A = tm(mine), B = tm(1 - mine);
+      var side = function (k, T, cls) { return h('div', { class: 'fsc ' + cls }, h('span', { class: 'fte' }, T.e), h('b', null, T.n), h('i', { class: 'fnum' }, String(fb.score[k]))); };
+      fill(scoreBar, side(mine, A, 'us'), h('div', { class: 'fmid' }, h('small', null, 'FIRST TO ' + (S.fbSet ? S.fbSet.goals : 3)), h('span', null, fb.sudden ? '⚡ SUDDEN' : 'TURN ' + Math.min(fb.turn + 1, 20) + '/20')), side(1 - mine, B, 'them'));
     }
     function paintTeams() {
       var fb = S.fb, aimNow = S.phase === 'faim';
-      fill(teamsBox, fb.ids.map(function (id) {
-        var done = fb.aimed.indexOf(id) >= 0;
-        return h('span', { class: 'vs ' + (aimNow && done ? 'yes' : 'no'), style: 'border-color:' + TEAMS[fb.team[id]].c }, avatar(nameOf(id), pidx(id), 'xs'), nameOf(id) + (id === S.me.id ? ' (you)' : ''), aimNow ? h('b', null, done ? '✓' : '…') : null);
-      }));
+      var wait = fb.ids.filter(function (id) { return fb.aimed.indexOf(id) < 0; });
+      fill(teamsBox, aimNow && wait.length ? h('div', { class: 'fwait' }, '⏳ Waiting for: ' + wait.map(function (id) { return id === S.me.id ? 'you' : nameOf(id); }).join(', ')) : null,
+        fb.ids.map(function (id) {
+          var done = fb.aimed.indexOf(id) >= 0;
+          return h('span', { class: 'vs ' + (aimNow && done ? 'yes' : 'no'), style: 'border-color:' + tm(fb.team[id]).c }, avatar(nameOf(id), pidx(id), 'xs'), nameOf(id) + (id === S.me.id ? ' (you)' : ''), aimNow ? h('b', null, done ? '✓' : '…') : null);
+        }));
+    }
+    function paintCard() { // 2-second team card before the first turn
+      var fb = S.fb, t = myTeam(), key = fb.ids.join(',') + fb.ids.map(function (id) { return fb.team[id]; }).join('');
+      if (S.phase === 'faim' && fb.turn === 0 && t >= 0 && cardKey !== key) {
+        cardKey = key; var mates = fb.ids.filter(function (id) { return fb.team[id] === t && id !== S.me.id; }).map(nameOf), opp = fb.ids.filter(function (id) { return fb.team[id] !== t; }).map(nameOf);
+        fill(card, h('div', { class: 'fcard-in' }, h('small', null, 'KICK-OFF'), h('b', null, 'YOU ARE 🔵 BLUE'), h('p', null, mates.length ? 'With ' + mates.join(', ') : 'Playing solo'), h('p', { class: 'vsl' }, 'vs 🔴 ' + (opp.length ? opp.join(', ') : 'nobody')), h('p', { class: 'up' }, '⬆️ Attack the RED goal at the top')));
+        card.style.display = 'flex'; clearTimeout(cardT); cardT = setTimeout(function () { card.style.display = 'none'; }, 2600);
+        card.onclick = function () { card.style.display = 'none'; };
+      }
+    }
+    function dotRow(k) {
+      var hist = S.fb.pk.hist[k], n = Math.max(5, hist.length), out = [];
+      for (var i = 0; i < n; i++) { var c = hist[i]; out.push(h('span', { class: 'pdot ' + (c ? (c === 'g' ? 'g' : 'x') : 'n') }, c === 'g' ? '⚽' : c === 's' ? '🧤' : c ? '✕' : '')); }
+      return out;
     }
     function paintOver() {
       var fb = S.fb;
       if (S.phase !== 'fover') { fill(over, null); return; }
-      var w = fb.winner, t = myTeam(), key = fb.goals.length + ':' + fb.score.join('-') + ':' + w;
+      var w = fb.winner, t = myTeam(), key = fb.goals.length + ':' + fb.score.join('-') + ':' + w + (fb.pk ? fb.pk.score.join('p') : '');
       if (fOverShown !== key) { fOverShown = key; buzz([80, 50, 80, 50, 300]); if (w === t && typeof confetti === 'function') later2(confetti, 200); }
-      fill(over, h('div', { class: 'winner bounce ' + (w === 0 ? 'imp' : 'civ') }, h('div', { class: 'big' }, TEAMS[w].e + ' ' + TEAMS[w].n + ' WIN!'),
-          h('p', null, fb.score[0] + ' – ' + fb.score[1] + (t === w ? ' · You won! 🏆' : t >= 0 ? ' · Better luck next time 😅' : ''))),
-        h('div', { class: 'card tight' }, h('h2', null, '⚽ Goals'), fb.goals.length ? fb.goals.map(function (g, i) {
+      var mine = t >= 0 ? t : 0, sc = fb.pk && fb.pk.why === 'fun' ? fb.pk.score : fb.score;
+      fill(over, h('div', { class: 'winner bounce ' + (t >= 0 && w !== t ? 'imp' : 'civ') }, h('div', { class: 'big' }, t >= 0 ? (w === t ? '🏆 YOU WIN!' : '😅 THEY WIN') : tm(w).e + ' ' + tm(w).n + ' WIN!'),
+          h('p', null, tm(mine).n + ' ' + sc[mine] + ' – ' + sc[1 - mine] + ' ' + tm(1 - mine).n + (fb.pk && fb.pk.why === 'tie' ? ' · won on penalties ' + fb.pk.score[mine] + '–' + fb.pk.score[1 - mine] : '') + (t === w ? ' · 🎉' : ''))),
+        fb.pk ? h('div', { class: 'card tight' }, h('h2', null, '🥅 Shootout'), h('div', { class: 'pdr' }, h('b', null, tm(mine).n), dotRow(mine)), h('div', { class: 'pdr' }, h('b', null, tm(1 - mine).n), dotRow(1 - mine))) : null,
+        fb.goals.length ? h('div', { class: 'card tight' }, h('h2', null, '⚽ Goals'), fb.goals.map(function (g, i) {
           return h('div', { class: 'brow' }, h('span', { class: 'rank' }, String(i + 1)), g.by ? avatar(nameOf(g.by), pidx(g.by), 'sm') : null,
-            h('span', { class: 'pname' }, (g.by ? nameOf(g.by) : 'Nobody') + (g.own ? ' (own goal 😂)' : '')), h('span', { class: 'pts' }, TEAMS[g.team].e));
-        }) : h('p', { class: 'mute small' }, 'No goals.')));
+            h('span', { class: 'pname' }, (g.by ? nameOf(g.by) : 'Nobody') + (g.own ? ' (own goal 😂)' : '')), h('span', { class: 'pts' }, tm(g.team).e));
+        })) : (fb.pk ? null : h('div', { class: 'card tight' }, h('p', { class: 'mute small' }, 'No goals.'))));
     }
     function later2(fn, ms) { setTimeout(fn, ms); }
     return { root: root, tick: function () {
@@ -2864,9 +3062,13 @@ html[data-theme=dark] .cbub{border-color:#121212}
       if (S.phase === 'faim') { var s = secsLeft(); secEl.textContent = s + 's'; bar.firstChild.style.width = Math.min(100, s / (S.fbSet ? S.fbSet.secs : 8) * 100) + '%'; bar.classList.toggle('low', s <= 3); } else bar.firstChild.style.width = '0%';
     }, update: function () {
       var fb = S.fb; if (!fb) return;
-      var names = fb.ids.map(function (id) { return nameOf(id) + (photoOf(nameOf(id)) ? '*' : ''); }).join('|');
+      var nw = fb.W || 300, nh = fb.H || 480;
+      var names = nw + 'x' + nh + ':' + myTeam() + ':' + fb.ids.map(function (id) { return nameOf(id) + (photoOf(nameOf(id)) ? '*' : ''); }).join('|');
+      if (nw !== FW || nh !== FH) { FW = nw; FH = nh; fieldKey = ''; }
+      pitch.style.setProperty('--ar', (FW / (FH + 2 * FNET)).toFixed(4));
+      pitch.style.aspectRatio = FW + '/' + (FH + 2 * FNET);
       if (names !== built) { built = names; buildDiscs(); }
-      var fk = fb.gw + ':' + flipV(); if (fk !== fieldKey) { fieldKey = fk; drawField(fb.gw, flipV()); }
+      var fk = fb.gw + ':' + FW + ':' + FH; if (fk !== fieldKey) { fieldKey = fk; drawField(fb.gw); }
       var k = S.phase + ':' + fb.turn, iPlay = fb.ids.indexOf(S.me.id) >= 0;
       if (k !== lastKey) {
         if (S.phase === 'faim' && iPlay) buzz([90, 60, 90]);
@@ -2874,11 +3076,139 @@ html[data-theme=dark] .cbub{border-color:#121212}
         lastKey = k;
       }
       if (S.phase !== 'faim') hideAim();
-      paintScore(); paintStatus(); paintTeams(); paintOver(); this.tick();
+      var penOnly = !!(fb.pk && fb.pk.why === 'fun');
+      pitch.style.display = penOnly ? 'none' : ''; bar.style.display = penOnly ? 'none' : ''; teamsBox.style.display = penOnly || S.phase === 'fover' ? 'none' : '';
+      paintScore(); paintStatus(); paintTeams(); paintCard(); paintOver(); this.tick();
+      if (penOnly) { scoreBar.style.display = 'none'; status.style.display = 'none'; } else { scoreBar.style.display = ''; status.style.display = ''; }
       fill(hostRow, S.me.host ? (S.phase === 'fover' ? [hostBtn('🔁 Play again (new teams)', { t: 'fstart' }, 'primary'), hostBtn('Back to lobby', { t: 'flobby' }, 'yellow')]
-        : hostBtn('⏹ End match', { t: 'flobby' }, 'small danger', 'End the match and go back to the lobby?')) : (S.phase === 'fover' ? h('p', { class: 'mute center' }, 'Waiting for the host…') : null));
+        : hostBtn('⏹ End match', { t: 'flobby' }, 'small danger', 'End the match and go back to the lobby?')) : (S.phase === 'fover' ? h('p', { class: 'mute center' }, 'Waiting for the host…') : null), leaveLink());
       if (!running) { running = true; requestAnimationFrame(loop); }
       frame();
+    } };
+  };
+
+  /* ---------- penalty shootout ---------- */
+  screens.fpen = function () {
+    var ZP = { TL: [24, 14], TR: [76, 14], M: [50, 25], BL: [24, 33], BR: [76, 33] }, ZN = { TL: 'top-left', TR: 'top-right', M: 'middle', BL: 'low left', BR: 'low right' };
+    var DIVE = { TL: -38, TR: 38, BL: -72, BR: 72, M: 0 };
+    var sel = null, lockedK = false, kickN = -1, animN = -1, sw = null, tStart = 0, mark = null, running = false;
+    var scoreBox = h('div', { class: 'pscore' }), who = h('div', { class: 'pwho' }), info = h('div', { class: 'banner fstat' });
+    var keeper = h('div', { class: 'pkeeper' }), ballEl = h('div', { class: 'pball' }, '⚽'), kicker = h('div', { class: 'pkicker' }), stamp = h('div', { class: 'pstamp' });
+    var goalEl = h('div', { class: 'pgoal' }), zoneEls = {};
+    Object.keys(ZP).forEach(function (z) { var e = h('div', { class: 'pz', style: 'left:' + ZP[z][0] + '%;top:' + ZP[z][1] + '%' }, h('span', null, '')); zoneEls[z] = e; });
+    var stage = h('div', { class: 'pstage' }, goalEl, zoneEls.TL, zoneEls.TR, zoneEls.M, zoneEls.BL, zoneEls.BR, keeper, ballEl, kicker, stamp);
+    var legend = h('div', { class: 'plegend' }, h('span', null, '↖ ↗ top corners'), h('span', null, '← → low corners'), h('span', null, '↑ middle'));
+    var meter = h('div', { class: 'pmeter' }, h('i', { class: 'g' }), h('i', { class: 'o' }), h('i', { class: 'r' }), mark = h('b', { class: 'pmark' }));
+    var shoot = h('button', { class: 'btn primary pshoot', type: 'button' }, '👟 SHOOT!');
+    var ctl = h('div', { class: 'pctl' }, meter, shoot);
+    var hostRow = h('div', { class: 'row' });
+    var root = h('div', { class: 'fgame pen' }, scoreBox, who, info, stage, legend, ctl, hostRow);
+
+    function zoneOf(dx, dy) {
+      var len = Math.hypot(dx, dy);
+      if (len < 32) return 'M';
+      if (Math.abs(dx) < 0.3 * len) return 'M';
+      var left = dx < 0, top = dy < -0.38 * len;
+      return (top ? 'T' : 'B') + (left ? 'L' : 'R');
+    }
+    function showSel(z) { Object.keys(zoneEls).forEach(function (k) { zoneEls[k].classList.toggle('on', k === z); }); }
+    function iAm() { var c = S.fb.pk.cur; return c.kicker === S.me.id ? 'kick' : c.keeper === S.me.id ? 'keep' : 'watch'; }
+    function canPick() { return S && S.phase === 'pkaim' && !(S.fb.pk.res) && (iAm() === 'kick' ? !lockedK : iAm() === 'keep' && !S.fb.pk.kdone); }
+    stage.addEventListener('pointerdown', function (e) {
+      if (!canPick()) return;
+      sw = { id: e.pointerId, x: e.clientX, y: e.clientY }; try { stage.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault();
+    });
+    stage.addEventListener('pointermove', function (e) {
+      if (!sw || sw.id !== e.pointerId) return;
+      showSel(zoneOf(e.clientX - sw.x, e.clientY - sw.y));
+    });
+    function swipeEnd(e, cancel) {
+      if (!sw || sw.id !== e.pointerId) return; var s0 = sw; sw = null;
+      if (cancel || !canPick()) { showSel(sel); return; }
+      var z = zoneOf(e.clientX - s0.x, e.clientY - s0.y); sel = z; showSel(z); buzz(20);
+      if (iAm() === 'keep') send({ t: 'psave', z: z });
+      paint();
+    }
+    stage.addEventListener('pointerup', function (e) { swipeEnd(e, false); });
+    stage.addEventListener('pointercancel', function (e) { swipeEnd(e, true); });
+    stage.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+    function pval() { return ((performance.now() - tStart) % 1500) / 1500; }
+    function doShoot(e) {
+      if (e) e.preventDefault();
+      if (!S || S.phase !== 'pkaim' || iAm() !== 'kick' || lockedK) return;
+      if (!sel) { toast('Swipe on the goal first: pick a corner!'); buzz([40, 30, 40]); return; }
+      lockedK = true; var p = pval(); buzz(p < 0.45 ? [40] : p < 0.75 ? [60, 30, 60] : [120]);
+      send({ t: 'pkick', z: sel, pw: p }); paint();
+    }
+    shoot.addEventListener('pointerdown', doShoot); meter.addEventListener('pointerdown', doShoot);
+
+    function newKick() { // reset the picture for a new kick
+      var k = S.fb.pk, c = k.cur;
+      sel = null; lockedK = false; showSel(null); tStart = performance.now();
+      keeper.style.transition = 'none'; ballEl.style.transition = 'none';
+      keeper.style.left = '50%'; keeper.style.top = '29%'; keeper.style.transform = 'translate(-50%,-50%) rotate(0deg)';
+      ballEl.style.left = '50%'; ballEl.style.top = '80%'; ballEl.style.transform = 'translate(-50%,-50%) scale(1)'; ballEl.style.opacity = '1';
+      stamp.className = 'pstamp'; stamp.textContent = ''; stage.classList.remove('shake');
+      var kn = nameOf(c.kicker);
+      fill(keeper, c.keeper ? avatar(nameOf(c.keeper), pidx(c.keeper), null) : h('span', { class: 'pbot' }, '🧤'));
+      fill(kicker, avatar(kn, pidx(c.kicker), null), h('span', { class: 'fdn' }, c.kicker === S.me.id ? 'YOU' : kn));
+      kicker.style.borderColor = tm(c.team).c;
+    }
+    function animate() { // play the result (same on every phone)
+      var r = S.fb.pk.res, kz = r.kz, sz = r.sz, P = ZP[kz], out = r.out;
+      keeper.style.transition = 'left .45s ease-out, top .45s ease-out, transform .45s ease-out';
+      ballEl.style.transition = 'left .55s cubic-bezier(.2,.7,.3,1), top .55s cubic-bezier(.2,.7,.3,1), transform .55s ease-out, opacity .4s';
+      var K = ZP[sz];
+      keeper.style.left = K[0] + '%'; keeper.style.top = (sz === 'M' ? 22 : K[1]) + '%'; keeper.style.transform = 'translate(-50%,-50%) rotate(' + DIVE[sz] + 'deg)' + (sz === 'M' ? ' scale(1.2)' : '');
+      var bx = P[0], by = P[1], bs = 0.5;
+      if (out === 'over') { by = -14; bs = 0.35; }
+      if (out === 'post') { bx = kz === 'M' ? 50 : (kz[1] === 'L' ? 11 : 89); by = kz === 'M' ? 8 : 15; }
+      ballEl.style.left = bx + '%'; ballEl.style.top = by + '%'; ballEl.style.transform = 'translate(-50%,-50%) scale(' + bs + ')';
+      var txt = out === 'goal' ? '⚽ GOAL!' : out === 'save' ? '🧤 SAVED!' : out === 'post' ? '💥 OFF THE POST!' : '🚀 OVER THE BAR!';
+      setTimeout(function () {
+        if (!S || S.phase !== 'pkshow') return;
+        stamp.className = 'pstamp show ' + (out === 'goal' ? 'g' : 'x'); stamp.textContent = txt + (r.tip ? ' (fingertips!)' : '');
+        if (out === 'goal') { stage.classList.add('shake'); buzz([120, 60, 240]); if (r.team === (myFTeam() >= 0 ? myFTeam() : 0) && typeof confetti === 'function') confetti(); } else buzz([80, 40, 80]);
+        if (out === 'post') { ballEl.style.left = (bx < 50 ? 22 : bx > 50 ? 78 : 50) + '%'; ballEl.style.top = '58%'; ballEl.style.transform = 'translate(-50%,-50%) scale(.8)'; }
+        if (out === 'save') { ballEl.style.top = (K[1] + 14) + '%'; ballEl.style.transform = 'translate(-50%,-50%) scale(.6)'; }
+        if (out === 'over') ballEl.style.opacity = '0';
+      }, 600);
+    }
+    function paintDots(k) {
+      var pk = S.fb.pk, hist = pk.hist[k], n = Math.max(5, hist.length), out = [];
+      for (var i = 0; i < n; i++) { var c = hist[i]; out.push(h('span', { class: 'pdot ' + (c ? (c === 'g' ? 'g' : 'x') : 'n') }, c === 'g' ? '⚽' : c === 's' ? '🧤' : c ? '✕' : '')); }
+      return out;
+    }
+    function paint() {
+      var pk = S.fb.pk, c = pk.cur, me = myFTeam(), mine = me >= 0 ? me : 0;
+      fill(scoreBox, h('div', { class: 'prow' }, h('b', { style: 'color:' + tm(mine).c }, tm(mine).n), paintDots(mine), h('i', null, String(pk.score[mine]))),
+        h('div', { class: 'prow' }, h('b', { style: 'color:' + tm(1 - mine).c }, tm(1 - mine).n), paintDots(1 - mine), h('i', null, String(pk.score[1 - mine]))));
+      var role = iAm(), res = pk.res;
+      fill(who, h('span', { class: 'pw' }, avatar(nameOf(c.kicker), pidx(c.kicker), 'xs'), '👟 ' + (role === 'kick' ? 'YOU' : nameOf(c.kicker)) + ' (' + tm(c.team).n + ')'),
+        h('span', { class: 'pw' }, c.keeper ? avatar(nameOf(c.keeper), pidx(c.keeper), 'xs') : null, '🧤 ' + (c.keeper ? (role === 'keep' ? 'YOU' : nameOf(c.keeper)) : 'Bot keeper') + ' (' + tm(1 - c.team).n + ')'));
+      info.className = 'banner fstat' + (S.phase === 'pkaim' && role !== 'watch' && !(role === 'kick' ? lockedK : pk.kdone) ? ' ok' : '');
+      if (S.phase === 'pkshow' && res) fill(info, res.out === 'goal' ? '⚽ Goal!' : res.out === 'save' ? '🧤 Saved!' : res.out === 'post' ? '💥 Off the post!' : '🚀 Over the bar!');
+      else if (role === 'kick') fill(info, lockedK ? '✅ Shot locked! Waiting for the keeper… ' : '👟 YOUR KICK! Swipe a corner, then tap SHOOT on green · ', secEl2);
+      else if (role === 'keep') fill(info, pk.kdone && sel ? '🧤 Dive set (' + ZN[sel] + '). Kicker is ready! ' : sel ? '🧤 Diving ' + ZN[sel] + '. Swipe again to change · ' : '🧤 YOU ARE THE KEEPER! Swipe where you will dive · ', secEl2);
+      else fill(info, '👀 ' + nameOf(c.kicker) + ' kicks, ' + (c.keeper ? nameOf(c.keeper) : 'the bot') + ' keeps · ', secEl2);
+      var showCtl = S.phase === 'pkaim' && role === 'kick';
+      ctl.style.display = showCtl ? '' : 'none'; legend.style.display = S.phase === 'pkaim' && role !== 'watch' ? '' : 'none';
+      shoot.disabled = lockedK; shoot.textContent = lockedK ? '✅ LOCKED' : '👟 SHOOT!';
+      stage.classList.toggle('mine', S.phase === 'pkaim' && role !== 'watch');
+    }
+    var secEl2 = h('b', { class: 'fsec' });
+    function loop() {
+      if (!document.body.contains(root)) { running = false; return; }
+      if (mark && S && S.phase === 'pkaim' && !lockedK) { var p = pval(); mark.style.left = (p * 100).toFixed(1) + '%'; }
+      requestAnimationFrame(loop);
+    }
+    return { root: root, tick: function () { if (S && S.phase === 'pkaim') secEl2.textContent = secsLeft() + 's'; }, update: function () {
+      var fb = S.fb; if (!fb || !fb.pk) return;
+      if (fb.pk.n !== kickN) { kickN = fb.pk.n; newKick(); if (!fb.pk.cur.keeper && fb.pk.cur.kicker !== S.me.id) { /* bot keeper */ } }
+      if (S.phase === 'pkshow' && fb.pk.res && animN !== kickN) { animN = kickN; animate(); }
+      paint(); this.tick();
+      fill(hostRow, S.me.host ? hostBtn('⏹ End match', { t: 'flobby' }, 'small danger', 'End the match and go back to the lobby?') : null, leaveLink());
+      if (!running) { running = true; requestAnimationFrame(loop); }
     } };
   };
 
@@ -3533,7 +3863,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
 
   function keyFor() {
     if (!S) return mode === 'menu' ? 'menu' : mode === 'solo' ? 'solo' : 'home';
-    if (S.game === 'football') return S.phase === 'lobby' ? 'flobby' : 'fgame';
+    if (S.game === 'football') return S.phase === 'lobby' ? 'flobby' : (S.phase === 'pkaim' || S.phase === 'pkshow') ? 'fpen' : 'fgame';
     if (S.game === 'race') return S.phase === 'lobby' ? 'rlobby' : 'rgame';
     if (S.phase === 'lobby') return S.me.host ? 'lobby-host' : 'lobby';
     return S.phase;
@@ -3543,6 +3873,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
     var key = keyFor();
     document.body.classList.toggle("menu", key === "menu");
     document.body.classList.toggle("solo", key === "solo");
+    document.body.classList.toggle("fbmode", key === "fgame" || key === "fpen");
     if (key !== curKey) {
       curKey = key; clear(app);
       cur = (key === 'home' ? screens.home : key.indexOf('lobby') === 0 ? screens.lobby : screens[key])();
