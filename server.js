@@ -10,7 +10,131 @@ const { WebSocketServer } = require('ws');
 const PAIRS = require('./words');
 
 const PORT = Number(process.env.PORT) || 3000;
-const FB = require('./football');
+// Gully Football physics (kept inside this file so only server.js needs uploading)
+const FB = (() => {
+// Gully Football physics. Server-authoritative: every turn all players aim secretly, the server plays the
+// whole turn out here and sends the recorded frames to every phone, so everyone sees the exact same result.
+const W = 300, H = 480;          // pitch, in units (goals are at y=0 (top) and y=H (bottom))
+const DR = 20, BR = 11, POST = 5; // disc radius, ball radius, goal post radius
+const GW = 100, GW_SUDDEN = 170;  // goal mouth width (wider in sudden death)
+const NET = 26;                   // depth of the net behind each goal line
+const MAXV = 840;                 // flick speed at full power (units / second)
+const DT = 1 / 60;
+const FR_DISC = 0.978, FR_BALL = 0.986, REST_WALL = 0.82, REST_HIT = 0.92;
+const M_DISC = 1, M_BALL = 0.45;
+const MAX_STEPS = 60 * 7;
+
+const goalX = (sudden) => { const g = sudden ? GW_SUDDEN : GW; return [(W - g) / 2, (W + g) / 2]; };
+
+// Kick-off layout. Team 0 defends the bottom goal and attacks the top one; team 1 is the mirror image.
+function layout(ids, team) {
+  const pos = {};
+  for (const t of [0, 1]) {
+    const mine = ids.filter((id) => team[id] === t);
+    const rows = mine.length > 3 ? [mine.slice(0, 3), mine.slice(3)] : [mine];
+    rows.forEach((row, r) => {
+      row.forEach((id, k) => {
+        const x = W * (k + 1) / (row.length + 1) + (r ? 0 : 0);
+        const dy = r === 0 ? 0.30 : 0.18; // distance from own goal line, as a share of the pitch
+        pos[id] = t === 0 ? [x, H * (1 - dy)] : [W - x, H * dy];
+      });
+    });
+  }
+  return pos;
+}
+
+// Plays one turn. fb = { ids, pos:{id:[x,y]}, ball:[x,y], sudden }, aims = { id: {dx,dy,pw} }.
+// Returns { frames, goal: 0|1|null (team that scored), by: id|null }. Also writes the final positions back to fb.
+function simulate(fb, aims) {
+  const [gx0, gx1] = goalX(fb.sudden);
+  const ids = fb.ids;
+  const B = ids.map((id) => ({ id, r: DR, m: M_DISC, x: fb.pos[id][0], y: fb.pos[id][1], vx: 0, vy: 0, disc: true }));
+  const ball = { id: null, r: BR, m: M_BALL, x: fb.ball[0], y: fb.ball[1], vx: 0, vy: 0, disc: false };
+  const all = [ball].concat(B);
+  for (const b of B) {
+    const a = aims[b.id];
+    if (!a) continue;
+    const len = Math.hypot(a.dx, a.dy) || 1;
+    const pw = Math.max(0, Math.min(1, a.pw));
+    b.vx = (a.dx / len) * pw * MAXV; b.vy = (a.dy / len) * pw * MAXV;
+  }
+  const posts = [[gx0, 0], [gx1, 0], [gx0, H], [gx1, H]];
+  const r1 = (v) => Math.round(v * 10) / 10;
+  const snap = () => { const f = [r1(ball.x), r1(ball.y)]; for (const b of B) f.push(r1(b.x), r1(b.y)); return f; };
+  const frames = [snap()];
+  let touch = null, goal = null, by = null, calm = 0, extra = 0;
+
+  const hit = (a, b) => { // circle vs circle, elastic with a little loss
+    const dx = b.x - a.x, dy = b.y - a.y; const d2 = dx * dx + dy * dy, rr = a.r + b.r;
+    if (d2 >= rr * rr || d2 === 0) return false;
+    const d = Math.sqrt(d2), nx = dx / d, ny = dy / d;
+    const im1 = a.fixed ? 0 : 1 / a.m, im2 = b.fixed ? 0 : 1 / b.m;
+    const push = (rr - d) / (im1 + im2);
+    a.x -= nx * push * im1; a.y -= ny * push * im1; b.x += nx * push * im2; b.y += ny * push * im2;
+    const rv = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+    if (rv < 0) {
+      const j = -(1 + REST_HIT) * rv / (im1 + im2);
+      a.vx -= j * im1 * nx; a.vy -= j * im1 * ny; b.vx += j * im2 * nx; b.vy += j * im2 * ny;
+    }
+    return true;
+  };
+
+  for (let step = 1; step <= MAX_STEPS; step++) {
+    if (goal === null) {
+      for (const b of all) {
+        b.x += b.vx * DT; b.y += b.vy * DT;
+        const fr = b.disc ? FR_DISC : FR_BALL; b.vx *= fr; b.vy *= fr;
+        if (b.vx * b.vx + b.vy * b.vy < 36) { b.vx = 0; b.vy = 0; }
+      }
+      // walls (discs can never enter a goal; the ball can, through the mouth)
+      for (const b of all) {
+        if (b.x < b.r) { b.x = b.r; b.vx = Math.abs(b.vx) * REST_WALL; }
+        if (b.x > W - b.r) { b.x = W - b.r; b.vx = -Math.abs(b.vx) * REST_WALL; }
+        const inMouth = !b.disc && b.x > gx0 && b.x < gx1;
+        if (!inMouth) {
+          if (b.y < b.r) { b.y = b.r; b.vy = Math.abs(b.vy) * REST_WALL; }
+          if (b.y > H - b.r) { b.y = H - b.r; b.vy = -Math.abs(b.vy) * REST_WALL; }
+        } else if (b.disc) { /* unreachable */ }
+      }
+      for (const b of B) { // discs stay out of the goals completely
+        if (b.y < b.r) { b.y = b.r; b.vy = Math.abs(b.vy) * REST_WALL; }
+        if (b.y > H - b.r) { b.y = H - b.r; b.vy = -Math.abs(b.vy) * REST_WALL; }
+      }
+      for (const p of posts) { // posts are tiny fixed circles
+        const post = { x: p[0], y: p[1], vx: 0, vy: 0, r: POST, m: 1, fixed: true };
+        for (const b of all) hit(b, post);
+      }
+      for (let i = 0; i < all.length; i++) for (let k = i + 1; k < all.length; k++) {
+        if (hit(all[i], all[k]) && (all[i] === ball || all[k] === ball)) touch = (all[i] === ball ? all[k] : all[i]).id;
+      }
+      // goal?
+      if (ball.x > gx0 && ball.x < gx1) {
+        if (ball.y < 0) { goal = 0; by = touch; }       // top goal: team 0 scores
+        else if (ball.y > H) { goal = 1; by = touch; }  // bottom goal: team 1 scores
+      }
+      if (goal !== null) { for (const b of B) { b.vx = 0; b.vy = 0; } }
+    } else {
+      // the ball runs into the net and settles
+      ball.x += ball.vx * DT; ball.y += ball.vy * DT; ball.vx *= 0.82; ball.vy *= 0.82;
+      const top = goal === 0;
+      if (top && ball.y < -NET + BR) { ball.y = -NET + BR; ball.vy = 0; }
+      if (!top && ball.y > H + NET - BR) { ball.y = H + NET - BR; ball.vy = 0; }
+      ball.x = Math.max(gx0 + BR, Math.min(gx1 - BR, ball.x));
+      extra++;
+    }
+    if (step % 2 === 0) frames.push(snap());
+    if (goal !== null) { if (extra >= 16) break; continue; }
+    let moving = false; for (const b of all) if (b.vx || b.vy) { moving = true; break; }
+    calm = moving ? 0 : calm + 1;
+    if (calm > 6) break;
+  }
+  frames.push(snap());
+  if (goal === null) { fb.ball = [ball.x, ball.y]; B.forEach((b) => { fb.pos[b.id] = [b.x, b.y]; }); }
+  return { frames, goal, by };
+}
+
+return { W, H, DR, BR, GW, GW_SUDDEN, NET, MAXV, goalX, layout, simulate };
+})();
 const MAX_PLAYERS = 20;
 const MIN_PLAYERS = 3;
 const GUESS_SECS = 30;
