@@ -10,6 +10,7 @@ const { WebSocketServer } = require('ws');
 const PAIRS = require('./words');
 
 const PORT = Number(process.env.PORT) || 3000;
+const FB = require('./football');
 const MAX_PLAYERS = 20;
 const MIN_PLAYERS = 3;
 const GUESS_SECS = 30;
@@ -205,6 +206,7 @@ function shareWords(room) { // phones save the updated memory
 function makeRoom(words) {
   const room = {
     code: newCode(), hostId: null, supervisorId: null, players: new Map(),
+    game: 'undercover', fbSet: { goals: 3, secs: 8 }, fb: null,
     phase: 'lobby', round: 0, seq: 0, timer: null, endsAt: 0,
     settings: { describeSecs: 30, autoRoles: true, undercover: 1, white: 1, whiteGuess: true, hint: false, board: true, reacts: true, modes: ['mix'], joker: false, chat: true, chatSlow: 5, reactCd: 3, ucGuess: true, whiteTries: 2, sheriff: true },
     words: words || { used: new Set(), recent: [] }, pair: null, nextPair: null, customPair: null, supReq: null,
@@ -285,7 +287,7 @@ function view(room, p) {
     return o;
   });
   const v = {
-    t: 'state', now: Date.now(), code: room.code, phase: room.phase, round: room.round,
+    t: 'state', game: room.game, now: Date.now(), code: room.code, phase: room.phase, round: room.round,
     settings: room.settings, endsAt: room.endsAt, plan: plan(room), players,
     history: room.history, tie: room.tie, lastElim: room.lastElim, guess: room.guess, whiteId: room.whiteId,
     winner: over ? room.winner : null, pair: over ? room.pair : null,
@@ -295,11 +297,20 @@ function view(room, p) {
     v.me.white = p.role === 'white'; v.me.joker = p.role === 'joker'; v.me.word = p.word;
     if (p.role === 'white') v.me.wLeft = Math.max(0, (room.settings.whiteTries || 0) - (p.wTried || 0));
     if (p.role === 'white' && room.settings.hint && room.pair) v.me.hint = room.pair.cat || 'Custom words';
-    if (p.sheriff) { v.me.sheriff = true; v.me.shot = !!p.sheriffUsed; }
+    if (p.sheriff) { v.me.sheriff = true; v.me.shot = p.sheriffAt === room.round; }
   }
   // private: only the voted-out Undercover sees this. One try, no timer: open until the game ends.
   if (p.ucOpen && ['describe', 'vote', 'whiteguess', 'elim'].includes(room.phase)) v.ucAsk = true;
   if (p.ucRes && inGame) v.ucResult = p.ucRes;
+  if (room.game === 'football') {
+    v.fbSet = room.fbSet;
+    if (room.fb) {
+      const f = room.fb;
+      v.fb = { ids: f.ids, team: f.team, pos: f.pos, ball: f.ball, score: f.score, turn: f.turn, sudden: f.sudden, gw: f.sudden ? FB.GW_SUDDEN : FB.GW,
+        goals: f.goals, aimed: Object.keys(f.aims), winner: f.winner, last: f.last, lastTurn: f.lastTurn };
+    }
+    if (v.fb) { v.fb.pos = f2(v.fb.pos); v.fb.ball = [Math.round(v.fb.ball[0] * 10) / 10, Math.round(v.fb.ball[1] * 10) / 10]; }
+  }
   if (room.typingId && Date.now() < room.typingUntil) v.typing = room.typingId;
   if (p.id === room.hostId && room.supReq && room.players.get(room.supReq)) v.supReq = { id: room.supReq, name: room.players.get(room.supReq).name };
   if (room.supReq === p.id) v.mySupReq = true;
@@ -319,6 +330,7 @@ function view(room, p) {
   }
   return v;
 }
+function f2(pos) { const o = {}; for (const k of Object.keys(pos)) o[k] = [Math.round(pos[k][0] * 10) / 10, Math.round(pos[k][1] * 10) / 10]; return o; }
 function broadcast(room) {
   room.touched = Date.now();
   for (const p of room.players.values()) if (p.ws && p.connected) send(p.ws, view(room, p));
@@ -351,10 +363,10 @@ function startGame(room, custom) {
     p.role = k >= 0 ? impRoles[k] : p === joker ? 'joker' : 'civilian';
     p.word = p.role === 'civilian' || p.role === 'joker' ? pair.civilian : p.role === 'undercover' ? pair.undercover : '';
     p.alive = true; p.revealed = false; p.watch = false; p.wTried = 0;
-    p.ucOpen = false; p.ucRes = null; p.sheriff = false; p.sheriffUsed = false;
+    p.ucOpen = false; p.ucRes = null; p.sheriff = false; p.sheriffAt = -1;
   });
-  // Sheriff: one civilian (only when a Mr. White is in the game) can shoot once during voting
-  if (room.settings.sheriff && w > 0) { const civs = all.filter((p) => p.role === 'civilian'); if (civs.length) civs[Math.floor(Math.random() * civs.length)].sheriff = true; }
+  // Sheriff: one civilian gets one bullet that can take out an impostor (Undercover or Mr. White) during voting
+  if (room.settings.sheriff && u + w > 0) { const civs = all.filter((p) => p.role === 'civilian'); if (civs.length) civs[Math.floor(Math.random() * civs.length)].sheriff = true; }
   room.pair = pair; room.nextPair = null; room.customPair = null; room.undo = null; room.scoredFor = null;
   shareWords(room);
   room.history = []; room.lastElim = null; room.guess = null; room.winner = null; room.whiteId = null;
@@ -450,7 +462,7 @@ function eliminate(room, id, shot) {
   notify(room, p, '😵 You were voted out', 'Open Undercover to see what happens', [400]);
   p.ucOpen = p.role === 'undercover' && !!room.settings.ucGuess && !!room.pair && !p.ucRes;
   if (p.ucOpen) notify(room, p, '🕵️ Secret chance!', 'Guess the civilians\' word for +3', [300, 80, 300]);
-  if (p.role === 'white' && room.settings.whiteGuess) {
+  if (p.role === 'white' && room.settings.whiteGuess && !shot) { // a Sheriff's bullet gives no last guess
     setPhase(room, 'whiteguess');
     room.whiteId = p.id;
     schedule(room, GUESS_SECS * 1000, () => finishGuess(room, ''));
@@ -507,17 +519,90 @@ function undoKick(room) { // host: put the last voted-out player back and vote a
   if (u.bonus && room.stats[u.bonus]) room.stats[u.bonus].pts -= UC_BONUS;
   if (p && !p.left) { p.alive = true; p.revealed = false; }
   if (p) { p.ucOpen = false; p.ucRes = null; }
-  if (u.sheriff && room.players.get(u.sheriff)) room.players.get(u.sheriff).sheriffUsed = false;
+  if (u.sheriff && room.players.get(u.sheriff)) room.players.get(u.sheriff).sheriffAt = -1;
   room.undo = null; room.lastElim = null; room.guess = null; room.whiteId = null; room.winner = null;
   setPhase(room, 'vote');
   room.votes = {}; room.tie = false;
   notice(room, 'Host undid the last kick. Vote again.');
   broadcast(room);
 }
+// ---------------------------------------------------------------- Gully Football
+const FB_MAX = 10, FB_TURNS = 20;
+const fbPlayers = (room) => (room.fb ? room.fb.ids.map((id) => room.players.get(id)).filter((p) => p && !p.left) : []);
+function fbSend(room, obj) { for (const q of room.players.values()) if (q.ws && q.connected) send(q.ws, obj); }
+function fbStart(room) {
+  const cands = [...room.players.values()].filter((p) => !p.left);
+  if (cands.length < 2) return 'Need at least 2 players for football';
+  const sel = shuffle(cands.filter((p) => p.connected)).slice(0, FB_MAX);
+  if (sel.length < 2) return 'Need at least 2 players online';
+  for (const p of room.players.values()) p.watch = false;
+  const ids = sel.map((p) => p.id), team = {};
+  ids.forEach((id, i) => { team[id] = i % 2; });
+  for (const p of cands) if (!ids.includes(p.id)) p.watch = true;
+  room.fb = { ids, team, pos: FB.layout(ids, team), ball: [FB.W / 2, FB.H / 2], score: [0, 0], turn: 0, sudden: false, aims: {}, goals: [], winner: null, last: null, lastTurn: -1, sim: null };
+  fbAim(room);
+  for (const p of sel) notify(room, p, '⚽ Football started', 'Open the game and flick!', [100, 60, 100]);
+  return null;
+}
+function fbAim(room) {
+  const f = room.fb; f.aims = {};
+  setPhase(room, 'faim');
+  schedule(room, room.fbSet.secs * 1000, () => fbFire(room));
+  broadcast(room);
+}
+function fbFire(room) {
+  if (room.phase !== 'faim' || !room.fb) return;
+  const f = room.fb;
+  const sim = FB.simulate(f, f.aims);
+  f.sim = { turn: f.turn, ids: f.ids, frames: sim.frames, goal: sim.goal, by: sim.by };
+  setPhase(room, 'fplay');
+  fbSend(room, { t: 'fsim', turn: f.turn, ids: f.ids, frames: sim.frames, goal: sim.goal, by: sim.by });
+  broadcast(room);
+  const ms = Math.round(sim.frames.length * 1000 / 30) + (sim.goal !== null ? 3600 : 700);
+  schedule(room, ms, () => fbAfter(room));
+}
+function fbAfter(room) {
+  if (room.phase !== 'fplay' || !room.fb) return;
+  const f = room.fb, s = f.sim;
+  if (s && s.goal !== null) {
+    f.score[s.goal]++;
+    f.last = { team: s.goal, by: s.by, turn: f.turn }; f.lastTurn = f.turn;
+    f.goals.push({ team: s.goal, by: s.by, own: s.by != null && f.team[s.by] !== s.goal });
+    f.pos = FB.layout(f.ids, f.team); f.ball = [FB.W / 2, FB.H / 2];
+    if (f.score[s.goal] >= room.fbSet.goals || f.sudden) return fbEnd(room, s.goal);
+  }
+  f.turn++;
+  if (f.turn >= FB_TURNS && !f.sudden) {
+    if (f.score[0] !== f.score[1]) return fbEnd(room, f.score[0] > f.score[1] ? 0 : 1);
+    f.sudden = true; notice(room, '⚡ SUDDEN DEATH! The goals get wider. Next goal wins');
+  }
+  fbAim(room);
+}
+function fbEnd(room, team) {
+  setPhase(room, 'fover');
+  room.fb.winner = team;
+  for (const p of fbPlayers(room)) notify(room, p, '🏁 Full time', (team === 0 ? 'ORANGE' : 'VIOLET') + ' win ' + room.fb.score.join('–'), [70, 50, 70, 50, 70]);
+  broadcast(room);
+}
+function fbBack(room) { // back to the football lobby
+  setPhase(room, 'lobby'); room.fb = null;
+  for (const [id, p] of room.players) if (p.left) room.players.delete(id);
+  for (const p of room.players.values()) p.watch = false;
+  broadcast(room);
+}
+function fbCheck(room) { // somebody left: make sure both teams still have a player
+  if (!room.fb || !['faim', 'fplay'].includes(room.phase)) return broadcast(room);
+  const live = fbPlayers(room);
+  if (!live.some((p) => room.fb.team[p.id] === 0) || !live.some((p) => room.fb.team[p.id] === 1)) {
+    notice(room, 'A team has no players left. Back to the lobby');
+    return fbBack(room);
+  }
+  broadcast(room);
+}
 function notice(room, msg) { for (const p of room.players.values()) if (p.ws && p.connected) send(p.ws, { t: 'notice', msg }); }
 function backToLobby(room) {
   for (const [id, p] of room.players) if (p.left) room.players.delete(id);
-  for (const p of room.players.values()) { p.role = null; p.word = ''; p.alive = true; p.revealed = false; p.ucOpen = false; p.ucRes = null; p.sheriff = false; p.sheriffUsed = false; }
+  for (const p of room.players.values()) { p.role = null; p.word = ''; p.alive = true; p.revealed = false; p.ucOpen = false; p.ucRes = null; p.sheriff = false; p.sheriffAt = -1; }
   setPhase(room, 'lobby');
   room.round = 0; room.descs = {}; room.votes = {}; room.tie = false; room.history = [];
   room.lastElim = null; room.guess = null; room.whiteId = null; room.winner = null; room.pair = null; room.undo = null;
@@ -526,6 +611,7 @@ function backToLobby(room) {
 
 // After a player leaves/is kicked mid-game, re-check whatever the current phase is waiting for.
 function afterRemoval(room) {
+  if (room.game === 'football') return fbCheck(room);
   if (!['describe', 'vote', 'whiteguess', 'elim'].includes(room.phase)) return broadcast(room);
   const win = checkWin(room);
   if (win) return endGame(room, win);
@@ -582,6 +668,7 @@ function attach(ws, room, p) {
   const photos = {}; for (const q of room.players.values()) if (q.photo && !q.left) photos[q.name] = q.photo;
   send(ws, { t: 'photos', map: photos });
   send(ws, { t: 'chatlog', list: room.chat || [] });
+  if (room.game === 'football' && room.phase === 'fplay' && room.fb && room.fb.sim) { const x = room.fb.sim; send(ws, { t: 'fsim', turn: x.turn, ids: x.ids, frames: x.frames, goal: x.goal, by: x.by, late: true }); }
   broadcast(room);
 }
 
@@ -592,6 +679,7 @@ function handle(ws, m) {
     const name = clean(m.name, 14);
     if (!name) return errTo(ws, 'Enter your name');
     const room = makeRoom(loadWords(m));
+    if (m.game === 'football') room.game = 'football';
     const p = addPlayer(room, name);
     room.hostId = room.ownerId = p.id;
     attach(ws, room, p);
@@ -605,7 +693,7 @@ function handle(ws, m) {
     if ([...room.players.values()].filter((q) => !q.left).length >= MAX_PLAYERS) return errTo(ws, 'Lobby is full');
     if ([...room.players.values()].some((q) => !q.left && norm(q.name) === norm(name))) return errTo(ws, 'That name is taken in this lobby');
     const np = addPlayer(room, name);
-    if (room.phase !== 'lobby' && room.phase !== 'over') { np.watch = true; notice(room, '👀 ' + name + ' joined. Watching until the next game'); }
+    if (room.phase !== 'lobby' && room.phase !== 'over' && room.phase !== 'fover') { np.watch = true; notice(room, '👀 ' + name + ' joined. Watching until the next game'); }
     return attach(ws, room, np);
   }
   if (m.t === 'rejoin') {
@@ -732,17 +820,41 @@ function handle(ws, m) {
       return tryResolve(room, false);
     }
     case 'sheriff': { // the Sheriff's one shot, during voting: hits Mr. White = he is out, otherwise the Sheriff is out
-      if (room.phase !== 'vote' || !p.alive || !p.sheriff || p.sheriffUsed) return;
+      if (room.phase !== 'vote' || !p.alive || !p.sheriff) return;
+      if (p.sheriffAt === room.round) return errTo(ws, 'Only one shot per voting round');
       const t = room.players.get(String(m.target));
       if (!t || !t.alive || !t.role || t.left || t.id === p.id) return errTo(ws, "Can't shoot that player");
-      p.sheriffUsed = true;
-      const hit = t.role === 'white';
-      const shot = { byId: p.id, by: p.name, targetId: t.id, target: t.name, hit };
+      const hit = t.role === 'white' || t.role === 'undercover'; // the Joker and civilians count as a miss
+      p.sheriffAt = room.round;
+      const shot = { byId: p.id, by: p.name, targetId: t.id, target: t.name, hit, role: hit ? t.role : null };
       for (const q of room.players.values()) if (q.ws && q.connected) send(q.ws, Object.assign({ t: 'sheriff' }, shot));
-      const cm = { sys: true, text: '🤠 Sheriff ' + p.name + ' shot ' + t.name + (hit ? ' ✓ Mr. White is out!' : ' ✗ wrong! The Sheriff is out'), at: Date.now() };
+      const cm = { sys: true, text: '🤠 Sheriff ' + p.name + ' shot ' + t.name + (hit ? ' ✓ ' + (t.role === 'white' ? 'Mr. White' : 'the Undercover') + ' is out!' : ' ✗ wrong! The Sheriff is out'), at: Date.now() };
       room.chat = (room.chat || []).concat(cm).slice(-40);
       for (const q of room.players.values()) if (q.ws && q.connected) send(q.ws, { t: 'chat', m: cm });
       return eliminate(room, hit ? t.id : p.id, shot);
+    }
+    case 'fset': {
+      if (!hostOnly() || room.game !== 'football' || room.phase !== 'lobby') return;
+      if ([2, 3, 5].includes(Number(m.goals))) room.fbSet.goals = Number(m.goals);
+      if ([6, 8, 12].includes(Number(m.secs))) room.fbSet.secs = Number(m.secs);
+      return broadcast(room);
+    }
+    case 'fstart': {
+      if (!hostOnly() || room.game !== 'football' || !['lobby', 'fover'].includes(room.phase)) return;
+      const err = fbStart(room);
+      return err ? errTo(ws, err) : undefined;
+    }
+    case 'flobby':
+      if (!hostOnly() || room.game !== 'football' || !['fover', 'faim', 'fplay'].includes(room.phase)) return;
+      return fbBack(room);
+    case 'faim': {
+      if (room.phase !== 'faim' || !room.fb || !room.fb.ids.includes(p.id)) return;
+      const dx = Number(m.dx), dy = Number(m.dy), pw = Number(m.pw);
+      if (![dx, dy, pw].every(Number.isFinite) || Math.hypot(dx, dy) < 0.001) return;
+      room.fb.aims[p.id] = { dx, dy, pw: Math.max(0, Math.min(1, pw)) };
+      const need = fbPlayers(room).filter((q) => q.connected);
+      if (need.length && need.every((q) => room.fb.aims[q.id])) schedule(room, 1500, () => fbFire(room)); // everyone locked in: fire soon
+      return broadcast(room);
     }
     case 'closeVote':
       if (!hostOnly() || room.phase !== 'vote') return;
@@ -831,8 +943,8 @@ function handle(ws, m) {
     case 'chat': {
       const s = room.settings, now = Date.now();
       if (!s.chat) return errTo(ws, 'Chat is off');
-      if (!['lobby', 'vote', 'elim', 'over'].includes(room.phase)) return errTo(ws, 'Chat opens during the discussion');
-      if (p.watch && room.phase !== 'lobby' && room.phase !== 'over') return errTo(ws, '👀 You can see the words, so chat opens for you after this game');
+      if (room.game !== 'football' && !['lobby', 'vote', 'elim', 'over'].includes(room.phase)) return errTo(ws, 'Chat opens during the discussion');
+      if (p.watch && room.game !== 'football' && room.phase !== 'lobby' && room.phase !== 'over') return errTo(ws, '👀 You can see the words, so chat opens for you after this game');
       if (p.muteUntil && p.muteUntil > now) return errTo(ws, '🔇 You are muted for ' + Math.ceil((p.muteUntil - now) / 1000) + 's');
       const wait = (p.lastChat || 0) + s.chatSlow * 1000 - now;
       if (wait > 0) return errTo(ws, '🐢 Slow mode: wait ' + Math.ceil(wait / 1000) + 's');
@@ -917,4 +1029,4 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log('');
 });
 
-module.exports = { server, rooms, pickPair, cleanModes, pairKey, COOLDOWN, MEME_SHARE, pickImpostors, spreadOrder };
+module.exports = { server, rooms, broadcast, pickPair, cleanModes, pairKey, COOLDOWN, MEME_SHARE, pickImpostors, spreadOrder };

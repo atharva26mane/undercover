@@ -732,6 +732,80 @@ html[data-theme=dark] .suspects{background:repeating-linear-gradient(0deg,transp
 .wg-stamp{display:inline-block;font:800 26px var(--f-disp);color:#fff;background:#E6003D;border:3px solid #121212;border-radius:8px;padding:4px 14px;transform:rotate(-6deg);animation:stampIn2 .45s .35s var(--spring) both}
 .wgpop.ok .wg-stamp{background:#00A859}
 .wg-in p{font-weight:800;margin:12px 0 0}
+
+/* ===== Sheriff roulette gun ===== */
+.rgun{position:fixed;inset:0;z-index:95;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:18px 16px 70px;background:radial-gradient(circle at 50% 45%,#2a1d3b 0,#0b0c14 70%);color:#fff;animation:fadeIn .25s ease-out;overflow:hidden}
+.rgun.shake{animation:rgShake .6s}
+@keyframes rgShake{0%,100%{transform:translate(0,0)}15%{transform:translate(-12px,6px)}30%{transform:translate(10px,-8px)}45%{transform:translate(-8px,-4px)}60%{transform:translate(6px,8px)}80%{transform:translate(-3px,2px)}}
+.rg-top,.rg-bot{text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px}
+.rg-top small{font:800 10px var(--f-mono);letter-spacing:.2em;color:#ff7a93}
+.rg-top b,.rg-bot b{font:800 18px var(--f-disp);text-transform:uppercase;color:#FFD600;text-shadow:2px 2px 0 #000}
+.rg-tw{position:relative;width:96px;height:96px}
+.rg-av{position:relative;transition:filter .5s,transform .6s}.rg-av .av{box-shadow:0 0 0 4px #FFD600,0 0 24px 6px rgba(255,214,0,.35)}
+.rg-av.dead{filter:grayscale(1) brightness(.5);transform:scale(.9) rotate(-10deg)}
+.rg-s.dead{transform:rotate(78deg) scale(.88)}
+.rg-crack{position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:none}
+.rgun.cracked .rg-crack{opacity:1;animation:rgCrack .4s ease-out}
+@keyframes rgCrack{from{opacity:0;transform:scale(1.4)}to{opacity:1;transform:scale(1)}}
+.rg-cross{position:absolute;inset:-22px;width:calc(100% + 44px);height:calc(100% + 44px);opacity:0;pointer-events:none}
+.rgun.s2 .rg-cross{opacity:1;animation:rgLock 1.6s cubic-bezier(.2,.8,.2,1) both,rgBeat .9s 1.6s infinite}
+@keyframes rgLock{from{transform:scale(3) rotate(90deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+@keyframes rgBeat{0%,100%{transform:scale(1)}50%{transform:scale(.88)}}
+.rg-mid{position:relative;width:100%;flex:1;min-height:240px;display:flex;align-items:center;justify-content:center}
+.rg-cylwrap{position:absolute;width:170px;height:170px;opacity:0;transform:scale(.6);transition:opacity .4s,transform .5s}
+.rgun.s1 .rg-cylwrap{opacity:1;transform:scale(1)}
+.rg-cyl{width:100%;height:100%;display:block}
+.rgun.s1 .rg-cyl{animation:rgSpin 2s cubic-bezier(.08,.75,.2,1) both}
+@keyframes rgSpin{from{transform:rotate(0)}to{transform:rotate(1660deg)}}
+.rg-gunwrap{position:absolute;width:116px;height:232px;opacity:0;transform:translateY(60px) rotate(0);transition:opacity .5s,transform .5s}
+.rgun.s2 .rg-gunwrap{opacity:1;transform:translateY(0) rotate(0)}
+.rg-gunwrap.recoil{animation:rgRecoil .5s ease-out}
+@keyframes rgRecoil{0%{transform:translateY(0)}30%{transform:translateY(26px) rotate(-6deg)}100%{transform:translateY(0)}}
+.rg-gunwrap.turn{transform:translateY(0) rotate(180deg);transition:transform 1.9s cubic-bezier(.55,0,.25,1)}
+.rg-gun{width:100%;height:100%;overflow:visible;display:block}
+.rg-muz{opacity:0;transform-origin:60px 8px;transform:scale(.2)}
+.rgun.bang .rg-muz{animation:rgMuz .45s ease-out forwards}
+@keyframes rgMuz{0%{opacity:1;transform:scale(.3)}50%{opacity:1;transform:scale(1.25)}100%{opacity:0;transform:scale(1.5)}}
+.rg-stamp{position:absolute;z-index:3;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-8deg) scale(2.4);opacity:0;background:#E6003D;color:#fff;border:4px solid #121212;border-radius:10px;padding:6px 16px;text-align:center;font:800 28px var(--f-disp);box-shadow:5px 5px 0 #000;white-space:nowrap}
+.rg-stamp small{display:block;font:800 12px var(--f-mono);letter-spacing:.14em}
+.rg-stamp.show{animation:rgStamp .45s var(--spring) forwards}.rg-stamp.miss{background:#7B2CBF}
+@keyframes rgStamp{to{opacity:1;transform:translate(-50%,-50%) rotate(-8deg) scale(1)}}
+.rg-cap{position:absolute;left:0;right:0;bottom:22px;text-align:center;font:800 17px var(--f-body);padding:0 20px;min-height:24px}
+.rg-fs{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+.rg-fs.on{animation:rgFlash .55s ease-out}.rg-fs.click{animation:rgClick .25s ease-out;background:#9fb0ff}
+@keyframes rgFlash{0%{opacity:1}100%{opacity:0}}@keyframes rgClick{0%{opacity:.5}100%{opacity:0}}
+/* ===== Gully Football ===== */
+.hm-fbtn{display:flex;align-items:center;gap:12px;width:calc(100% - 4px);margin:14px 2px 0;padding:10px 14px;border:3px solid #121212;border-radius:14px;background:#00A859;color:#fff;box-shadow:4px 4px 0 #121212;font:inherit;text-align:left;cursor:pointer}
+.hm-fbtn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 #121212}
+.hm-fe{font-size:38px;line-height:1;animation:fbRoll 3s ease-in-out infinite}
+@keyframes fbRoll{0%,100%{transform:translateX(-4px) rotate(-20deg)}50%{transform:translateX(6px) rotate(25deg)}}
+.hm-ft{display:flex;flex-direction:column;gap:1px;min-width:0}.hm-ft small{font:800 10px var(--f-mono);letter-spacing:.12em;color:#FFD600}
+.hm-ft b{font:800 21px var(--f-disp);text-transform:uppercase;line-height:1.05}.hm-ft span{font:700 12px var(--f-body);opacity:.92}
+.fgame{padding-bottom:8px}
+.fscore{display:flex;align-items:stretch;gap:8px;margin:4px 0 8px}
+.fsc{flex:1;display:flex;align-items:center;gap:6px;position:relative;border:3px solid #121212;border-radius:14px;padding:6px 10px;color:#fff;box-shadow:3px 3px 0 #121212;min-width:0}
+.fsc.t0{background:#FF4D00}.fsc.t1{background:#7B2CBF;flex-direction:row-reverse;text-align:right}
+.fsc b{font:800 12px var(--f-mono);letter-spacing:.06em;flex:1;overflow:hidden;text-overflow:ellipsis}
+.fsc .fte{font-size:16px}.fsc .fnum{font:800 34px/1 var(--f-mono);font-style:normal;text-shadow:2px 2px 0 #121212}
+.fsc em{position:absolute;top:-9px;left:10px;font:800 9px var(--f-mono);font-style:normal;background:#FFD600;color:#121212;border:2px solid #121212;border-radius:999px;padding:0 6px}
+.fsc.t1 em{left:auto;right:10px}
+.fsc.mine{outline:3px solid #FFD600;outline-offset:1px}
+.fmid{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none;font:800 11px var(--f-mono)}.fmid small{font-size:9px;opacity:.7}
+.fstat{margin:0 0 6px;text-align:center;font-weight:800}.fstat .fsec{font:800 17px var(--f-mono)}
+.fsud{margin-top:4px;color:#E6003D;font:800 12px var(--f-mono)}
+.fbar{height:8px;border:2px solid #121212;border-radius:999px;background:#fff;overflow:hidden;margin:0 0 8px}
+.fbar i{display:block;height:100%;width:0;background:#00A859;transition:width .3s linear}.fbar.low i{background:#E6003D}
+.fpitch{position:relative;width:min(100%,max(250px,calc((100dvh - 300px) * .5639)));aspect-ratio:300/532;margin:0 auto 10px;border:3px solid #121212;border-radius:16px;overflow:hidden;background:#15161f;touch-action:none;user-select:none;-webkit-user-select:none;box-shadow:5px 5px 0 #121212}
+.fsvg,.faimsvg{position:absolute;inset:0;width:100%;height:100%;display:block}.faimsvg{pointer-events:none;z-index:6;display:none}
+.flayer{position:absolute;inset:0;z-index:3}
+.fd{position:absolute;left:0;top:0;aspect-ratio:1;will-change:transform}
+.fd .av{width:100%;height:100%;border:2px solid #121212;box-shadow:0 0 0 3px var(--tc),0 3px 0 3px rgba(0,0,0,.35)}
+.fdn{position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:3px;font:800 9px var(--f-mono);color:#fff;text-shadow:0 1px 0 #000,1px 0 0 #000,-1px 0 0 #000;white-space:nowrap;pointer-events:none}
+.fd.me{z-index:2}.fd.me .av{animation:fdPulse 1.3s ease-in-out infinite}.fd.me .fdn{background:#FFD600;color:#121212;text-shadow:none;padding:0 5px;border-radius:6px;border:1.5px solid #121212}
+@keyframes fdPulse{0%,100%{box-shadow:0 0 0 3px var(--tc),0 0 0 3px rgba(255,214,0,0)}50%{box-shadow:0 0 0 3px var(--tc),0 0 0 9px rgba(255,214,0,.7)}}
+.fball{position:absolute;left:0;top:0;z-index:4;aspect-ratio:1;display:flex;align-items:center;justify-content:center;line-height:1;will-change:transform;filter:drop-shadow(0 2px 0 rgba(0,0,0,.4));pointer-events:none}
+.fteams{margin-bottom:10px}
+.fgoalpop .wg-in{border-color:var(--tc,#121212)}
 .shbtn{background:#FFD600;color:#121212;animation:none}.shbtn small{background:#121212;color:#FFD600}
 .ucbtn{background:#121212;color:#FFD600;animation:none;border-style:dashed;border-color:#FFD600}
 .ucline{margin:0 0 12px;padding:8px 12px;border:2px dashed var(--ink,#121212);border-radius:12px;font-weight:800;font-size:13px}
@@ -913,6 +987,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
     else if (m.t === 'react') floatReact(m.e, m.from);
     else if (m.t === 'wguess') showWhiteGuess(m);
     else if (m.t === 'sheriff') showSheriff(m);
+    else if (m.t === 'fsim') { fsim = m; m.t0 = performance.now() - (m.late ? 0 : 0); if (S) render(); }
     else if (m.t === 'photos') { photoMap = {}; Object.keys(m.map || {}).forEach(function (n) { photoMap[n.trim().toLowerCase()] = m.map[n]; }); if (S) render(); }
     else if (m.t === 'photo') { var pk = String(m.name).trim().toLowerCase(); if (m.data) photoMap[pk] = m.data; else delete photoMap[pk]; if (S) render(); }
     else if (m.t === 'chatlog') { chatList = m.list || []; chatUnread = 0; paintChat(); }
@@ -958,7 +1033,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
       if (!shown) fill(btn, 'Tap to see your word');
       else if (me.joker) fill(btn, 'You are the 🤡 Joker', h('span', { class: 'big' }, me.word), h('small', null, 'Get yourself voted out to win!'));
       else if (me.white) fill(btn, 'You are Mr. White', h('span', { class: 'big' }, 'No word'), h('small', null, me.hint ? '💡 Hint: ' + me.hint : 'Blend in and work out the word'));
-      else fill(btn, 'Your word', h('span', { class: 'big' }, me.word), me.sheriff ? h('small', { class: 'sh-note' }, me.shot ? '🤠 Sheriff (shot used)' : '🤠 You are the Sheriff! In voting you can shoot once: Mr. White = he is out, anyone else = YOU are out') : null);
+      else fill(btn, 'Your word', h('span', { class: 'big' }, me.word), me.sheriff ? h('small', { class: 'sh-note' }, me.shot ? '🤠 Sheriff (already shot this round)' : '🤠 You are the Sheriff! 1 bullet: in voting shoot an impostor (Undercover or Mr. White) and they are out. Shoot anyone else and YOU are out') : null);
       var bg = btn.querySelector('.big'); if (bg) fitTextSoon(bg, 40);
     }
     function hide() { shown = false; clearTimeout(tm); paint(); }
@@ -1085,10 +1160,10 @@ html[data-theme=dark] .cbub{border-color:#121212}
   /* ---------- header ---------- */
   var hdr = document.getElementById('hdr');
   function renderHeader() {
-    if (!S) return fill(hdr, h('span', { class: 'logo' }, 'Undercover'), h('div', { class: 'hdr-r' }, setBtn(), mode === 'menu' ? null : h('button', { class: 'link', type: 'button', onclick: goMenu }, '← Menu')));
+    if (!S) return fill(hdr, h('span', { class: 'logo' }, logoText()), h('div', { class: 'hdr-r' }, setBtn(), mode === 'menu' ? null : h('button', { class: 'link', type: 'button', onclick: goMenu }, '← Menu')));
     var parts = [];
     if (S.round > 0 && S.phase !== 'lobby') parts.push(h('span', { class: 'tag rtag' }, 'R' + S.round));
-    fill(hdr, h('span', { class: 'logo' }, 'Undercover'),
+    fill(hdr, h('span', { class: 'logo' }, logoText()),
       h('div', { class: 'hdr-r' }, parts, setBtn(),
         h('button', { class: 'chip', type: 'button', onclick: shareLink }, S.code),
         h('button', { class: 'link', type: 'button', onclick: function () { if (confirm('Leave this lobby?')) send({ t: 'leave' }); } }, 'Leave')));
@@ -1105,19 +1180,19 @@ html[data-theme=dark] .cbub{border-color:#121212}
 
   screens.home = function () {
     var wakeCard = h('div', { class: 'card wake', style: 'display:none' }, h('div', { class: 'shim' }), h('div', null, h('b', null, 'Waking up the server…'), h('div', { class: 'mute small' }, 'The free server sleeps when nobody plays. This can take up to a minute.'), h('div', { class: 'shim-line', style: 'width:70%' })));
-    var since = Date.now();
+    var since = Date.now(), fbm = wantGame === 'football';
     var nameIn = h('input', { type: 'text', maxlength: 14, placeholder: 'Your name', value: savedName, autocomplete: 'off' });
     var codeIn = h('input', { type: 'text', class: 'code', maxlength: 4, placeholder: 'CODE', autocomplete: 'off', autocapitalize: 'characters', value: (new URLSearchParams(location.search).get('c') || '').toUpperCase().slice(0, 4) });
     function nm() { var n = nameIn.value.trim(); if (!n) { toast('Enter your name first'); nameIn.focus(); return null; } savedName = n; store('uc.name', n); return n; }
     var root = h('div', null,
-      h('h1', null, 'Undercover'),
-      h('p', { class: 'sub' }, 'Everyone gets a word. Find who has a different one.'),
+      h('h1', null, fbm ? '⚽ Gully Football' : 'Undercover'),
+      h('p', { class: 'sub' }, fbm ? 'Flick your disc. Everyone shoots at the same time!' : 'Everyone gets a word. Find who has a different one.'),
       wakeCard,
       h('div', { class: 'card' }, nameIn, h('div', { class: 'gap' }),
-        h('button', { class: 'btn primary', type: 'button', onclick: function () { var n = nm(); if (n) send({ t: 'create', name: n, used: loadList('uc.used'), recent: loadList('uc.recent') }); } }, 'Create lobby')),
+        h('button', { class: 'btn primary', type: 'button', onclick: function () { var n = nm(); if (n) send({ t: 'create', name: n, game: fbm ? 'football' : undefined, used: loadList('uc.used'), recent: loadList('uc.recent') }); } }, 'Create lobby')),
       h('div', { class: 'card' }, h('h2', null, 'Join a lobby'), codeIn, h('div', { class: 'gap' }),
         h('button', { class: 'btn', type: 'button', onclick: function () { var n = nm(); if (!n) return; if (codeIn.value.trim().length < 4) { toast('Enter the 4-letter code'); return; } send({ t: 'join', name: n, code: codeIn.value.trim() }); } }, 'Join')),
-      h('details', { class: 'card' }, h('summary', null, 'How to play'),
+      fbm ? null : h('details', { class: 'card' }, h('summary', null, 'How to play'),
         h('p', null, h('b', null, 'Civilians'), ' all get the same word. ', h('b', null, 'Undercover'), ' gets a similar but different word (and doesn\'t know it). ', h('b', null, 'Mr. White'), ' gets no word.'),
         h('p', null, 'Take turns giving a short clue about your word without saying it. Then discuss out loud and vote. The player with the most votes is out. Civilians win when all impostors are out; impostors win when they equal the civilians. If Mr. White is voted out, they get one guess at the civilian word.')));
     return { root: root, update: function () {}, tick: function () { wakeCard.style.display = !open && Date.now() - since > 800 ? '' : 'none'; } };
@@ -1197,7 +1272,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
     var boardT = toggle('Leaderboard', 'Points and wins for each player in this lobby', function (v) { send({ t: 'settings', board: v }); });
     var jokerT = toggle('🤡 Joker (6+ players)', 'One player gets the civilian word and wins alone if voted out', function (v) { send({ t: 'settings', joker: v }); });
     var ucT = toggle('🕵️ Undercover can guess', 'If voted out, only they get 1 secret guess at the civilians\' word (+3). No timer: open till the game ends', function (v) { send({ t: 'settings', ucGuess: v }); });
-    var shT = toggle('🤠 Sheriff (needs Mr. White)', 'One civilian can shoot once during voting. Hits Mr. White = he is out. Anyone else = the Sheriff is out', function (v) { send({ t: 'settings', sheriff: v }); });
+    var shT = toggle('🤠 Sheriff', 'One civilian has 1 bullet (once per voting round). Hits the Undercover or Mr. White = out. Anyone else = the Sheriff is out', function (v) { send({ t: 'settings', sheriff: v }); });
     var chatT = toggle('💬 Chat', 'Open during discussion & voting. Secret words are blocked', function (v) { send({ t: 'settings', chat: v }); });
     var slowRow = h('div', { class: 'set' }), cdRow = h('div', { class: 'set' }), wtRow = h('div', { class: 'set' }), modesBox = h('div');
     var sup = toggle('I\'ll be the supervisor', 'You won\'t get a word. You choose the words and see everyone\'s role', function (v) { send({ t: 'settings', supervisor: v }); });
@@ -1310,7 +1385,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
     function close() { if (m.parentNode) m.parentNode.removeChild(m); }
     var alive = S.players.filter(function (p) { return p.in && p.alive && p.id !== S.me.id; });
     fill(m, h('div', { class: 'modal-in' }, h('h1', { style: 'font-size:22px' }, '🤠 Sheriff\'s shot'),
-      h('p', { class: 'mute small' }, '⚠️ One shot only, and everyone will see it. If they are Mr. White, they are out. If not, YOU are out.'),
+      h('p', { class: 'mute small' }, '⚠️ Everyone will see it. If they are the Undercover or Mr. White, they are out. If not, YOU are out.'),
       h('div', { class: 'suspects' }, alive.map(function (p) {
         return h('button', { class: 'suspect shpick', type: 'button', onclick: function () {
           if (!confirm('Shoot ' + p.name + '? If they are not Mr. White, you are out.')) return;
@@ -1319,16 +1394,63 @@ html[data-theme=dark] .cbub{border-color:#121212}
       })), h('div', { class: 'gap' }), h('button', { class: 'btn yellow', type: 'button', onclick: close }, 'Not now')));
     document.body.appendChild(m);
   }
+  /* Sheriff's shot: roulette-cylinder spin, aim, then a perfect shot or the gun turns on the Sheriff */
   function showSheriff(g) {
-    var m = h('div', { class: 'wgpop' + (g.hit ? ' ok' : '') });
-    fill(m, h('div', { class: 'wg-in' }, h('small', null, '🤠 THE SHERIFF FIRED!'), avatar(g.by, g.byIdx != null ? g.byIdx : S ? pidx(g.byId) : 0, 'xl'), h('div', { class: 'wg-name' }, g.by),
-      h('div', { class: 'wg-text' }, 'shot ' + g.target),
-      h('div', { class: 'wg-stamp' }, g.hit ? '✓ MR. WHITE!' : '✗ MISSED'),
-      h('p', null, g.hit ? g.target + ' was Mr. White and is out! 🎯' : g.target + ' is not Mr. White. Sheriff ' + g.by + ' is out 😂')));
-    m.addEventListener('click', function () { if (m.parentNode) m.parentNode.removeChild(m); });
+    var tIdx = g.targetIdx != null ? g.targetIdx : (S ? pidx(g.targetId) : 0), bIdx = g.byIdx != null ? g.byIdx : (S ? pidx(g.byId) : 0);
+    var ROLE = g.role === 'white' ? 'MR. WHITE' : g.role === 'undercover' ? 'UNDERCOVER' : '';
+    var timers = [], final = false;
+    function T(ms, fn) { timers.push(setTimeout(fn, ms)); }
+    var kids = [sv('circle', { r: 66, fill: '#3a4256', stroke: '#121212', 'stroke-width': 4 }), sv('circle', { r: 55, fill: 'none', stroke: '#7d89a6', 'stroke-width': 2 })];
+    for (var k = 0; k < 6; k++) {
+      var an = k * Math.PI / 3, cx = Math.cos(an) * 36, cy = Math.sin(an) * 36;
+      kids.push(sv('circle', { cx: cx, cy: cy, r: 14, fill: '#15161f', stroke: '#121212', 'stroke-width': 3 }));
+      if (k === 0) kids.push(sv('circle', { cx: cx, cy: cy, r: 9, fill: '#FFD600', stroke: '#b8860b', 'stroke-width': 2 }));
+    }
+    kids.push(sv('circle', { r: 10, fill: '#7d89a6', stroke: '#121212', 'stroke-width': 3 }));
+    var cyl = sv('svg', { class: 'rg-cyl', viewBox: '-70 -70 140 140' }, kids);
+    var gun = sv('svg', { class: 'rg-gun', viewBox: '0 0 120 240' }, [
+      sv('path', { d: 'M82 150 Q108 170 84 196', fill: 'none', stroke: '#121212', 'stroke-width': 5 }),
+      sv('path', { d: 'M40 146 L80 146 L88 230 Q70 240 50 236 Z', fill: '#8a5230', stroke: '#121212', 'stroke-width': 4 }),
+      sv('rect', { x: 50, y: 10, width: 20, height: 100, rx: 4, fill: '#5a657f', stroke: '#121212', 'stroke-width': 4 }),
+      sv('rect', { x: 55, y: 0, width: 10, height: 14, rx: 2, fill: '#8a96b3', stroke: '#121212', 'stroke-width': 3 }),
+      sv('rect', { x: 34, y: 96, width: 52, height: 58, rx: 12, fill: '#3a4256', stroke: '#121212', 'stroke-width': 4 }),
+      sv('line', { x1: 48, y1: 104, x2: 48, y2: 146, stroke: '#7d89a6', 'stroke-width': 3 }), sv('line', { x1: 72, y1: 104, x2: 72, y2: 146, stroke: '#7d89a6', 'stroke-width': 3 }),
+      sv('polygon', { class: 'rg-muz', points: '60,-44 68,-14 96,-24 78,2 106,20 74,22 60,52 46,22 14,20 42,2 24,-24 52,-14', fill: '#FFD600', stroke: '#FF4D00', 'stroke-width': 3 })]);
+    var cross = sv('svg', { class: 'rg-cross', viewBox: '0 0 100 100' }, [sv('circle', { cx: 50, cy: 50, r: 38, fill: 'none', stroke: '#ff2d55', 'stroke-width': 3 }), sv('circle', { cx: 50, cy: 50, r: 3, fill: '#ff2d55' }),
+      sv('line', { x1: 50, y1: 0, x2: 50, y2: 24, stroke: '#ff2d55', 'stroke-width': 3 }), sv('line', { x1: 50, y1: 76, x2: 50, y2: 100, stroke: '#ff2d55', 'stroke-width': 3 }),
+      sv('line', { x1: 0, y1: 50, x2: 24, y2: 50, stroke: '#ff2d55', 'stroke-width': 3 }), sv('line', { x1: 76, y1: 50, x2: 100, y2: 50, stroke: '#ff2d55', 'stroke-width': 3 })]);
+    var crack = sv('svg', { class: 'rg-crack', viewBox: '0 0 100 100' }, [sv('polyline', { points: '52,0 44,22 58,38 40,58 54,76 46,100', fill: 'none', stroke: '#fff', 'stroke-width': 4 }), sv('polyline', { points: '44,22 22,30 14,48', fill: 'none', stroke: '#fff', 'stroke-width': 3 }), sv('polyline', { points: '58,38 80,36 92,56', fill: 'none', stroke: '#fff', 'stroke-width': 3 })]);
+    var cap = h('div', { class: 'rg-cap' }), stamp = h('div', { class: 'rg-stamp' }), flash = h('div', { class: 'rg-fs' });
+    var tgtAv = h('div', { class: 'rg-av rg-t' }, avatar(g.target, tIdx, 'xl'), crack), sheAv = h('div', { class: 'rg-av rg-s' }, avatar(g.by, bIdx, 'xl'));
+    var gunWrap = h('div', { class: 'rg-gunwrap' }, gun);
+    var m = h('div', { class: 'rgun' },
+      h('div', { class: 'rg-top' }, h('small', null, 'TARGET'), h('div', { class: 'rg-tw' }, tgtAv, cross), h('b', null, g.target)),
+      h('div', { class: 'rg-mid' }, h('div', { class: 'rg-cylwrap' }, cyl), gunWrap, stamp),
+      h('div', { class: 'rg-bot' }, sheAv, h('b', null, '🤠 SHERIFF ' + g.by)), cap, flash);
+    function say(t) { cap.textContent = t; }
+    function close() { timers.forEach(clearTimeout); if (m.parentNode) m.parentNode.removeChild(m); }
+    m.addEventListener('click', function () { if (final) close(); });
     document.body.appendChild(m);
-    buzz(g.hit ? [150, 80, 150, 80, 400] : [500]);
-    setTimeout(function () { if (m.parentNode) m.parentNode.removeChild(m); }, 4200);
+    // 1) the cylinder spins like a roulette wheel
+    say('🤠 ' + g.by + ' spins the cylinder…'); m.classList.add('s1');
+    [0, 120, 260, 420, 620, 860, 1130, 1450, 1750].forEach(function (ms) { T(ms, function () { buzz(14); }); });
+    // 2) the gun comes up and locks onto the target
+    T(2000, function () { m.classList.remove('s1'); m.classList.add('s2'); say('…and points at ' + g.target); buzz([70, 110, 70]); });
+    T(3000, function () { buzz([70, 110, 70]); });
+    if (g.hit) {
+      T(4200, function () { m.classList.add('bang', 'shake'); gunWrap.classList.add('recoil'); flash.classList.add('on'); say('🎯 PERFECT SHOT!'); buzz([500]); });
+      T(4800, function () { tgtAv.classList.add('dead'); m.classList.add('cracked'); buzz([40, 50, 40]); });
+      T(5500, function () { stamp.className = 'rg-stamp show'; fill(stamp, 'ELIMINATED', h('small', null, ROLE)); say(g.target + ' was ' + (g.role === 'white' ? 'Mr. White' : 'the Undercover') + '!'); final = true; });
+      T(9200, close);
+    } else {
+      T(4200, function () { say('…click. 😬'); flash.classList.add('click'); buzz([30]); });
+      T(5000, function () { say('Uh oh… it is turning around…'); gunWrap.classList.add('turn'); buzz([40, 80, 40, 80, 40]); });
+      T(7000, function () { buzz([60, 90, 60, 90, 60]); });
+      T(7600, function () { m.classList.add('bang', 'shake', 'miss'); flash.classList.add('on'); say('💥 BANG!'); buzz([600]); });
+      T(8300, function () { sheAv.classList.add('dead'); });
+      T(8800, function () { stamp.className = 'rg-stamp show miss'; fill(stamp, 'SHERIFF DOWN', h('small', null, g.target + ' was innocent')); say('The Sheriff shot the wrong person'); final = true; });
+      T(12200, close);
+    }
   }
   // Big popup on every phone when Mr. White guesses
   function showWhiteGuess(g) {
@@ -1557,7 +1679,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
     var tie = h('div', { class: 'banner bad' }), tieBars = h('div');
     var progress = h('div', { class: 'card tight' });
     var ballot = h('div'), table = h('div');
-    var shBtn = h('button', { class: 'wtry shbtn', type: 'button', onclick: openSheriff }, h('span', null, '🤠'), h('b', null, 'Sheriff: shoot'), h('small', null, '1 shot'));
+    var shBtn = h('button', { class: 'wtry shbtn', type: 'button', onclick: openSheriff }, h('span', null, '🤠'), h('b', null, 'Sheriff: shoot'), h('small', null, '1 bullet'));
     var hostBox = h('div', { class: 'row' }, hostBtn('Close vote now', { t: 'closeVote' }, 'small'), hostBtn('Skip (nobody out)', { t: 'skipVote' }, 'small danger', 'Skip the elimination and start a new round?'));
     var root = h('div', null, h('h1', null, 'Vote'), tickerStrip('SOCH SAMAJH KE VOTE KAR ★ KAUN HAI UNDERCOVER?'), wc.root, sp.root, tie, tieBars, progress, shBtn, ballot, table, hostBox);
     return { root: root, update: function () {
@@ -1783,6 +1905,8 @@ html[data-theme=dark] .cbub{border-color:#121212}
         h('button', { class: 'hm-tkt hm-two', type: 'button', onclick: function () { mode = 'online'; render(); } },
           h('span', { class: 'hm-tk-stub' }, h('span', null, 'join with a', h('br'), '4-letter code'), h('i', { class: 'hm-bars' })),
           h('span', { class: 'hm-tk-main' }, h('small', null, '📶 OWN PHONES'), h('b', null, 'Play on', h('br'), 'separate', h('br'), 'phones'), h('i', { class: 'hm-arr' }, '→')))),
+      h('button', { class: 'hm-fbtn', type: 'button', onclick: function () { wantGame = 'football'; mode = 'online'; render(); } },
+        h('span', { class: 'hm-fe' }, '⚽'), h('span', { class: 'hm-ft' }, h('small', null, '🆕 NEW GAME'), h('b', null, 'Gully Football'), h('span', null, '2–10 players · everyone flicks at once'))),
       h('button', { class: 'hm-howlink', type: 'button', onclick: howToPlay }, '🤚 How to play?'));
     fitTextSoon(title, 72);
     [].forEach.call(root.querySelectorAll('.hm-tk-main b'), function (b) { fitTextSoon(b, 21); });
@@ -1850,6 +1974,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
   var mode = (session || /[?&]c=/.test(location.search)) ? 'online' : (L.step !== 'roster' ? 'solo' : 'menu');
   var IN_ROUND = { spin: 1, reveal: 1, play: 1, result: 1 };
   function goMenu() {
+    wantGame = null;
     if (mode === 'solo') {
       if (IN_ROUND[L.step] && !confirm('Leave this round? The roles and words will be lost. Your players are kept.')) return;
       L.step = 'roster'; L.players = []; saveSolo();
@@ -1920,7 +2045,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
     var prevStarter = L.players && L.players.length ? (L.players[L.starter % L.players.length] || {}).name : null;
     L.pair = drawPair();
     L.players = L.roster.map(function (r, i) { var ro = roles[i]; return { name: r.name, role: ro, word: ro === 'civilian' || ro === 'joker' ? L.pair.civilian : ro === 'undercover' ? L.pair.undercover : '', alive: true, seen: false }; });
-    if (L.cfg.sheriff && c.w > 0) { var civI = L.players.map(function (_, i) { return i; }).filter(function (i) { return L.players[i].role === 'civilian'; }); if (civI.length) L.players[civI[rnd(civI.length)]].sheriff = true; }
+    if (L.cfg.sheriff && c.u + c.w > 0) { var civI = L.players.map(function (_, i) { return i; }).filter(function (i) { return L.players[i].role === 'civilian'; }); if (civI.length) L.players[civI[rnd(civI.length)]].sheriff = true; }
     // random first player each round (not the same person as last round); everything else follows the seats clockwise
     var starters = L.players.map(function (_, i) { return i; }).filter(function (i) { return L.players[i].name !== prevStarter; });
     L.starter = starters.length ? starters[rnd(starters.length)] : rnd(L.players.length);
@@ -2019,7 +2144,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
       var stage = h('div', { class: 'stage' },
         h('div', { class: 's-lbl' }, 'SECRET ASSIGNMENT'),
         h('div', { class: 's-word', style: 'font-size:' + size + 'px' }, w),
-        h('div', { class: 's-note' }, p.role === 'white' ? (L.cfg.hint && L.pair && L.pair.cat ? 'Mr. White · hint: ' + L.pair.cat : 'You are Mr. White — listen and bluff') : p.role === 'joker' ? '🤡 Joker: get yourself voted out to win!' : p.sheriff ? (p.shot ? '🤠 Sheriff (shot used)' : '🤠 You are the SHERIFF: once, you can shoot. Mr. White = he is out, else YOU are out') : 'Give one subtle clue on your turn'),
+        h('div', { class: 's-note' }, p.role === 'white' ? (L.cfg.hint && L.pair && L.pair.cat ? 'Mr. White · hint: ' + L.pair.cat : 'You are Mr. White — listen and bluff') : p.role === 'joker' ? '🤡 Joker: get yourself voted out to win!' : p.sheriff ? (p.shot ? '🤠 Sheriff (shot this round)' : '🤠 You are the SHERIFF: 1 bullet. Shoot an impostor = they are out. Anyone else = YOU are out') : 'Give one subtle clue on your turn'),
         h('div', { class: 'shutter' }, h('div', { class: 'plaque' }, h('b', null, 'Top secret chit'), h('span', null, 'Hold the orange button to peek'))));
       var done = h('button', { class: 'btn green', type: 'button', disabled: true, onclick: function () { open(false); opts.onDone(); } }, opts.doneText);
       var hold = h('button', { class: 'btn primary hold', type: 'button' }, 'Hold thumb here to see word');
@@ -2065,7 +2190,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
         withUndo && L.undo ? h('button', { class: 'btn small', type: 'button', onclick: function () {
           if (!confirm('Undo the last kick?')) return;
           unscoreGame(); unUcBonus();
-          L.undo.forEach(function (i) { L.players[i].alive = true; });
+          L.undo.forEach(function (i) { L.players[i].alive = true; }); L.players.forEach(function (p) { p.shot = false; });
           L.undo = null; L.last = null; toast('↩ Kick undone'); go('play');
         } }, '↩ Undo kick') : null);
     }
@@ -2181,7 +2306,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
           h('div', { class: 'set' }, h('div', { class: 'lbl' }, '🎯 Mr. White guesses', h('small', null, 'Times he can guess the word mid-round (everyone sees it)')),
             seg([[0, 'Off'], [1, '1'], [2, '2'], [3, '3']], L.cfg.whiteTries, function (v) { L.cfg.whiteTries = v; saveSolo(); draw(); })),
           soloToggle('🕵️ Undercover can guess', 'If kicked, they secretly type the civilians\' word on this phone (+3)', 'ucGuess'),
-          soloToggle('🤠 Sheriff (needs Mr. White)', 'One civilian can shoot once. Hits Mr. White = he is out. Anyone else = the Sheriff is out', 'sheriff'),
+          soloToggle('🤠 Sheriff', 'One civilian has 1 bullet, once per round. Hits the Undercover or Mr. White = out. Anyone else = the Sheriff is out', 'sheriff'),
           soloToggle('🤡 Joker (6+ players)', 'One player gets the civilian word and wins alone if voted out', 'joker')),
         h('div', { class: 'card tight' }, h('h2', null, '🎒 Word modes'), modePicker(L.cfg.modes, function (next) { L.cfg.modes = next; saveSolo(); draw(); })),
         err, dock(start));
@@ -2309,14 +2434,15 @@ html[data-theme=dark] .cbub{border-color:#121212}
         function close() { if (sheet.parentNode) sheet.parentNode.removeChild(sheet); }
         function pickTarget(i) {
           fill(sheet, h('div', { class: 'sheet-in' }, h('h1', null, '🤠 Who do you shoot, ' + P[i].name + '?'),
-            h('p', { class: 'mute small' }, '⚠️ One shot only. Mr. White = he is out. Anyone else = YOU are out.'),
+            h('p', { class: 'mute small' }, '⚠️ Undercover or Mr. White = they are out. Anyone else = YOU are out.'),
             h('div', { class: 'suspects' }, alive.filter(function (t) { return t !== i; }).map(function (t) {
               return h('button', { class: 'suspect', type: 'button', onclick: function () {
                 if (!confirm('Shoot ' + P[t].name + '?')) return;
-                var hit = P[t].role === 'white', out = hit ? t : i;
+                var hit = P[t].role === 'white' || P[t].role === 'undercover', out = hit ? t : i;
                 P[i].shot = true; P[out].alive = false; close();
-                showSheriff({ by: P[i].name, byIdx: i, target: P[t].name, hit: hit });
-                L.last = { ids: [out], shown: false, sheriff: { by: P[i].name, target: P[t].name, hit: hit } }; L.undo = [out];
+                showSheriff({ by: P[i].name, byIdx: i, target: P[t].name, targetIdx: t, hit: hit, role: hit ? P[t].role : null });
+                L.last = { ids: [out], shown: false, guess: {}, sheriff: { by: P[i].name, target: P[t].name, hit: hit } }; L.undo = [out];
+                if (P[out].role === 'white') L.last.guess[out] = null; // a bullet gives Mr. White no last guess
                 go('result');
               } }, h('div', { class: 'nm' }, avatar(P[t].name, t, 'sm'), h('span', null, P[t].name)));
             })), h('div', { class: 'grow' }), dock(h('button', { class: 'btn yellow', type: 'button', onclick: close }, 'Cancel'))));
@@ -2338,7 +2464,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
         grid,
         h('button', { class: 'link', type: 'button', onclick: forgot }, 'Forgot your word? Check it'),
         wtryOpen() ? h('button', { class: 'wtry solo-wtry', type: 'button', onclick: whiteTrySheet }, h('span', null, '🎯'), h('b', null, 'Mr. White wants to guess'), h('small', null, L.cfg.whiteTries + ' tries each')) : null,
-        sheriffOpen() ? h('button', { class: 'wtry shbtn solo-sh', type: 'button', onclick: sheriffSheet }, h('span', null, '🤠'), h('b', null, 'Sheriff wants to shoot'), h('small', null, '1 shot')) : null,
+        sheriffOpen() ? h('button', { class: 'wtry shbtn solo-sh', type: 'button', onclick: sheriffSheet }, h('span', null, '🤠'), h('b', null, 'Sheriff wants to shoot'), h('small', null, '1 bullet')) : null,
         dock(btn));
     };
 
@@ -2417,6 +2543,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
       if (first) { L.last.shown = true; saveSolo(); later(function () { buzz([150, 80, 150]); }, 450); }
       var cont = h('button', { class: 'btn primary', type: 'button', onclick: function () {
         if (w) { L.winner = w; scoreGame(); return go('over'); }
+        L.players.forEach(function (p) { p.shot = false; });
         go('play');
       } }, w ? 'See scoreboard & words →' : 'Next clue & vote round →');
       var status = w === 'civilians' ? 'All the Undercover & Mr. White players have been caught!'
@@ -2465,7 +2592,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
         L.cfg.board ? soloBoard() : null,
         L.undo ? h('div', { class: 'center' }, h('button', { class: 'link', type: 'button', onclick: function () {
           if (!confirm('Undo the last kick? The game continues and these points are taken back.')) return;
-          unscoreGame(); unUcBonus(); L.undo.forEach(function (i) { L.players[i].alive = true; }); L.undo = null; L.last = null; go('play');
+          unscoreGame(); unUcBonus(); L.undo.forEach(function (i) { L.players[i].alive = true; }); L.players.forEach(function (p) { p.shot = false; }); L.undo = null; L.last = null; go('play');
         } }, '↩ Undo last kick')) : null,
         dock(h('button', { class: 'btn primary', type: 'button', onclick: function () { dealRoles(); go('spin'); } }, 'Play next round (new words) →'),
           h('div', { class: 'gap' }),
@@ -2479,8 +2606,243 @@ html[data-theme=dark] .cbub{border-color:#121212}
 
   /* ---------- render loop ---------- */
   var app = document.getElementById('app'), cur = null, curKey = null;
+  /* ================= Gully Football ================= */
+  var wantGame = null;
+  var FW = 300, FH = 480, FDR = 20, FBR = 11, FNET = 26, FPULL = 120;
+  var TEAMS = [{ n: 'ORANGE', c: '#FF4D00', e: '🟠' }, { n: 'VIOLET', c: '#7B2CBF', e: '🟣' }];
+  var fsim = null, fOverShown = '';
+  function logoText() { return (S ? S.game === 'football' : wantGame === 'football') ? 'Football' : 'Undercover'; }
+
+  screens.flobby = function () {
+    var list = h('ul', { class: 'plist' }), count = h('h2'), setBox = h('div'), act = h('div');
+    var root = h('div', null, h('h1', null, '⚽ Gully Football'),
+      h('p', { class: 'sub' }, 'Your face is your disc. Everyone flicks at the same time!'),
+      h('div', { class: 'card' }, count, list), setBox, act,
+      h('details', { class: 'card' }, h('summary', null, 'How to play'),
+        h('p', null, 'Two random teams. Every turn ', h('b', null, 'all players aim at once'), ': drag back from YOUR disc like a slingshot. A dotted line shows where it will go, and a longer pull means more power.'),
+        h('p', null, 'When the timer ends (or everyone is locked in) all discs fire together. Get the ball into the other goal. First team to the goal target wins. Still level after 20 turns? Sudden death with wider goals!')));
+    return { root: root, update: function () {
+      var ps = S.players.filter(function (p) { return !p.left; });
+      fill(count, 'Players (' + ps.length + ') · 2 to 10 play');
+      fill(list, ps.map(function (p) { return playerRow(p); }));
+      var fs = S.fbSet || { goals: 3, secs: 8 };
+      fill(setBox, h('div', { class: 'card tight' }, S.me.host ? [
+        h('div', { class: 'set' }, h('div', { class: 'lbl' }, '🥅 Goals to win'), seg([[2, '2'], [3, '3'], [5, '5']], fs.goals, function (v) { send({ t: 'fset', goals: v }); })),
+        h('div', { class: 'set' }, h('div', { class: 'lbl' }, '⏱ Aim time'), seg([[6, '6s'], [8, '8s'], [12, '12s']], fs.secs, function (v) { send({ t: 'fset', secs: v }); }))]
+        : h('p', { class: 'mute', style: 'margin:0' }, '🥅 First to ' + fs.goals + ' goals · ⏱ ' + fs.secs + 's to aim')));
+      fill(act, S.me.host ? h('button', { class: 'btn primary', type: 'button', disabled: ps.length < 2, onclick: function () { send({ t: 'fstart' }); } }, ps.length < 2 ? 'Need 2+ players' : '⚽ Kick off!')
+        : h('p', { class: 'mute center' }, 'Waiting for the host to kick off…'));
+    } };
+  };
+
+  screens.fgame = function () {
+    var VB = '0 -' + FNET + ' ' + FW + ' ' + (FH + 2 * FNET);
+    var sc = 1, built = '', fieldKey = '', running = false, lastKey = '', locked = null, drag = null, popTimer = 0;
+    var field = sv('svg', { class: 'fsvg', viewBox: VB, preserveAspectRatio: 'none' });
+    var aimSvg = sv('svg', { class: 'faimsvg', viewBox: VB, preserveAspectRatio: 'none' });
+    var layer = h('div', { class: 'flayer' });
+    var ball = h('div', { class: 'fball', style: 'width:' + (2 * FBR / FW * 100) + '%' }, '⚽');
+    var pitch = h('div', { class: 'fpitch' }, field, layer, ball, aimSvg);
+    var discs = {};
+    var gPull = sv('line', { stroke: '#ffffff', 'stroke-width': 2, 'stroke-opacity': '.55', 'stroke-linecap': 'round' });
+    var gDir = sv('line', { stroke: '#FFD600', 'stroke-width': 4, 'stroke-dasharray': '1 9', 'stroke-linecap': 'round' });
+    var gHead = sv('polygon', { fill: '#FFD600', stroke: '#121212', 'stroke-width': 1.5 });
+    var gRing = sv('circle', { fill: 'none', 'stroke-width': 4, 'stroke-linecap': 'round' });
+    [gPull, gDir, gHead, gRing].forEach(function (e) { aimSvg.appendChild(e); });
+    var scoreBar = h('div', { class: 'fscore' }), status = h('div', { class: 'banner fstat' }), bar = h('div', { class: 'fbar' }, h('i')), secEl = h('b', { class: 'fsec' });
+    var teamsBox = h('div', { class: 'vstat fteams' }), over = h('div'), hostRow = h('div', { class: 'row' });
+    var root = h('div', { class: 'fgame' }, scoreBar, status, bar, pitch, teamsBox, over, hostRow);
+
+    function myTeam() { return S.fb && S.fb.team[S.me.id] != null ? S.fb.team[S.me.id] : -1; }
+    function flipV() { return myTeam() === 1; }
+    function view(x, y) { return flipV() ? [FW - x, FH - y] : [x, y]; }
+    function place(el, x, y, r) { var v = view(x, y); el.style.transform = 'translate3d(' + ((v[0] - r) * sc).toFixed(1) + 'px,' + ((v[1] + FNET - r) * sc).toFixed(1) + 'px,0)'; }
+    function canAim() { return S && S.phase === 'faim' && S.fb && S.fb.ids.indexOf(S.me.id) >= 0 && secsLeft() > 0; }
+
+    function drawField(gw, flip) {
+      var gx0 = (FW - gw) / 2, gx1 = (FW + gw) / 2, W = '#ffffff', i;
+      var topT = TEAMS[flip ? 0 : 1], botT = TEAMS[flip ? 1 : 0];
+      clear(field);
+      var add2 = function (e) { field.appendChild(e); };
+      add2(sv('rect', { x: 0, y: -FNET, width: FW, height: FH + 2 * FNET, fill: '#15161f' }));
+      for (i = 0; i < 8; i++) add2(sv('rect', { x: 0, y: i * 60, width: FW, height: 60, fill: i % 2 ? '#2fa05c' : '#37b066' }));
+      var ln = { fill: 'none', stroke: W, 'stroke-width': 2.5, 'stroke-opacity': '.9' };
+      add2(sv('rect', Object.assign({ x: 2, y: 2, width: FW - 4, height: FH - 4 }, ln)));
+      add2(sv('line', Object.assign({ x1: 2, y1: FH / 2, x2: FW - 2, y2: FH / 2 }, ln)));
+      add2(sv('circle', Object.assign({ cx: FW / 2, cy: FH / 2, r: 44 }, ln)));
+      add2(sv('circle', { cx: FW / 2, cy: FH / 2, r: 3.5, fill: W }));
+      add2(sv('rect', Object.assign({ x: (FW - 176) / 2, y: 2, width: 176, height: 72 }, ln)));
+      add2(sv('rect', Object.assign({ x: (FW - 176) / 2, y: FH - 74, width: 176, height: 72 }, ln)));
+      [[-FNET, topT, 0], [FH, botT, 1]].forEach(function (g) {
+        add2(sv('rect', { x: gx0, y: g[0], width: gw, height: FNET, fill: '#eef8f1', 'fill-opacity': '.92' }));
+        for (var x = gx0; x <= gx1 + 1; x += 10) add2(sv('line', { x1: x, y1: g[0], x2: x, y2: g[0] + FNET, stroke: '#8fb3a0', 'stroke-width': .8 }));
+        for (var y = g[0]; y <= g[0] + FNET + 1; y += 9) add2(sv('line', { x1: gx0, y1: y, x2: gx1, y2: y, stroke: '#8fb3a0', 'stroke-width': .8 }));
+        var gy = g[2] ? FH : 0;
+        add2(sv('line', { x1: gx0, y1: gy, x2: gx1, y2: gy, stroke: g[1].c, 'stroke-width': 4 }));
+        add2(sv('circle', { cx: gx0, cy: gy, r: 6, fill: g[1].c, stroke: '#121212', 'stroke-width': 2 }));
+        add2(sv('circle', { cx: gx1, cy: gy, r: 6, fill: g[1].c, stroke: '#121212', 'stroke-width': 2 }));
+      });
+    }
+    function buildDiscs() {
+      var fb = S.fb; clear(layer); discs = {};
+      fb.ids.forEach(function (id) {
+        var nm = nameOf(id), t = fb.team[id];
+        var el = h('div', { class: 'fd' + (id === S.me.id ? ' me' : ''), style: '--tc:' + TEAMS[t].c + ';width:' + (2 * FDR / FW * 100) + '%' },
+          avatar(nm, pidx(id), null), h('span', { class: 'fdn' }, id === S.me.id ? 'YOU' : nm.length > 7 ? nm.slice(0, 7) + '…' : nm));
+        layer.appendChild(el); discs[id] = el;
+      });
+    }
+    function setStatic() {
+      var fb = S.fb;
+      fb.ids.forEach(function (id) { if (discs[id] && fb.pos[id]) place(discs[id], fb.pos[id][0], fb.pos[id][1], FDR); });
+      place(ball, fb.ball[0], fb.ball[1], FBR);
+    }
+    function frame() {
+      sc = pitch.clientWidth / FW || 1;
+      ball.style.fontSize = (sc * FBR * 1.75).toFixed(1) + 'px';
+      if (!S || !S.fb) return;
+      if (S.phase === 'fplay' && fsim && fsim.turn === S.fb.turn) {
+        var fi = (performance.now() - fsim.t0) / (1000 / 30), n = fsim.frames.length - 1;
+        var i = Math.min(n, Math.floor(fi)), j = Math.min(n, i + 1), a = Math.min(1, fi - i), A = fsim.frames[i], B = fsim.frames[j];
+        place(ball, A[0] + (B[0] - A[0]) * a, A[1] + (B[1] - A[1]) * a, FBR);
+        fsim.ids.forEach(function (id, k) { if (discs[id]) place(discs[id], A[2 + 2 * k] + (B[2 + 2 * k] - A[2 + 2 * k]) * a, A[3 + 2 * k] + (B[3 + 2 * k] - A[3 + 2 * k]) * a, FDR); });
+        if (!fsim.fired && fi > 4) { fsim.fired = true; buzz([60]); }
+        if (!fsim.done && fi >= n) { fsim.done = true; if (fsim.goal != null) goalPop(fsim); }
+      } else setStatic();
+    }
+    function loop() { if (!document.body.contains(root)) { running = false; return; } frame(); requestAnimationFrame(loop); }
+
+    function goalPop(sim) {
+      var fb = S.fb, by = sim.by, nm = by ? nameOf(by) : '', own = !!by && fb.team[by] !== sim.goal, sc2 = fb.score.slice();
+      sc2[sim.goal]++;
+      var m = h('div', { class: 'wgpop fgoalpop' });
+      fill(m, h('div', { class: 'wg-in', style: '--tc:' + TEAMS[sim.goal].c }, h('small', null, own ? '😂 OWN GOAL!' : '⚽ GOAAAL!'), by ? avatar(nm, pidx(by), 'xl') : null,
+        h('div', { class: 'wg-name' }, by ? nm : 'Nobody touched it'), h('div', { class: 'wg-stamp', style: 'background:' + TEAMS[sim.goal].c }, TEAMS[sim.goal].e + ' ' + TEAMS[sim.goal].n + ' SCORE'),
+        h('p', null, TEAMS[0].e + ' ' + sc2[0] + '  –  ' + sc2[1] + ' ' + TEAMS[1].e)));
+      m.addEventListener('click', function () { if (m.parentNode) m.parentNode.removeChild(m); });
+      document.body.appendChild(m);
+      buzz(sim.goal === myTeam() && !own ? [150, 80, 150, 80, 400] : [300, 100, 300]);
+      if (sim.goal === myTeam() && typeof confetti === 'function') confetti();
+      setTimeout(function () { if (m.parentNode) m.parentNode.removeChild(m); }, 3100);
+    }
+
+    /* aiming: drag back from your own disc (slingshot). The dotted line shows where it will go. */
+    function hideAim() { aimSvg.style.display = 'none'; }
+    function showAim(dx, dy, pw, pull, isLocked) {
+      var me = S.fb.pos[S.me.id]; if (!me) return hideAim();
+      var d = Math.hypot(dx, dy) || 1, ux = dx / d, uy = dy / d, px2 = -uy, py2 = ux;
+      var s0 = FDR + 4, len = 34 + 150 * pw, e0 = s0 + len;
+      var P = function (x, y) { var v = view(x, y); return v[0].toFixed(1) + ',' + v[1].toFixed(1); };
+      var a = view(me[0] + ux * s0, me[1] + uy * s0), b = view(me[0] + ux * e0, me[1] + uy * e0), c = view(me[0], me[1]), pl = view(me[0] - ux * pull, me[1] - uy * pull);
+      gDir.setAttribute('x1', a[0]); gDir.setAttribute('y1', a[1]); gDir.setAttribute('x2', b[0]); gDir.setAttribute('y2', b[1]);
+      gHead.setAttribute('points', P(me[0] + ux * (e0 + 13), me[1] + uy * (e0 + 13)) + ' ' + P(me[0] + ux * e0 + px2 * 8, me[1] + uy * e0 + py2 * 8) + ' ' + P(me[0] + ux * e0 - px2 * 8, me[1] + uy * e0 - py2 * 8));
+      gPull.setAttribute('x1', c[0]); gPull.setAttribute('y1', c[1]); gPull.setAttribute('x2', pl[0]); gPull.setAttribute('y2', pl[1]);
+      var r = FDR + 8, circ = 2 * Math.PI * r;
+      gRing.setAttribute('cx', c[0]); gRing.setAttribute('cy', c[1]); gRing.setAttribute('r', r);
+      gRing.setAttribute('stroke-dasharray', (circ * Math.max(0.04, pw)).toFixed(1) + ' ' + circ.toFixed(1));
+      gRing.setAttribute('transform', 'rotate(-90 ' + c[0] + ' ' + c[1] + ')');
+      gRing.setAttribute('stroke', isLocked ? '#7CFF9B' : 'hsl(' + Math.round(130 * (1 - pw)) + ',95%,52%)');
+      gDir.setAttribute('stroke', isLocked ? '#7CFF9B' : '#FFD600'); gHead.setAttribute('fill', isLocked ? '#7CFF9B' : '#FFD600');
+      gPull.style.display = isLocked ? 'none' : '';
+      aimSvg.style.display = 'block';
+    }
+    function ptr(e) {
+      var r = pitch.getBoundingClientRect(), ux = (e.clientX - r.left) / sc, uy = (e.clientY - r.top) / sc - FNET;
+      return flipV() ? [FW - ux, FH - uy] : [ux, uy];
+    }
+    function calc(e) {
+      var me = S.fb.pos[S.me.id], p = ptr(e), dx = me[0] - p[0], dy = me[1] - p[1], len = Math.hypot(dx, dy);
+      return { dx: dx, dy: dy, len: len, pw: Math.min(1, len / FPULL), pull: Math.min(len, FPULL) };
+    }
+    pitch.addEventListener('pointerdown', function (e) {
+      if (!canAim()) return;
+      var me = S.fb.pos[S.me.id], p = ptr(e);
+      if (!me || Math.hypot(p[0] - me[0], p[1] - me[1]) > FDR * 2.6) return;
+      drag = e.pointerId; try { pitch.setPointerCapture(e.pointerId); } catch (x) {}
+      e.preventDefault(); buzz(12);
+    });
+    pitch.addEventListener('pointermove', function (e) {
+      if (drag !== e.pointerId) return;
+      var c = calc(e); if (c.len < 8) return hideAim();
+      showAim(c.dx, c.dy, c.pw, c.pull, false);
+    });
+    function endDrag(e, cancel) {
+      if (drag !== e.pointerId) return; drag = null;
+      var c = calc(e);
+      if (!cancel && c.len >= 14 && canAim()) {
+        locked = { turn: S.fb.turn, dx: c.dx, dy: c.dy, pw: c.pw };
+        send({ t: 'faim', dx: c.dx, dy: c.dy, pw: c.pw }); buzz(35);
+        showAim(c.dx, c.dy, c.pw, 0, true); paintStatus();
+      } else if (locked && locked.turn === S.fb.turn) showAim(locked.dx, locked.dy, locked.pw, 0, true);
+      else hideAim();
+    }
+    pitch.addEventListener('pointerup', function (e) { endDrag(e, false); });
+    pitch.addEventListener('pointercancel', function (e) { endDrag(e, true); });
+    pitch.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+    function paintStatus() {
+      var fb = S.fb, iPlay = fb.ids.indexOf(S.me.id) >= 0, t = myTeam();
+      var isLocked = !!(locked && locked.turn === fb.turn);
+      status.className = 'banner fstat' + (S.phase === 'faim' && iPlay && !isLocked ? ' ok' : '');
+      if (S.phase === 'faim') {
+        if (!iPlay) fill(status, '👀 You are watching this match. You play in the next one. ', secEl);
+        else if (isLocked) fill(status, '✅ Locked in! Re-drag to change it · ', secEl);
+        else fill(status, fb.turn === 0 ? 'You are ' + TEAMS[t].e + ' ' + TEAMS[t].n + '. Attack the TOP goal ⬆️. Drag back from YOUR disc · ' : '🎯 AIM! Drag back from YOUR disc · ', secEl);
+        if (fb.sudden) status.appendChild(h('div', { class: 'fsud' }, '⚡ SUDDEN DEATH · wider goals · next goal wins'));
+      } else if (S.phase === 'fplay') fill(status, '💥 Shots fired…');
+      else fill(status, '🏁 Full time!');
+    }
+    function paintScore() {
+      var fb = S.fb, t = myTeam();
+      var side = function (k) { return h('div', { class: 'fsc t' + k + (t === k ? ' mine' : '') }, h('span', { class: 'fte' }, TEAMS[k].e), h('b', null, TEAMS[k].n), t === k ? h('em', null, 'YOU') : null, h('i', { class: 'fnum' }, String(fb.score[k]))); };
+      fill(scoreBar, side(0), h('div', { class: 'fmid' }, h('small', null, 'FIRST TO ' + (S.fbSet ? S.fbSet.goals : 3)), h('span', null, fb.sudden ? '⚡ SUDDEN' : 'TURN ' + Math.min(fb.turn + 1, 20) + '/20')), side(1));
+    }
+    function paintTeams() {
+      var fb = S.fb, aimNow = S.phase === 'faim';
+      fill(teamsBox, fb.ids.map(function (id) {
+        var done = fb.aimed.indexOf(id) >= 0;
+        return h('span', { class: 'vs ' + (aimNow && done ? 'yes' : 'no'), style: 'border-color:' + TEAMS[fb.team[id]].c }, avatar(nameOf(id), pidx(id), 'xs'), nameOf(id) + (id === S.me.id ? ' (you)' : ''), aimNow ? h('b', null, done ? '✓' : '…') : null);
+      }));
+    }
+    function paintOver() {
+      var fb = S.fb;
+      if (S.phase !== 'fover') { fill(over, null); return; }
+      var w = fb.winner, t = myTeam(), key = fb.goals.length + ':' + fb.score.join('-') + ':' + w;
+      if (fOverShown !== key) { fOverShown = key; buzz([80, 50, 80, 50, 300]); if (w === t && typeof confetti === 'function') later2(confetti, 200); }
+      fill(over, h('div', { class: 'winner bounce ' + (w === 0 ? 'imp' : 'civ') }, h('div', { class: 'big' }, TEAMS[w].e + ' ' + TEAMS[w].n + ' WIN!'),
+          h('p', null, fb.score[0] + ' – ' + fb.score[1] + (t === w ? ' · You won! 🏆' : t >= 0 ? ' · Better luck next time 😅' : ''))),
+        h('div', { class: 'card tight' }, h('h2', null, '⚽ Goals'), fb.goals.length ? fb.goals.map(function (g, i) {
+          return h('div', { class: 'brow' }, h('span', { class: 'rank' }, String(i + 1)), g.by ? avatar(nameOf(g.by), pidx(g.by), 'sm') : null,
+            h('span', { class: 'pname' }, (g.by ? nameOf(g.by) : 'Nobody') + (g.own ? ' (own goal 😂)' : '')), h('span', { class: 'pts' }, TEAMS[g.team].e));
+        }) : h('p', { class: 'mute small' }, 'No goals.')));
+    }
+    function later2(fn, ms) { setTimeout(fn, ms); }
+    return { root: root, tick: function () {
+      if (!S || !S.fb) return;
+      if (S.phase === 'faim') { var s = secsLeft(); secEl.textContent = s + 's'; bar.firstChild.style.width = Math.min(100, s / (S.fbSet ? S.fbSet.secs : 8) * 100) + '%'; bar.classList.toggle('low', s <= 3); } else bar.firstChild.style.width = '0%';
+    }, update: function () {
+      var fb = S.fb; if (!fb) return;
+      var names = fb.ids.map(function (id) { return nameOf(id) + (photoOf(nameOf(id)) ? '*' : ''); }).join('|');
+      if (names !== built) { built = names; buildDiscs(); }
+      var fk = fb.gw + ':' + flipV(); if (fk !== fieldKey) { fieldKey = fk; drawField(fb.gw, flipV()); }
+      var k = S.phase + ':' + fb.turn, iPlay = fb.ids.indexOf(S.me.id) >= 0;
+      if (k !== lastKey) {
+        if (S.phase === 'faim' && iPlay) buzz([90, 60, 90]);
+        if (locked && (locked.turn !== fb.turn || S.phase !== 'faim')) { locked = null; hideAim(); }
+        lastKey = k;
+      }
+      if (S.phase !== 'faim') hideAim();
+      paintScore(); paintStatus(); paintTeams(); paintOver(); this.tick();
+      fill(hostRow, S.me.host ? (S.phase === 'fover' ? [hostBtn('🔁 Play again (new teams)', { t: 'fstart' }, 'primary'), hostBtn('Back to lobby', { t: 'flobby' }, 'yellow')]
+        : hostBtn('⏹ End match', { t: 'flobby' }, 'small danger', 'End the match and go back to the lobby?')) : (S.phase === 'fover' ? h('p', { class: 'mute center' }, 'Waiting for the host…') : null));
+      if (!running) { running = true; requestAnimationFrame(loop); }
+      frame();
+    } };
+  };
+
   function keyFor() {
     if (!S) return mode === 'menu' ? 'menu' : mode === 'solo' ? 'solo' : 'home';
+    if (S.game === 'football') return S.phase === 'lobby' ? 'flobby' : 'fgame';
     if (S.phase === 'lobby') return S.me.host ? 'lobby-host' : 'lobby';
     return S.phase;
   }
