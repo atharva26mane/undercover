@@ -330,7 +330,7 @@ function shareWords(room) { // phones save the updated memory
 function makeRoom(words) {
   const room = {
     code: newCode(), hostId: null, supervisorId: null, players: new Map(),
-    game: 'undercover', fbSet: { goals: 3, secs: 8 }, fb: null,
+    game: 'undercover', fbSet: { goals: 3, secs: 8 }, fb: null, rc: null,
     phase: 'lobby', round: 0, seq: 0, timer: null, endsAt: 0,
     settings: { describeSecs: 30, autoRoles: true, undercover: 1, white: 1, whiteGuess: true, hint: false, board: true, reacts: true, modes: ['mix'], joker: false, chat: true, chatSlow: 5, reactCd: 3, ucGuess: true, whiteTries: 2, sheriff: true },
     words: words || { used: new Set(), recent: [] }, pair: null, nextPair: null, customPair: null, supReq: null,
@@ -434,6 +434,10 @@ function view(room, p) {
         goals: f.goals, aimed: Object.keys(f.aims), winner: f.winner, last: f.last, lastTurn: f.lastTurn };
     }
     if (v.fb) { v.fb.pos = f2(v.fb.pos); v.fb.ball = [Math.round(v.fb.ball[0] * 10) / 10, Math.round(v.fb.ball[1] * 10) / 10]; }
+  }
+  if (room.game === 'race' && room.rc) {
+    const r = room.rc;
+    v.rc = { ids: r.ids, startAt: r.startAt, laps: RACE_LAPS, fin: r.fin, results: r.results, rank: raceRank(room) };
   }
   if (room.typingId && Date.now() < room.typingUntil) v.typing = room.typingId;
   if (p.id === room.hostId && room.supReq && room.players.get(room.supReq)) v.supReq = { id: room.supReq, name: room.players.get(room.supReq).name };
@@ -656,9 +660,9 @@ const fbPlayers = (room) => (room.fb ? room.fb.ids.map((id) => room.players.get(
 function fbSend(room, obj) { for (const q of room.players.values()) if (q.ws && q.connected) send(q.ws, obj); }
 function fbStart(room) {
   const cands = [...room.players.values()].filter((p) => !p.left);
-  if (cands.length < 2) return 'Need at least 2 players for football';
+  if (cands.length < 1) return 'Need at least 1 player';
   const sel = shuffle(cands.filter((p) => p.connected)).slice(0, FB_MAX);
-  if (sel.length < 2) return 'Need at least 2 players online';
+  if (sel.length < 1) return 'Need at least 1 player online';
   for (const p of room.players.values()) p.watch = false;
   const ids = sel.map((p) => p.id), team = {};
   ids.forEach((id, i) => { team[id] = i % 2; });
@@ -716,13 +720,54 @@ function fbBack(room) { // back to the football lobby
 }
 function fbCheck(room) { // somebody left: make sure both teams still have a player
   if (!room.fb || !['faim', 'fplay'].includes(room.phase)) return broadcast(room);
-  const live = fbPlayers(room);
-  if (!live.some((p) => room.fb.team[p.id] === 0) || !live.some((p) => room.fb.team[p.id] === 1)) {
+  const live = fbPlayers(room), had = (t) => room.fb.ids.some((id) => room.fb.team[id] === t);
+  if (!live.length || (had(0) && !live.some((p) => room.fb.team[p.id] === 0)) || (had(1) && !live.some((p) => room.fb.team[p.id] === 1))) {
     notice(room, 'A team has no players left. Back to the lobby');
     return fbBack(room);
   }
   broadcast(room);
 }
+// ---------------------------------------------------------------- Beach Buggy race
+// Each phone drives its own buggy (nobody sees the others), so the server only keeps the standings.
+const RACE_LAPS = 3, RACE_MIN_MS = 20000, RACE_AFTER_FIRST = 45000, RACE_MAX_MS = 6 * 60 * 1000;
+const racers = (room) => (room.rc ? room.rc.ids.map((id) => room.players.get(id)).filter((p) => p && !p.left) : []);
+function raceRank(room) {
+  const r = room.rc; if (!r) return [];
+  return r.ids.filter((id) => room.players.get(id) && !room.players.get(id).left)
+    .map((id) => [id, r.fin[id] != null ? RACE_LAPS : Math.round((r.prog[id] || 0) * 1000) / 1000, r.fin[id] != null ? r.fin[id] : null])
+    .sort((a, b) => (a[2] != null && b[2] != null ? a[2] - b[2] : a[2] != null ? -1 : b[2] != null ? 1 : b[1] - a[1]));
+}
+function raceStart(room) {
+  const sel = [...room.players.values()].filter((p) => !p.left && p.connected).slice(0, 10);
+  if (!sel.length) return 'Need at least 1 player';
+  for (const p of room.players.values()) p.watch = !sel.includes(p);
+  room.rc = { ids: sel.map((p) => p.id), startAt: Date.now() + 4500, prog: {}, fin: {}, results: null, firstFin: false };
+  setPhase(room, 'rrace');
+  schedule(room, RACE_MAX_MS, () => raceEnd(room));
+  broadcast(room);
+  for (const p of sel) notify(room, p, '🏖️ Race starting!', 'Open the game, 3… 2… 1…', [100, 60, 100]);
+  return null;
+}
+function raceEnd(room) {
+  if (room.phase !== 'rrace' || !room.rc) return;
+  room.rc.results = raceRank(room);
+  setPhase(room, 'rover');
+  broadcast(room);
+}
+function raceCheck(room) { // everyone still racing has finished?
+  if (room.phase !== 'rrace' || !room.rc) return broadcast(room);
+  const live = racers(room);
+  if (!live.length) { setPhase(room, 'lobby'); room.rc = null; return broadcast(room); }
+  if (live.every((p) => room.rc.fin[p.id] != null)) return raceEnd(room);
+  broadcast(room);
+}
+setInterval(() => { // live standings, 3 times a second, only while racing
+  for (const room of rooms.values()) {
+    if (room.phase !== 'rrace' || !room.rc) continue;
+    const list = raceRank(room);
+    for (const q of room.players.values()) if (q.ws && q.connected) send(q.ws, { t: 'rrank', list });
+  }
+}, 333);
 function notice(room, msg) { for (const p of room.players.values()) if (p.ws && p.connected) send(p.ws, { t: 'notice', msg }); }
 function backToLobby(room) {
   for (const [id, p] of room.players) if (p.left) room.players.delete(id);
@@ -736,6 +781,7 @@ function backToLobby(room) {
 // After a player leaves/is kicked mid-game, re-check whatever the current phase is waiting for.
 function afterRemoval(room) {
   if (room.game === 'football') return fbCheck(room);
+  if (room.game === 'race') return raceCheck(room);
   if (!['describe', 'vote', 'whiteguess', 'elim'].includes(room.phase)) return broadcast(room);
   const win = checkWin(room);
   if (win) return endGame(room, win);
@@ -803,7 +849,7 @@ function handle(ws, m) {
     const name = clean(m.name, 14);
     if (!name) return errTo(ws, 'Enter your name');
     const room = makeRoom(loadWords(m));
-    if (m.game === 'football') room.game = 'football';
+    if (m.game === 'football' || m.game === 'race') room.game = m.game;
     const p = addPlayer(room, name);
     room.hostId = room.ownerId = p.id;
     attach(ws, room, p);
@@ -817,7 +863,7 @@ function handle(ws, m) {
     if ([...room.players.values()].filter((q) => !q.left).length >= MAX_PLAYERS) return errTo(ws, 'Lobby is full');
     if ([...room.players.values()].some((q) => !q.left && norm(q.name) === norm(name))) return errTo(ws, 'That name is taken in this lobby');
     const np = addPlayer(room, name);
-    if (room.phase !== 'lobby' && room.phase !== 'over' && room.phase !== 'fover') { np.watch = true; notice(room, '👀 ' + name + ' joined. Watching until the next game'); }
+    if (room.phase !== 'lobby' && room.phase !== 'over' && room.phase !== 'fover' && room.phase !== 'rover') { np.watch = true; notice(room, '👀 ' + name + ' joined. Watching until the next game'); }
     return attach(ws, room, np);
   }
   if (m.t === 'rejoin') {
@@ -979,6 +1025,36 @@ function handle(ws, m) {
       const need = fbPlayers(room).filter((q) => q.connected);
       if (need.length && need.every((q) => room.fb.aims[q.id])) schedule(room, 1500, () => fbFire(room)); // everyone locked in: fire soon
       return broadcast(room);
+    }
+    case 'rstart': {
+      if (!hostOnly() || room.game !== 'race' || !['lobby', 'rover'].includes(room.phase)) return;
+      const err = raceStart(room);
+      return err ? errTo(ws, err) : undefined;
+    }
+    case 'rlobby':
+      if (!hostOnly() || room.game !== 'race' || !['rrace', 'rover'].includes(room.phase)) return;
+      setPhase(room, 'lobby'); room.rc = null;
+      for (const [id, q] of room.players) if (q.left) room.players.delete(id);
+      for (const q of room.players.values()) q.watch = false;
+      return broadcast(room);
+    case 'rprog': { // how far this phone's buggy has got: laps done + part of the current lap
+      const r = room.rc;
+      if (room.phase !== 'rrace' || !r || !r.ids.includes(p.id) || r.fin[p.id] != null) return;
+      const d = Number(m.d);
+      if (!Number.isFinite(d) || Date.now() < r.startAt) return;
+      r.prog[p.id] = Math.max(0, Math.min(RACE_LAPS - 0.001, d));
+      return;
+    }
+    case 'rfin': {
+      const r = room.rc;
+      if (room.phase !== 'rrace' || !r || !r.ids.includes(p.id) || r.fin[p.id] != null) return;
+      const ms = Math.round(Number(m.ms)), real = Date.now() - r.startAt;
+      if (!Number.isFinite(ms) || ms < RACE_MIN_MS || real < RACE_MIN_MS - 2000) return errTo(ws, 'That was too fast 🤨');
+      r.fin[p.id] = Math.min(ms, real + 1500);
+      const place = Object.keys(r.fin).length;
+      notice(room, '🏁 ' + p.name + ' finished ' + (place <= 3 ? ['1st', '2nd', '3rd'][place - 1] : place + 'th') + '!');
+      if (!r.firstFin) { r.firstFin = true; if (racers(room).some((q) => r.fin[q.id] == null)) schedule(room, RACE_AFTER_FIRST, () => raceEnd(room)); }
+      return raceCheck(room);
     }
     case 'closeVote':
       if (!hostOnly() || room.phase !== 'vote') return;
