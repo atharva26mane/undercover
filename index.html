@@ -732,6 +732,10 @@ html[data-theme=dark] .suspects{background:repeating-linear-gradient(0deg,transp
 .wg-stamp{display:inline-block;font:800 26px var(--f-disp);color:#fff;background:#E6003D;border:3px solid #121212;border-radius:8px;padding:4px 14px;transform:rotate(-6deg);animation:stampIn2 .45s .35s var(--spring) both}
 .wgpop.ok .wg-stamp{background:#00A859}
 .wg-in p{font-weight:800;margin:12px 0 0}
+.shbtn{background:#FFD600;color:#121212;animation:none}.shbtn small{background:#121212;color:#FFD600}
+.ucbtn{background:#121212;color:#FFD600;animation:none;border-style:dashed;border-color:#FFD600}
+.ucline{margin:0 0 12px;padding:8px 12px;border:2px dashed var(--ink,#121212);border-radius:12px;font-weight:800;font-size:13px}
+.sh-note{display:block;margin-top:6px;font-size:12px;font-weight:800}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
 /* chat messages float up as comic speech bubbles, then pop */
@@ -908,6 +912,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
     else if (m.t === 'notice') toast(m.msg);
     else if (m.t === 'react') floatReact(m.e, m.from);
     else if (m.t === 'wguess') showWhiteGuess(m);
+    else if (m.t === 'sheriff') showSheriff(m);
     else if (m.t === 'photos') { photoMap = {}; Object.keys(m.map || {}).forEach(function (n) { photoMap[n.trim().toLowerCase()] = m.map[n]; }); if (S) render(); }
     else if (m.t === 'photo') { var pk = String(m.name).trim().toLowerCase(); if (m.data) photoMap[pk] = m.data; else delete photoMap[pk]; if (S) render(); }
     else if (m.t === 'chatlog') { chatList = m.list || []; chatUnread = 0; paintChat(); }
@@ -953,7 +958,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
       if (!shown) fill(btn, 'Tap to see your word');
       else if (me.joker) fill(btn, 'You are the 🤡 Joker', h('span', { class: 'big' }, me.word), h('small', null, 'Get yourself voted out to win!'));
       else if (me.white) fill(btn, 'You are Mr. White', h('span', { class: 'big' }, 'No word'), h('small', null, me.hint ? '💡 Hint: ' + me.hint : 'Blend in and work out the word'));
-      else fill(btn, 'Your word', h('span', { class: 'big' }, me.word));
+      else fill(btn, 'Your word', h('span', { class: 'big' }, me.word), me.sheriff ? h('small', { class: 'sh-note' }, me.shot ? '🤠 Sheriff (shot used)' : '🤠 You are the Sheriff! In voting you can shoot once: Mr. White = he is out, anyone else = YOU are out') : null);
       var bg = btn.querySelector('.big'); if (bg) fitTextSoon(bg, 40);
     }
     function hide() { shown = false; clearTimeout(tm); paint(); }
@@ -1171,7 +1176,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
         fill(summary, h('p', null, 'Time per clue: ' + s.describeSecs + 's'),
           h('p', null, 'Roles for ' + pl.n + ' players: ' + pl.c + ' Civilian · ' + pl.u + ' Undercover · ' + pl.w + ' Mr. White'),
           h('p', null, '🎒 Words: ' + modesLabel(s.modes)),
-          h('p', null, 'Mr. White hint: ' + (s.hint ? 'on' : 'off') + ' · Joker: ' + (s.joker ? 'on' : 'off') + ' · Chat: ' + (s.chat ? 'on' + (s.chatSlow ? ' (slow ' + s.chatSlow + 's)' : '') : 'off') + ' · Reactions: ' + (s.reacts ? 'on' : 'off') + ' · Leaderboard: ' + (s.board ? 'on' : 'off')));
+          h('p', null, 'Mr. White hint: ' + (s.hint ? 'on' : 'off') + ' · Joker: ' + (s.joker ? 'on' : 'off') + ' · Sheriff: ' + (s.sheriff ? 'on' : 'off') + ' · Chat: ' + (s.chat ? 'on' + (s.chatSlow ? ' (slow ' + s.chatSlow + 's)' : '') : 'off') + ' · Reactions: ' + (s.reacts ? 'on' : 'off') + ' · Leaderboard: ' + (s.board ? 'on' : 'off')));
         fill(supArea, S.me.sup ? null
           : supP ? h('div', { class: 'banner' }, '🕵️ ' + supP.name + ' is the supervisor (not playing)')
           : S.mySupReq ? h('div', { class: 'banner' }, '⏳ Asked the host to make you supervisor… ', h('button', { class: 'link', type: 'button', onclick: function () { send({ t: 'supReq', cancel: true }); } }, 'Cancel'))
@@ -1191,7 +1196,8 @@ html[data-theme=dark] .cbub{border-color:#121212}
     var reacts = toggle('Emoji reactions', 'Everyone can throw 😂 🤨 🤡 during the game', function (v) { send({ t: 'settings', reacts: v }); });
     var boardT = toggle('Leaderboard', 'Points and wins for each player in this lobby', function (v) { send({ t: 'settings', board: v }); });
     var jokerT = toggle('🤡 Joker (6+ players)', 'One player gets the civilian word and wins alone if voted out', function (v) { send({ t: 'settings', joker: v }); });
-    var ucT = toggle('🕵️ Undercover can guess', 'If voted out, only they see a box to guess the civilians\' word (+3)', function (v) { send({ t: 'settings', ucGuess: v }); });
+    var ucT = toggle('🕵️ Undercover can guess', 'If voted out, only they get 1 secret guess at the civilians\' word (+3). No timer: open till the game ends', function (v) { send({ t: 'settings', ucGuess: v }); });
+    var shT = toggle('🤠 Sheriff (needs Mr. White)', 'One civilian can shoot once during voting. Hits Mr. White = he is out. Anyone else = the Sheriff is out', function (v) { send({ t: 'settings', sheriff: v }); });
     var chatT = toggle('💬 Chat', 'Open during discussion & voting. Secret words are blocked', function (v) { send({ t: 'settings', chat: v }); });
     var slowRow = h('div', { class: 'set' }), cdRow = h('div', { class: 'set' }), wtRow = h('div', { class: 'set' }), modesBox = h('div');
     var sup = toggle('I\'ll be the supervisor', 'You won\'t get a word. You choose the words and see everyone\'s role', function (v) { send({ t: 'settings', supervisor: v }); });
@@ -1205,7 +1211,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
       h('div', { class: 'card' }, count, list),
       h('div', { class: 'card' }, h('h2', null, 'Settings'),
         h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Time per clue', h('small', null, 'seconds for each player\'s turn')), secsStep.root),
-        autoRoles.root, uRow, wRow, planTxt, wtRow, hint.root, ucT.root, jokerT.root, chatT.root, slowRow, reacts.root, cdRow, boardT.root, sup.root, otherSup),
+        autoRoles.root, uRow, wRow, planTxt, wtRow, hint.root, ucT.root, shT.root, jokerT.root, chatT.root, slowRow, reacts.root, cdRow, boardT.root, sup.root, otherSup),
       h('div', { class: 'card tight' }, h('h2', null, '🎒 Word modes'), modesBox),
       sw.root, board, startBtn, why);
     return { root: root, update: function () {
@@ -1218,7 +1224,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
       }));
       secsStep.set(s.describeSecs);
       autoRoles.inp.checked = s.autoRoles; sup.inp.checked = S.me.sup;
-      hint.inp.checked = s.hint; reacts.inp.checked = s.reacts; boardT.inp.checked = s.board; jokerT.inp.checked = s.joker; ucT.inp.checked = s.ucGuess !== false; chatT.inp.checked = s.chat;
+      hint.inp.checked = s.hint; reacts.inp.checked = s.reacts; boardT.inp.checked = s.board; jokerT.inp.checked = s.joker; ucT.inp.checked = s.ucGuess !== false; shT.inp.checked = !!s.sheriff; chatT.inp.checked = s.chat;
       fill(slowRow, h('div', { class: 'lbl' }, '🐢 Chat slow mode', h('small', null, 'Seconds between messages per player')),
         seg([[0, 'Off'], [5, '5s'], [10, '10s'], [30, '30s']], s.chatSlow, function (v) { send({ t: 'settings', chatSlow: v }); }));
       slowRow.style.display = s.chat ? '' : 'none';
@@ -1276,6 +1282,53 @@ html[data-theme=dark] .cbub{border-color:#121212}
       h('p', { class: 'mute small' }, '⚠️ Everyone will see your name and your guess! Right = you win. Wrong = you lose a chance (' + S.me.wLeft + ' left).'),
       inp, h('div', { class: 'gap' }), h('button', { class: 'btn primary', type: 'button', onclick: go }, 'Lock it in'), h('div', { class: 'gap' }), h('button', { class: 'btn yellow', type: 'button', onclick: close }, 'Not yet')));
     document.body.appendChild(m); setTimeout(function () { try { inp.focus(); } catch (e) {} }, 80);
+  }
+  /* voted-out Undercover: one secret guess, any time until the game ends (only on their phone) */
+  var ucbar = h('div');
+  document.getElementById('wrap').insertBefore(ucbar, document.getElementById('app'));
+  var ucKeyG = null;
+  function syncUc() {
+    var show = S && S.phase !== 'elim' && S.phase !== 'over' && S.phase !== 'lobby';
+    var key = !show ? '' : S.ucAsk ? 'ask' : S.ucResult ? 'res' : '';
+    if (key === ucKeyG) return; ucKeyG = key;
+    fill(ucbar, key === 'ask' ? h('button', { class: 'wtry ucbtn', type: 'button', onclick: openUcGuess }, h('span', null, '🤫'), h('b', null, 'Secret word guess'), h('small', null, '1 try · +3'))
+      : key === 'res' ? h('div', { class: 'ucline' }, '🤫 Your secret guess: “' + S.ucResult.text + '” ' + (S.ucResult.ok ? '✓ +3 points' : '✗ wrong')) : null);
+  }
+  function openUcGuess() {
+    var m = h('div', { class: 'modal' }), inp = h('input', { type: 'text', maxlength: 40, placeholder: 'The civilians\' word…', autocomplete: 'off', enterkeyhint: 'send' });
+    function close() { if (m.parentNode) m.parentNode.removeChild(m); }
+    function go() { var v = inp.value.trim(); if (!v) return toast('Type your guess'); send({ t: 'ucGuess', text: v }); close(); }
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
+    fill(m, h('div', { class: 'modal-in' }, h('h1', { style: 'font-size:22px' }, '🤫 Secret guess'),
+      h('p', { class: 'mute small' }, 'Only you see this. You get ONE try, no time limit: wait for more clues if you like. Right = +3 points.'),
+      inp, h('div', { class: 'gap' }), h('button', { class: 'btn primary', type: 'button', onclick: go }, 'Lock it in'), h('div', { class: 'gap' }), h('button', { class: 'btn yellow', type: 'button', onclick: close }, 'Not yet')));
+    document.body.appendChild(m); setTimeout(function () { try { inp.focus(); } catch (e) {} }, 80);
+  }
+  /* Sheriff: pick who to shoot (voting only) */
+  function openSheriff() {
+    var m = h('div', { class: 'modal' });
+    function close() { if (m.parentNode) m.parentNode.removeChild(m); }
+    var alive = S.players.filter(function (p) { return p.in && p.alive && p.id !== S.me.id; });
+    fill(m, h('div', { class: 'modal-in' }, h('h1', { style: 'font-size:22px' }, '🤠 Sheriff\'s shot'),
+      h('p', { class: 'mute small' }, '⚠️ One shot only, and everyone will see it. If they are Mr. White, they are out. If not, YOU are out.'),
+      h('div', { class: 'suspects' }, alive.map(function (p) {
+        return h('button', { class: 'suspect shpick', type: 'button', onclick: function () {
+          if (!confirm('Shoot ' + p.name + '? If they are not Mr. White, you are out.')) return;
+          send({ t: 'sheriff', target: p.id }); close();
+        } }, h('div', { class: 'nm' }, avatar(p.name, pidx(p.id), 'sm'), h('span', null, p.name)));
+      })), h('div', { class: 'gap' }), h('button', { class: 'btn yellow', type: 'button', onclick: close }, 'Not now')));
+    document.body.appendChild(m);
+  }
+  function showSheriff(g) {
+    var m = h('div', { class: 'wgpop' + (g.hit ? ' ok' : '') });
+    fill(m, h('div', { class: 'wg-in' }, h('small', null, '🤠 THE SHERIFF FIRED!'), avatar(g.by, g.byIdx != null ? g.byIdx : S ? pidx(g.byId) : 0, 'xl'), h('div', { class: 'wg-name' }, g.by),
+      h('div', { class: 'wg-text' }, 'shot ' + g.target),
+      h('div', { class: 'wg-stamp' }, g.hit ? '✓ MR. WHITE!' : '✗ MISSED'),
+      h('p', null, g.hit ? g.target + ' was Mr. White and is out! 🎯' : g.target + ' is not Mr. White. Sheriff ' + g.by + ' is out 😂')));
+    m.addEventListener('click', function () { if (m.parentNode) m.parentNode.removeChild(m); });
+    document.body.appendChild(m);
+    buzz(g.hit ? [150, 80, 150, 80, 400] : [500]);
+    setTimeout(function () { if (m.parentNode) m.parentNode.removeChild(m); }, 4200);
   }
   // Big popup on every phone when Mr. White guesses
   function showWhiteGuess(g) {
@@ -1504,8 +1557,9 @@ html[data-theme=dark] .cbub{border-color:#121212}
     var tie = h('div', { class: 'banner bad' }), tieBars = h('div');
     var progress = h('div', { class: 'card tight' });
     var ballot = h('div'), table = h('div');
+    var shBtn = h('button', { class: 'wtry shbtn', type: 'button', onclick: openSheriff }, h('span', null, '🤠'), h('b', null, 'Sheriff: shoot'), h('small', null, '1 shot'));
     var hostBox = h('div', { class: 'row' }, hostBtn('Close vote now', { t: 'closeVote' }, 'small'), hostBtn('Skip (nobody out)', { t: 'skipVote' }, 'small danger', 'Skip the elimination and start a new round?'));
-    var root = h('div', null, h('h1', null, 'Vote'), tickerStrip('SOCH SAMAJH KE VOTE KAR ★ KAUN HAI UNDERCOVER?'), wc.root, sp.root, tie, tieBars, progress, ballot, table, hostBox);
+    var root = h('div', null, h('h1', null, 'Vote'), tickerStrip('SOCH SAMAJH KE VOTE KAR ★ KAUN HAI UNDERCOVER?'), wc.root, sp.root, tie, tieBars, progress, shBtn, ballot, table, hostBox);
     return { root: root, update: function () {
       wc.update(); sp.update();
       var alive = S.players.filter(function (p) { return p.in && p.alive; });
@@ -1519,6 +1573,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
           return h('span', { class: 'vs ' + (p.voted ? 'yes' : 'no') }, avatar(p.name, pidx(p.id), 'xs'), p.name + (p.id === S.me.id ? ' (you)' : ''), h('b', null, p.voted ? '✓' : '…'));
         })));
       var canVote = S.me.alive && !S.me.sup;
+      shBtn.style.display = canVote && S.me.sheriff && !S.me.shot ? '' : 'none';
       fill(ballot, canVote ? [h('h2', null, S.myVote ? 'Your vote (tap again to undo)' : 'Tap who you think is the impostor'),
         h('div', { class: 'suspects' }, speakOrder(alive).filter(function (x) { return x.p.id !== S.me.id; }).map(function (x) {
           var p = x.p, mineSel = S.myVote === p.id, n = S.tie && S.tieTally && S.tieTally[p.id] ? S.tieTally[p.id].length : 0;
@@ -1581,7 +1636,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
         ucShown = ucKey;
         if (S.ucAsk) { buzz([400, 100, 400]); setTimeout(function () { try { ucInp.focus(); } catch (e) {} }, 300); }
         fill(ucBox, S.ucAsk ? h('div', { class: 'card ucask' }, h('h2', null, '🤫 Only you can see this'), h('p', { style: 'font-weight:800;margin:0 0 4px' }, 'You were the Undercover! Guess the civilians\' word for +3.'),
-            h('p', { class: 'mute small', style: 'margin:0 0 8px' }, 'Nobody else knows you get this chance. Be quick, before the host moves on.'), ucInp, h('div', { class: 'gap' }), h('button', { class: 'btn primary', type: 'button', onclick: ucGo }, 'Submit secret guess'))
+            h('p', { class: 'mute small', style: 'margin:0 0 8px' }, 'Nobody else knows you get this chance. ONE try, no time limit: you can wait for more clues, the box stays till the game ends.'), ucInp, h('div', { class: 'gap' }), h('button', { class: 'btn primary', type: 'button', onclick: ucGo }, 'Submit secret guess'))
           : S.ucResult ? h('div', { class: 'card ucask' }, h('h2', null, '🤫 Your secret guess'), h('p', { style: 'font-weight:800;margin:0' }, '“' + S.ucResult.text + '” ' + (S.ucResult.ok ? '✓ Correct! +3 points' : '✗ Wrong. No bonus'))) : null);
       }
       wc.update();
@@ -1589,12 +1644,12 @@ html[data-theme=dark] .cbub{border-color:#121212}
       if (e && shownFor !== e.id) {
         shownFor = e.id; buzz(e.id === S.me.id ? [700] : [150, 80, 150]);
         var cls = e.role === 'civilian' ? 'civ' : e.role === 'undercover' ? 'und' : 'wht';
-        fill(res, h('div', { class: 'stampcard' }, h('h2', null, 'Voted out'), avatar(e.name, pidx(e.id), 'xl'), h('div', { class: 'kname' }, e.name),
+        fill(res, h('div', { class: 'stampcard' }, h('h2', null, e.sheriff ? (e.sheriff.hit ? '🤠 Shot by Sheriff ' + e.sheriff.by : '🤠 Sheriff missed ' + e.sheriff.target) : 'Voted out'), avatar(e.name, pidx(e.id), 'xl'), h('div', { class: 'kname' }, e.name),
           h('div', { class: 'rstamp ' + cls }, roleLabel(e.role)),
           S.guess && S.guess.uc ? h('p', { style: 'font-weight:800;margin:6px 0 0' }, S.guess.ok ? '🎯 Guessed the civilians\' word! +3 bonus' + (S.guess.text ? ' (“' + S.guess.text + '”)' : '') : 'Guess ✗ Wrong' + (S.guess.text ? ' (“' + S.guess.text + '”)' : ''))
           : S.guess ? h('p', { style: 'font-weight:800;margin:6px 0 0' }, 'Guessed “' + (S.guess.text || '—') + '” ✗ Wrong') : h('p', { class: 'mute small' }, 'The word stays secret until the game ends.')));
       }
-      fill(votes, h('h2', null, 'Who voted for whom'), voteBars(e && e.breakdown, e && e.id));
+      fill(votes, e && e.sheriff ? [h('h2', null, '🤠 Sheriff\'s shot'), h('p', { style: 'font-weight:800;margin:0' }, e.sheriff.by + ' shot ' + e.sheriff.target + (e.sheriff.hit ? ': it was Mr. White!' : ': not Mr. White, so the Sheriff is out.'))] : [h('h2', null, 'Who voted for whom'), voteBars(e && e.breakdown, e && e.id)]);
       hostBox.style.display = S.me.host ? '' : 'none'; wait.style.display = S.me.host ? 'none' : '';
     } };
   };
@@ -1789,6 +1844,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
   if (!('hint' in L.cfg)) L.cfg.hint = false;
   if (!('ucGuess' in L.cfg)) L.cfg.ucGuess = true;
   if (!('whiteTries' in L.cfg)) L.cfg.whiteTries = 2;
+  if (!('sheriff' in L.cfg)) L.cfg.sheriff = true;
   if (!Array.isArray(L.cfg.modes) || !L.cfg.modes.length) L.cfg.modes = ['mix'];
   function saveSolo() { store('uc.solo', JSON.stringify(L)); }
   var mode = (session || /[?&]c=/.test(location.search)) ? 'online' : (L.step !== 'roster' ? 'solo' : 'menu');
@@ -1864,6 +1920,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
     var prevStarter = L.players && L.players.length ? (L.players[L.starter % L.players.length] || {}).name : null;
     L.pair = drawPair();
     L.players = L.roster.map(function (r, i) { var ro = roles[i]; return { name: r.name, role: ro, word: ro === 'civilian' || ro === 'joker' ? L.pair.civilian : ro === 'undercover' ? L.pair.undercover : '', alive: true, seen: false }; });
+    if (L.cfg.sheriff && c.w > 0) { var civI = L.players.map(function (_, i) { return i; }).filter(function (i) { return L.players[i].role === 'civilian'; }); if (civI.length) L.players[civI[rnd(civI.length)]].sheriff = true; }
     // random first player each round (not the same person as last round); everything else follows the seats clockwise
     var starters = L.players.map(function (_, i) { return i; }).filter(function (i) { return L.players[i].name !== prevStarter; });
     L.starter = starters.length ? starters[rnd(starters.length)] : rnd(L.players.length);
@@ -1962,7 +2019,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
       var stage = h('div', { class: 'stage' },
         h('div', { class: 's-lbl' }, 'SECRET ASSIGNMENT'),
         h('div', { class: 's-word', style: 'font-size:' + size + 'px' }, w),
-        h('div', { class: 's-note' }, p.role === 'white' ? (L.cfg.hint && L.pair && L.pair.cat ? 'Mr. White · hint: ' + L.pair.cat : 'You are Mr. White — listen and bluff') : p.role === 'joker' ? '🤡 Joker: get yourself voted out to win!' : 'Give one subtle clue on your turn'),
+        h('div', { class: 's-note' }, p.role === 'white' ? (L.cfg.hint && L.pair && L.pair.cat ? 'Mr. White · hint: ' + L.pair.cat : 'You are Mr. White — listen and bluff') : p.role === 'joker' ? '🤡 Joker: get yourself voted out to win!' : p.sheriff ? (p.shot ? '🤠 Sheriff (shot used)' : '🤠 You are the SHERIFF: once, you can shoot. Mr. White = he is out, else YOU are out') : 'Give one subtle clue on your turn'),
         h('div', { class: 'shutter' }, h('div', { class: 'plaque' }, h('b', null, 'Top secret chit'), h('span', null, 'Hold the orange button to peek'))));
       var done = h('button', { class: 'btn green', type: 'button', disabled: true, onclick: function () { open(false); opts.onDone(); } }, opts.doneText);
       var hold = h('button', { class: 'btn primary hold', type: 'button' }, 'Hold thumb here to see word');
@@ -2124,6 +2181,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
           h('div', { class: 'set' }, h('div', { class: 'lbl' }, '🎯 Mr. White guesses', h('small', null, 'Times he can guess the word mid-round (everyone sees it)')),
             seg([[0, 'Off'], [1, '1'], [2, '2'], [3, '3']], L.cfg.whiteTries, function (v) { L.cfg.whiteTries = v; saveSolo(); draw(); })),
           soloToggle('🕵️ Undercover can guess', 'If kicked, they secretly type the civilians\' word on this phone (+3)', 'ucGuess'),
+          soloToggle('🤠 Sheriff (needs Mr. White)', 'One civilian can shoot once. Hits Mr. White = he is out. Anyone else = the Sheriff is out', 'sheriff'),
           soloToggle('🤡 Joker (6+ players)', 'One player gets the civilian word and wins alone if voted out', 'joker')),
         h('div', { class: 'card tight' }, h('h2', null, '🎒 Word modes'), modePicker(L.cfg.modes, function (next) { L.cfg.modes = next; saveSolo(); draw(); })),
         err, dock(start));
@@ -2244,6 +2302,34 @@ html[data-theme=dark] .cbub{border-color:#121212}
           })), h('div', { class: 'grow' }), dock(h('button', { class: 'btn yellow', type: 'button', onclick: close }, 'Cancel'))));
         root.appendChild(sheet);
       }
+      // Sheriff: taps his own name (privately), then picks who to shoot; everyone sees the result
+      function sheriffOpen() { return alive.some(function (i) { return P[i].sheriff && !P[i].shot; }); }
+      function sheriffSheet() {
+        var sheet = h('div', { class: 'sheet' });
+        function close() { if (sheet.parentNode) sheet.parentNode.removeChild(sheet); }
+        function pickTarget(i) {
+          fill(sheet, h('div', { class: 'sheet-in' }, h('h1', null, '🤠 Who do you shoot, ' + P[i].name + '?'),
+            h('p', { class: 'mute small' }, '⚠️ One shot only. Mr. White = he is out. Anyone else = YOU are out.'),
+            h('div', { class: 'suspects' }, alive.filter(function (t) { return t !== i; }).map(function (t) {
+              return h('button', { class: 'suspect', type: 'button', onclick: function () {
+                if (!confirm('Shoot ' + P[t].name + '?')) return;
+                var hit = P[t].role === 'white', out = hit ? t : i;
+                P[i].shot = true; P[out].alive = false; close();
+                showSheriff({ by: P[i].name, byIdx: i, target: P[t].name, hit: hit });
+                L.last = { ids: [out], shown: false, sheriff: { by: P[i].name, target: P[t].name, hit: hit } }; L.undo = [out];
+                go('result');
+              } }, h('div', { class: 'nm' }, avatar(P[t].name, t, 'sm'), h('span', null, P[t].name)));
+            })), h('div', { class: 'grow' }), dock(h('button', { class: 'btn yellow', type: 'button', onclick: close }, 'Cancel'))));
+        }
+        fill(sheet, h('div', { class: 'sheet-in' }, h('h1', null, 'Who are you?'), h('p', { class: 'mute small' }, 'Sheriff, tap your own name.'),
+          h('div', { class: 'suspects' }, alive.map(function (i) {
+            return h('button', { class: 'suspect', type: 'button', onclick: function () {
+              if (!P[i].sheriff || P[i].shot) { buzz(200); return toast('🤨 ' + P[i].name + ' is not the Sheriff!'); }
+              pickTarget(i);
+            } }, h('div', { class: 'nm' }, avatar(P[i].name, i, 'sm'), h('span', null, P[i].name)));
+          })), h('div', { class: 'grow' }), dock(h('button', { class: 'btn yellow', type: 'button', onclick: close }, 'Cancel'))));
+        root.appendChild(sheet);
+      }
       return h('div', null, roundTools(false),
         h('div', { class: 'row', style: 'justify-content:space-between' }, h('h1', null, 'Clues & vote'), h('span', { class: 'pill', style: 'flex:none' }, alive.length + ' ALIVE')),
         tickerStrip('BOL BHAI ★ SHAK MAT KAR ★ SOCH KE KICK KAR'),
@@ -2252,6 +2338,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
         grid,
         h('button', { class: 'link', type: 'button', onclick: forgot }, 'Forgot your word? Check it'),
         wtryOpen() ? h('button', { class: 'wtry solo-wtry', type: 'button', onclick: whiteTrySheet }, h('span', null, '🎯'), h('b', null, 'Mr. White wants to guess'), h('small', null, L.cfg.whiteTries + ' tries each')) : null,
+        sheriffOpen() ? h('button', { class: 'wtry shbtn solo-sh', type: 'button', onclick: sheriffSheet }, h('span', null, '🤠'), h('b', null, 'Sheriff wants to shoot'), h('small', null, '1 shot')) : null,
         dock(btn));
     };
 
@@ -2339,7 +2426,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
         h('h1', null, 'Verdict'), tickerStrip('PAKDA GAYA? ★ YA GALAT BANDA NIKLA?'),
         ids.map(function (i, k) {
           var p = P[i];
-          return h('div', { class: 'stampcard', style: 'animation-delay:' + (k * 0.35) + 's' }, h('h2', null, 'Kicked from the circle'), h('div', { class: 'kname' }, p.name),
+          return h('div', { class: 'stampcard', style: 'animation-delay:' + (k * 0.35) + 's' }, h('h2', null, L.last.sheriff ? (L.last.sheriff.hit ? '🤠 Shot by Sheriff ' + L.last.sheriff.by : '🤠 Sheriff missed ' + L.last.sheriff.target) : 'Kicked from the circle'), h('div', { class: 'kname' }, p.name),
             h('div', { class: 'rstamp ' + rcls(p.role), style: 'animation-delay:' + (0.3 + k * 0.35) + 's' }, roleLabel(p.role)),
             p.role === 'white' && L.last.guess[i] === false ? h('p', { style: 'font-weight:800;margin:4px 0' }, 'Guessed the word? ✗ No') : null,
             p.role === 'undercover' && L.last.ucg && i in L.last.ucg ? h('p', { style: 'font-weight:800;margin:4px 0' }, L.last.ucg[i] ? '🎯 Guessed the civilians\' word! +3' : 'Word guess ✗ Wrong') : null,
@@ -2410,7 +2497,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
     }
     if (S && S.phase !== 'lobby' && S.phase !== 'over') wakeLock();
     cur.update();
-    syncSupModal(); syncHostbar(); syncWatch(); syncWhiteTry(); syncReactBar(); paintChat();
+    syncSupModal(); syncHostbar(); syncWatch(); syncWhiteTry(); syncUc(); syncReactBar(); paintChat();
   }
   setInterval(function () { if (cur && cur.tick) cur.tick(); }, 250);
 
