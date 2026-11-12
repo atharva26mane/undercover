@@ -875,6 +875,67 @@ body.fbmode #app{padding-top:8px}
 .pmark{position:absolute;top:-3px;bottom:-3px;width:8px;margin-left:-4px;background:#fff;border:2px solid #121212;border-radius:4px}
 .pshoot{width:100%;font-size:20px}
 
+.hm-fbtn.hm-ubtn{background:#F0344D;margin-top:12px}
+.ugame{position:relative;display:flex;flex-direction:column;height:calc(100dvh - 14px);max-height:calc(100dvh - 14px);overflow:hidden;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.utop{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:32px;flex:none}.utt{font:800 13px var(--f-mono);text-align:center;flex:1}.usec{font:800 15px var(--f-mono)}
+.ubar{height:6px;border:2px solid #121212;border-radius:999px;background:#fff;overflow:hidden;margin:2px 0 4px;flex:none}.ubar i{display:block;height:100%;width:0;background:#00A859;transition:width .3s linear}.ubar.low i{background:#F0344D}
+.uopp{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 2px;padding:2px 0 4px;flex:none;max-height:36%;overflow:hidden}
+.uchip{width:23%;max-width:96px;display:flex;flex-direction:column;align-items:center;position:relative;animation:uChipIn .4s both;animation-delay:calc(var(--ci)*40ms)}
+@keyframes uChipIn{from{opacity:0;transform:translateY(-14px) scale(.7)}to{opacity:1;transform:none}}
+.uav{position:relative;width:42px;height:42px}.uchip.sm .uav{width:36px;height:36px}.uav .av{width:100%;height:100%;border:3px solid #121212;box-shadow:2px 2px 0 #121212}
+.ucnt{position:absolute;right:-8px;bottom:-5px;min-width:20px;height:20px;border-radius:10px;background:#121212;color:#fff;font:800 11px/20px var(--f-mono);text-align:center;border:2px solid #fff;padding:0 3px}
+.uturnring{position:absolute;inset:-6px;border:3px solid #FFD600;border-radius:50%;animation:uRing 1s ease-in-out infinite}
+@keyframes uRing{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.12);opacity:.6}}
+.uchip.turn .unm{background:#FFD600;border-radius:6px;padding:0 4px}
+.unm{font:800 10px var(--f-mono);margin-top:4px;max-width:100%;overflow:hidden;white-space:nowrap}
+.unext{position:absolute;top:-8px;left:-2px;font:800 8px var(--f-mono);background:#00A859;color:#fff;border-radius:6px;padding:1px 4px;border:1.5px solid #121212}
+.utable{flex:1;min-height:140px;position:relative;display:flex;align-items:center;justify-content:center;gap:26px;border-radius:22px;background:radial-gradient(ellipse at center,#1f7a4a 0,#145c36 70%);border:3px solid #121212;margin:2px 0 6px;box-shadow:inset 0 0 40px rgba(0,0,0,.35)}
+.udir{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:92px;line-height:1;color:rgba(255,255,255,.14);pointer-events:none}.udir.cw{animation:uRot 7s linear infinite}.udir.ccw{animation:uRotR 7s linear infinite}
+@keyframes uRot{to{transform:translate(-50%,-50%) rotate(360deg)}}@keyframes uRotR{to{transform:translate(-50%,-50%) rotate(-360deg)}}
+.udir.uspin{animation:uSpin .9s ease-out}@keyframes uSpin{to{transform:translate(-50%,-50%) rotate(720deg) scale(1.4)}}
+.upile{position:relative;width:78px;height:116px;border:0;background:none;padding:0;flex:none;z-index:1}
+.udraw .ucard{position:absolute;left:0;top:0;--cw:76px}.udraw .l2{transform:translate(3px,-3px)}.udraw .l1{transform:translate(6px,-6px)}
+.udraw.can{animation:uHint 1.3s ease-in-out infinite}.udraw.pulse{animation:uPulse .8s ease-out}
+@keyframes uHint{0%,100%{filter:drop-shadow(0 0 0 #FFD600)}50%{filter:drop-shadow(0 0 10px #FFD600)}}@keyframes uPulse{0%{transform:scale(1)}40%{transform:scale(1.18) rotate(-4deg)}100%{transform:scale(1)}}
+.upc{position:absolute;left:50%;bottom:-16px;transform:translateX(-50%);font:800 11px var(--f-mono);color:#fff}
+.udisc{display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 16px var(--glow,#fff))}.udisc:before{content:"";position:absolute;inset:-12px;border-radius:50%;background:radial-gradient(var(--glow,#fff),transparent 68%);opacity:.5}
+.udisc .ucard{--cw:80px;position:relative}.udisc.upop .ucard{animation:uPop .45s cubic-bezier(.3,1.6,.5,1)}.udisc.uflip .ucard{animation:uFlip .6s ease-out}
+@keyframes uPop{0%{transform:scale(1.35) rotate(-8deg)}100%{transform:none}}@keyframes uFlip{0%{transform:rotateY(90deg) scale(1.2)}100%{transform:none}}
+.ucolor{position:absolute;right:10px;bottom:8px;font:800 10px var(--f-mono);padding:3px 9px;border-radius:999px;border:2px solid #121212}
+.ubanner{position:absolute;left:8px;right:8px;top:8px;text-align:center;background:#FFD600;border:3px solid #121212;border-radius:12px;font:800 12px var(--f-mono);padding:5px 8px;box-shadow:3px 3px 0 #121212;animation:uBan .4s both}@keyframes uBan{from{transform:translateY(-10px);opacity:0}}
+.ume{display:flex;align-items:center;gap:8px;padding:3px 6px;border-radius:12px;flex:none;font:800 12px var(--f-mono);position:relative}.ume.turn{background:#FFD600;border:2px solid #121212}.uwatch{padding:10px;font-weight:800}
+.ubtns{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;padding:4px 0;flex:none}
+.ubtn{border:3px solid #121212;border-radius:12px;padding:7px 12px;font:800 14px var(--f-disp);box-shadow:3px 3px 0 #121212;background:#fff;color:#121212}.ubtn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #121212}
+.uunoB{background:#F0344D;color:#fff;font-size:19px;padding:5px 16px;transform:rotate(-4deg)}.ucatchB{background:#8E44FF;color:#fff}.uplayB{background:#00A859;color:#fff;font-size:17px}.udrawB{background:#FFD600}.upassB{background:#fff}
+.uhand{display:flex;overflow-x:auto;overflow-y:hidden;padding:30px 12px 8px;min-height:128px;flex:none;-webkit-overflow-scrolling:touch;scrollbar-width:none}.uhand::-webkit-scrollbar{display:none}
+.ucard{--cw:60px;width:var(--cw);aspect-ratio:2/3;border-radius:calc(var(--cw)*.16);background:var(--cc,#1c1c24);border:calc(var(--cw)*.055) solid #fff;box-shadow:0 0 0 2px #121212,0 3px 0 2px rgba(0,0,0,.3);position:relative;flex:none;font-family:var(--f-disp);box-sizing:border-box}
+.uc-ov{position:absolute;left:11%;right:11%;top:17%;bottom:17%;background:#fff;border-radius:50%;transform:rotate(-26deg);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.uc-ov b{transform:rotate(26deg);font-size:calc(var(--cw)*.46);color:var(--cc);font-weight:800;line-height:1;-webkit-text-stroke:calc(var(--cw)*.022) #121212;paint-order:stroke fill;font-style:normal}
+.uc-c{position:absolute;font-style:normal;font-size:calc(var(--cw)*.2);color:#fff;font-weight:800;line-height:1;text-shadow:1px 1px 0 rgba(0,0,0,.45)}.uc-c.tl{left:9%;top:6%}.uc-c.br{right:9%;bottom:6%;transform:rotate(180deg)}
+.uc-X{--cc:#1c1c24}.uc-X .uc-ov{background:conic-gradient(#F0344D 0 25%,#FFC800 0 50%,#00A859 0 75%,#2D6CDF 0)}.uc-X .uc-ov b{color:#fff;font-size:calc(var(--cw)*.4)}
+.ucard.back{background:#1c1c24}.back .uc-ov{background:#F0344D}.back .uc-ov b{color:#FFC800;font-size:calc(var(--cw)*.3);-webkit-text-stroke:calc(var(--cw)*.02) #121212;letter-spacing:-.03em}
+.hc{margin-left:-24px;transition:transform .15s,opacity .25s;cursor:pointer}.hc:first-child{margin-left:0}.hc:not(.in){opacity:0;transform:translateY(-60px) scale(.6)}
+.hc.sel{transform:translateY(-24px)}.hc.dim{filter:brightness(.5) saturate(.6)}.hc.ok{box-shadow:0 0 0 2px #121212,0 0 12px 3px rgba(255,214,0,.85)}
+.hc.nope{animation:uNope .35s}@keyframes uNope{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.ucard.fly{position:fixed;z-index:60;--cw:46px;pointer-events:none}
+.ufx{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden}
+.ubig{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%);font:800 56px var(--f-disp);color:#fff;text-shadow:3px 3px 0 #121212,-2px -2px 0 #121212,2px -2px 0 #121212,-2px 2px 0 #121212;animation:uBig 1.25s cubic-bezier(.2,1.4,.4,1) both;white-space:nowrap;letter-spacing:.02em}
+@keyframes uBig{0%{transform:translate(-50%,-50%) scale(.2) rotate(-12deg);opacity:0}25%{transform:translate(-50%,-50%) scale(1.15) rotate(3deg);opacity:1}70%{transform:translate(-50%,-50%) scale(1) rotate(0);opacity:1}100%{transform:translate(-50%,-90%) scale(1.1);opacity:0}}
+.u-d,.u-f{font-size:96px;color:#FFD600}.u-f{color:#F0344D}.u-s{color:#FF9100}.u-r{color:#2D6CDF}.u-w{color:#fff}.u-c{color:#7CFF9B;font-size:44px}.u-shuf{font-size:36px;color:#FFD600;top:28%}.u-uno2{font-size:84px;color:#F0344D;transform:rotate(-6deg)}
+.ubub{position:fixed;transform:translate(-50%,-100%);font:800 14px var(--f-disp);background:#fff;border:3px solid #121212;border-radius:14px;padding:3px 10px;box-shadow:3px 3px 0 #121212;animation:uBub 1.5s ease-out both;white-space:nowrap}
+@keyframes uBub{0%{transform:translate(-50%,-60%) scale(.3);opacity:0}15%{transform:translate(-50%,-100%) scale(1.15);opacity:1}80%{opacity:1}100%{transform:translate(-50%,-190%) scale(1);opacity:0}}
+.u-uno{background:#F0344D;color:#fff;font-size:20px}.u-caught{background:#8E44FF;color:#fff}.u-ouch{background:#FFD600}.u-pass{opacity:.8;font-size:11px}
+.uripple{position:fixed;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;background:radial-gradient(var(--rc),transparent 70%);animation:uRip 1.1s ease-out both}@keyframes uRip{from{transform:scale(.5);opacity:.9}to{transform:scale(14);opacity:0}}
+.ushake{animation:uShk .5s}@keyframes uShk{0%,100%{transform:none}15%{transform:translate(-7px,3px)}30%{transform:translate(6px,-4px)}45%{transform:translate(-5px,2px)}60%{transform:translate(4px,-2px)}}
+.upick{position:absolute;inset:0;z-index:40;display:none;align-items:center;justify-content:center;background:rgba(18,18,18,.6)}
+.upick-in{background:#fff;border:4px solid #121212;border-radius:20px;padding:16px 18px;text-align:center;box-shadow:6px 6px 0 #121212;animation:uPop .35s cubic-bezier(.3,1.6,.5,1)}.upick-in b{font:800 18px var(--f-disp);display:block;margin-bottom:10px}
+.upick-row{display:flex;gap:10px;margin-bottom:8px}.upc-b{width:62px;height:62px;border-radius:50%;border:4px solid #121212;font:800 22px var(--f-disp);color:#fff;box-shadow:3px 3px 0 #121212}
+.uover{position:absolute;inset:0;z-index:45;display:none;align-items:center;justify-content:center;background:rgba(18,18,18,.78);padding:14px}
+.uover-in{background:#FFF7E6;border:4px solid #121212;border-radius:22px;padding:16px;width:100%;max-width:380px;max-height:100%;overflow:auto;box-shadow:6px 6px 0 #121212;animation:uPop .5s cubic-bezier(.3,1.6,.5,1)}.uover-in h2{text-align:center;margin:0 0 8px}
+.utro{font-size:64px;text-align:center;animation:uBounce 1s ease-in-out infinite}@keyframes uBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px) rotate(6deg)}}
+.udealing .uhand{pointer-events:none}
+body.fbmode .ugame{height:calc(100dvh - 10px)}
+
 .shbtn{background:#FFD600;color:#121212;animation:none}.shbtn small{background:#121212;color:#FFD600}
 .ucbtn{background:#121212;color:#FFD600;animation:none;border-style:dashed;border-color:#FFD600}
 .ucline{margin:0 0 12px;padding:8px 12px;border:2px dashed var(--ink,#121212);border-radius:12px;font-weight:800;font-size:13px}
@@ -1252,19 +1313,19 @@ html[data-theme=dark] .cbub{border-color:#121212}
 
   screens.home = function () {
     var wakeCard = h('div', { class: 'card wake', style: 'display:none' }, h('div', { class: 'shim' }), h('div', null, h('b', null, 'Waking up the server…'), h('div', { class: 'mute small' }, 'The free server sleeps when nobody plays. This can take up to a minute.'), h('div', { class: 'shim-line', style: 'width:70%' })));
-    var since = Date.now(), fbm = wantGame === 'football', rcm = wantGame === 'race';
+    var since = Date.now(), fbm = wantGame === 'football', rcm = wantGame === 'race', unm = wantGame === 'uno';
     var nameIn = h('input', { type: 'text', maxlength: 14, placeholder: 'Your name', value: savedName, autocomplete: 'off' });
     var codeIn = h('input', { type: 'text', class: 'code', maxlength: 4, placeholder: 'CODE', autocomplete: 'off', autocapitalize: 'characters', value: (new URLSearchParams(location.search).get('c') || '').toUpperCase().slice(0, 4) });
     function nm() { var n = nameIn.value.trim(); if (!n) { toast('Enter your name first'); nameIn.focus(); return null; } savedName = n; store('uc.name', n); return n; }
     var root = h('div', null,
-      h('h1', null, rcm ? '🏖️ Beach Buggy' : fbm ? '⚽ Gully Football' : 'Undercover'),
-      h('p', { class: 'sub' }, rcm ? 'Race round the beach: jumps, bridges, turbo and shields!' : fbm ? 'Flick your disc. Everyone shoots at the same time!' : 'Everyone gets a word. Find who has a different one.'),
+      h('h1', null, unm ? '🃏 UNO' : rcm ? '🏖️ Beach Buggy' : fbm ? '⚽ Gully Football' : 'Undercover'),
+      h('p', { class: 'sub' }, unm ? 'Shuffle, stack, and shout UNO!' : rcm ? 'Race round the beach: jumps, bridges, turbo and shields!' : fbm ? 'Flick your disc. Everyone shoots at the same time!' : 'Everyone gets a word. Find who has a different one.'),
       wakeCard,
       h('div', { class: 'card' }, nameIn, h('div', { class: 'gap' }),
-        h('button', { class: 'btn primary', type: 'button', onclick: function () { var n = nm(); if (n) send({ t: 'create', name: n, game: rcm ? 'race' : fbm ? 'football' : undefined, used: loadList('uc.used'), recent: loadList('uc.recent') }); } }, 'Create lobby')),
+        h('button', { class: 'btn primary', type: 'button', onclick: function () { var n = nm(); if (n) send({ t: 'create', name: n, game: unm ? 'uno' : rcm ? 'race' : fbm ? 'football' : undefined, used: loadList('uc.used'), recent: loadList('uc.recent') }); } }, 'Create lobby')),
       h('div', { class: 'card' }, h('h2', null, 'Join a lobby'), codeIn, h('div', { class: 'gap' }),
         h('button', { class: 'btn', type: 'button', onclick: function () { var n = nm(); if (!n) return; if (codeIn.value.trim().length < 4) { toast('Enter the 4-letter code'); return; } send({ t: 'join', name: n, code: codeIn.value.trim() }); } }, 'Join')),
-      fbm || rcm ? null : h('details', { class: 'card' }, h('summary', null, 'How to play'),
+      fbm || rcm || unm ? null : h('details', { class: 'card' }, h('summary', null, 'How to play'),
         h('p', null, h('b', null, 'Civilians'), ' all get the same word. ', h('b', null, 'Undercover'), ' gets a similar but different word (and doesn\'t know it). ', h('b', null, 'Mr. White'), ' gets no word.'),
         h('p', null, 'Take turns giving a short clue about your word without saying it. Then discuss out loud and vote. The player with the most votes is out. Civilians win when all impostors are out; impostors win when they equal the civilians. If Mr. White is voted out, they get one guess at the civilian word.')));
     return { root: root, update: function () {}, tick: function () { wakeCard.style.display = !open && Date.now() - since > 800 ? '' : 'none'; } };
@@ -1981,6 +2042,8 @@ html[data-theme=dark] .cbub{border-color:#121212}
         h('span', { class: 'hm-fe' }, '⚽'), h('span', { class: 'hm-ft' }, h('small', null, '🆕 NEW GAME'), h('b', null, 'Gully Football'), h('span', null, '1–10 players · everyone flicks at once'))),
       h('button', { class: 'hm-fbtn hm-rbtn', type: 'button', onclick: function () { wantGame = 'race'; mode = 'online'; render(); } },
         h('span', { class: 'hm-fe hm-re' }, '🏎️'), h('span', { class: 'hm-ft' }, h('small', null, '🆕 NEW GAME'), h('b', null, 'Beach Buggy'), h('span', null, '1–10 players · 3-lap beach race'))),
+      h('button', { class: 'hm-fbtn hm-ubtn', type: 'button', onclick: function () { wantGame = 'uno'; mode = 'online'; render(); } },
+        h('span', { class: 'hm-fe' }, '🃏'), h('span', { class: 'hm-ft' }, h('small', null, '🆕 NEW GAME'), h('b', null, 'UNO'), h('span', null, '2–12 players · stack, combo, catch!'))),
       h('button', { class: 'hm-howlink', type: 'button', onclick: howToPlay }, '🤚 How to play?'));
     fitTextSoon(title, 72);
     [].forEach.call(root.querySelectorAll('.hm-tk-main b'), function (b) { fitTextSoon(b, 21); });
@@ -2824,7 +2887,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
     fsim = { turn: m.turn, ids: m.ids, frames: r.frames, goal: m.goal, by: m.by, startAt: m.startAt };
   }
   function leaveLink() { return h('button', { class: 'link', type: 'button', onclick: function () { if (confirm('Leave this game?')) send({ t: 'leave' }); } }, 'Leave game'); }
-  function logoText() { var g = S ? S.game : wantGame; return g === 'football' ? 'Football' : g === 'race' ? 'Buggy' : 'Undercover'; }
+  function logoText() { var g = S ? S.game : wantGame; return g === 'uno' ? 'UNO' : g === 'football' ? 'Football' : g === 'race' ? 'Buggy' : 'Undercover'; }
 
   screens.flobby = function () {
     var list = h('ul', { class: 'plist' }), count = h('h2'), setBox = h('div'), act = h('div');
@@ -3235,6 +3298,250 @@ html[data-theme=dark] .cbub{border-color:#121212}
       paint(); this.tick();
       fill(hostRow, S.me.host ? hostBtn('⏹ End match', { t: 'flobby' }, 'small danger', 'End the match and go back to the lobby?') : null, leaveLink());
       if (!running) { running = true; requestAnimationFrame(loop); }
+    } };
+  };
+
+  /* ================= UNO ================= */
+  var UCOL = { R: '#F0344D', Y: '#FFC800', G: '#00A859', B: '#2D6CDF', X: '#1c1c24' }, UNAME = { R: 'RED', Y: 'YELLOW', G: 'GREEN', B: 'BLUE' };
+  var USYM = { s: '⊘', r: '⇄', d: '+2', w: '', f: '+4' };
+  function uIsNum(c) { return c[1] >= '0' && c[1] <= '9'; }
+  function ucard(c, cls) {
+    var col = c[0], v = c[1], sym = uIsNum(c) ? v : USYM[v];
+    return h('div', { class: 'ucard uc-' + col + (col === 'X' ? ' uc-w' + v : '') + (cls ? ' ' + cls : ''), style: col !== 'X' ? '--cc:' + UCOL[col] : '' },
+      h('i', { class: 'uc-c tl' }, sym), h('span', { class: 'uc-ov' }, h('b', null, sym)), h('i', { class: 'uc-c br' }, sym));
+  }
+  function uback(cls) { return h('div', { class: 'ucard back' + (cls ? ' ' + cls : '') }, h('span', { class: 'uc-ov' }, h('b', null, 'UNO'))); }
+  function rc(el) { return el.getBoundingClientRect(); }
+  var unoDone = { gid: 0, ev: 0, resh: 0 };
+
+  screens.ulobby = function () {
+    var list = h('ul', { class: 'plist' }), count = h('h2'), setBox = h('div'), act = h('div');
+    var root = h('div', null, h('h1', null, '🃏 UNO'), h('p', { class: 'sub' }, 'Classic UNO with stacking. 2 to 12 players, each on their own phone.'),
+      h('div', { class: 'card' }, count, list), setBox, act,
+      h('details', { class: 'card' }, h('summary', null, 'How to play'),
+        h('p', null, 'Play a card that matches the ', h('b', null, 'colour'), ' or the ', h('b', null, 'number/symbol'), ' on top. First to empty their hand wins.'),
+        h('p', null, h('b', null, '+2'), ' on +2 and ', h('b', null, '+4'), ' on +4 stack up (never mixed). The player who can\'t add draws everything and loses the turn.'),
+        h('p', null, 'You can throw several ', h('b', null, 'number cards of the same number'), ' together. Wild and +4: you choose the colour.'),
+        h('p', null, h('b', null, 'UNO!'), ' When you play down to ONE card, press UNO within 3 seconds. After that anyone can press CATCH and you draw 2. A power card can\'t be your last card.')));
+    return { root: root, update: function () {
+      var ps = S.players.filter(function (p) { return !p.left; }), us = S.unSet || { secs: 20 };
+      fill(count, 'Players (' + ps.length + ') · 2 to 12 play');
+      fill(list, ps.map(function (p) { return playerRow(p); }));
+      fill(setBox, h('div', { class: 'card tight' }, S.me.host ? h('div', { class: 'set' }, h('div', { class: 'lbl' }, '⏱ Turn timer'), seg([[10, '10s'], [20, '20s'], [30, '30s'], [0, 'Off']], us.secs, function (v) { send({ t: 'uset', secs: v }); }))
+        : h('p', { class: 'mute', style: 'margin:0' }, '⏱ Turn timer: ' + (us.secs ? us.secs + 's' : 'off'))));
+      fill(act, S.me.host ? h('button', { class: 'btn primary', type: 'button', onclick: function () { send({ t: 'ustart' }); } }, ps.length < 2 ? 'Need 2 players' : '🃏 Shuffle & deal!') : h('p', { class: 'mute center' }, 'Waiting for the host to start…'));
+    } };
+  };
+
+  screens.ugame = function () {
+    var sel = [], lastHand = '', picking = null, dealing = false, lastCur = null, shown = '', timersU = [];
+    var fx = h('div', { class: 'ufx' });
+    var topbar = h('div', { class: 'utop' }), timerBar = h('div', { class: 'ubar' }, h('i'));
+    var opp = h('div', { class: 'uopp' }), table = h('div', { class: 'utable' });
+    var drawPile = h('button', { class: 'upile udraw', type: 'button', 'aria-label': 'Draw a card' }), discPile = h('div', { class: 'upile udisc' });
+    var dirEl = h('div', { class: 'udir' }, '⟳'), colEl = h('div', { class: 'ucolor' }), banner = h('div', { class: 'ubanner' });
+    table.appendChild(drawPile); table.appendChild(discPile); table.appendChild(dirEl); table.appendChild(colEl); table.appendChild(banner);
+    var meBar = h('div', { class: 'ume' }), handBox = h('div', { class: 'uhand' }), btns = h('div', { class: 'ubtns' }), picker = h('div', { class: 'upick' }), overBox = h('div', { class: 'uover' });
+    var root = h('div', { class: 'ugame' }, topbar, timerBar, opp, table, meBar, btns, handBox, picker, overBox, fx);
+    var chipEls = {};
+
+    function me() { return S.me.id; }
+    function inGame() { return S.un && S.un.ids.indexOf(me()) >= 0; }
+    function myTurn() { return S.phase === 'uturn' && S.un.cur === me(); }
+    function later(fn, ms) { var t = setTimeout(fn, ms); timersU.push(t); return t; }
+    /* ---- rules mirror (the server decides; this only dims cards that can't be played) ---- */
+    function canCard(c, i, extra) {
+      var u = S.un, hand = u.hand; if (!myTurn()) return false;
+      if (u.drew !== null && i !== u.drew) return false;
+      if (hand.length === 1 && !uIsNum(c)) return false;
+      if (u.pend) return c[1] === (u.pend.k === '2' ? 'd' : 'f');
+      return c[0] === 'X' || c[0] === u.color || c[1] === u.top[1];
+    }
+    function addable(c, i) { // can this card join the current multi-selection?
+      if (!sel.length) return canCard(c, i);
+      var f = S.un.hand[sel[0]]; return uIsNum(f) && uIsNum(c) && c[1] === f[1] && sel.indexOf(i) < 0 && !S.un.pend && S.un.drew === null;
+    }
+    /* ---- flying cards & effects ---- */
+    function fly(from, to, o) {
+      o = o || {}; if (!from || !to || !fx.animate) return;
+      var el = o.face ? ucard(o.face, 'fly') : uback('fly'); el.style.setProperty('--cw', (o.w || 46) + 'px');
+      el.style.left = (from.left + from.width / 2) + 'px'; el.style.top = (from.top + from.height / 2) + 'px'; el.style.opacity = '0'; fx.appendChild(el);
+      var dx = (to.left + to.width / 2) - (from.left + from.width / 2), dy = (to.top + to.height / 2) - (from.top + from.height / 2);
+      var rot = o.rot == null ? (Math.random() * 40 - 20) : o.rot;
+      var a = el.animate([{ transform: 'translate(-50%,-50%) scale(' + (o.s0 || 1) + ') rotate(0deg)', opacity: 1 }, { transform: 'translate(calc(-50% + ' + dx * 0.5 + 'px),calc(-50% + ' + (dy * 0.5 - 40) + 'px)) scale(' + (((o.s0 || 1) + (o.s1 || 1)) / 2 + 0.15) + ') rotate(' + rot / 2 + 'deg)', opacity: 1, offset: 0.55 },
+        { transform: 'translate(calc(-50% + ' + dx + 'px),calc(-50% + ' + dy + 'px)) scale(' + (o.s1 || 1) + ') rotate(' + rot + 'deg)', opacity: o.fade ? 0.2 : 1 }],
+        { duration: o.dur || 520, delay: o.delay || 0, easing: 'cubic-bezier(.2,.8,.3,1)', fill: 'both' });
+      a.onfinish = function () { if (el.parentNode) el.parentNode.removeChild(el); if (o.done) o.done(); };
+    }
+    function bigText(txt, cls) { var e = h('div', { class: 'ubig ' + (cls || '') }, txt); fx.appendChild(e); setTimeout(function () { if (e.parentNode) e.parentNode.removeChild(e); }, 1300); }
+    function bubble(id, txt, cls) {
+      var el = id === me() ? meBar : chipEls[id]; var r = el ? rc(el) : rc(table); var e = h('div', { class: 'ubub ' + (cls || '') }, txt);
+      e.style.left = (r.left + r.width / 2) + 'px'; e.style.top = (r.top + (id === me() ? 0 : r.height * 0.2)) + 'px'; fx.appendChild(e); setTimeout(function () { if (e.parentNode) e.parentNode.removeChild(e); }, 1500);
+    }
+    function shakeRoot() { root.classList.remove('ushake'); void root.offsetWidth; root.classList.add('ushake'); }
+    function ripple(color) { var r = rc(discPile), e = h('div', { class: 'uripple', style: 'left:' + (r.left + r.width / 2) + 'px;top:' + (r.top + r.height / 2) + 'px;--rc:' + UCOL[color] }); fx.appendChild(e); setTimeout(function () { if (e.parentNode) e.parentNode.removeChild(e); }, 1100); }
+    function shuffleAnim(done) { // riffle shuffle in the middle of the table
+      var r = rc(drawPile), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      for (var k = 0; k < 12; k++) (function (k) {
+        var el = uback('fly'); el.style.setProperty('--cw', '52px'); el.style.left = cx + 'px'; el.style.top = cy + 'px'; fx.appendChild(el);
+        var side = k % 2 ? 1 : -1, d = k * 55;
+        var a = el.animate([{ transform: 'translate(-50%,-50%)' }, { transform: 'translate(calc(-50% + ' + side * 64 + 'px),calc(-50% - 10px)) rotate(' + side * 12 + 'deg)', offset: 0.35 }, { transform: 'translate(calc(-50% + ' + side * 10 + 'px),calc(-50% - ' + (k * 1.5) + 'px)) rotate(' + side * 3 + 'deg)', offset: 0.7 }, { transform: 'translate(-50%,calc(-50% - ' + (k * 1.2) + 'px))' }], { duration: 1200, delay: d * 0.5, easing: 'ease-in-out', fill: 'both' });
+        a.onfinish = function () { if (el.parentNode) el.parentNode.removeChild(el); if (k === 11 && done) done(); };
+      })(k);
+    }
+    function dealAnim() { // shuffle, then 7 rounds of cards flying to every player, then flip the first card
+      var u = S.un, n = u.ids.length, order = u.ids.slice(), dt = Math.max(28, Math.min(70, 2400 / (7 * n)));
+      dealing = true; root.classList.add('udealing'); paintAll();
+      bigText('🔀 SHUFFLING', 'u-shuf'); buzz([40, 30, 40, 30, 40]);
+      shuffleAnim(function () {
+        var from = rc(drawPile), badge = {}; order.forEach(function (id) { badge[id] = 0; });
+        for (var r = 0; r < 7; r++) for (var i = 0; i < n; i++) (function (r, i) {
+          var id = order[i], t = (r * n + i) * dt;
+          later(function () {
+            var target = id === me() ? rc(handBox) : chipEls[id] ? rc(chipEls[id]) : null;
+            fly(from, target, { w: 40, dur: 380, s1: id === me() ? 1.4 : 0.6, fade: id !== me(), rot: Math.random() * 60 - 30 });
+            later(function () { badge[id]++; var b = id === me() ? null : chipEls[id] && chipEls[id].querySelector('.ucnt'); if (b) b.textContent = String(badge[id]); if (id === me()) { var cs = handBox.querySelectorAll('.ucard'); var shownN = Math.min(cs.length, badge[id]); for (var j = 0; j < shownN; j++) cs[j].classList.add('in'); } }, 330);
+          }, t);
+        })(r, i);
+        later(function () { dealing = false; root.classList.remove('udealing'); handBox.querySelectorAll('.ucard').forEach(function (c) { c.classList.add('in'); }); paintAll(); discPile.classList.add('uflip'); setTimeout(function () { discPile.classList.remove('uflip'); }, 700); buzz([60]); }, 7 * n * dt + 450);
+      });
+    }
+    function handleEvent(ev, mine) {
+      var u = S.un, id = ev.id, k = ev.k;
+      if (k === 'play') {
+        var from = id === me() ? rc(meBar) : (chipEls[id] ? rc(chipEls[id]) : rc(opp)), to = rc(discPile);
+        if (!mine) ev.cards.forEach(function (c, j) { fly(from, to, { face: c, w: 50, dur: 480, delay: j * 110, s1: 1.15, rot: Math.random() * 30 - 15 }); });
+        var last = ev.cards[ev.cards.length - 1], v = last[1], delay = 420 + (ev.cards.length - 1) * 110;
+        later(function () {
+          discPile.classList.remove('upop'); void discPile.offsetWidth; discPile.classList.add('upop');
+          if (last[0] === 'X') ripple(ev.color);
+          if (v === 'd') { bigText('+2', 'u-d'); shakeRoot(); buzz([90, 40, 90]); }
+          else if (v === 'f') { bigText('+4', 'u-f'); shakeRoot(); buzz([120, 50, 120, 50, 200]); }
+          else if (v === 's') { bigText('🚫 SKIP', 'u-s'); buzz([70]); }
+          else if (v === 'r') { bigText('🔄 REVERSE', 'u-r'); dirEl.classList.remove('uspin'); void dirEl.offsetWidth; dirEl.classList.add('uspin'); buzz([40, 40, 40]); }
+          else if (v === 'w') { bigText('🎨 ' + UNAME[ev.color], 'u-w'); }
+          else if (ev.cards.length > 1) bigText('×' + ev.cards.length + ' COMBO!', 'u-c');
+        }, delay);
+        if (id !== me() && u.cur === me()) later(function () { buzz([60, 40, 60]); }, delay + 100);
+      } else if (k === 'draw') {
+        var src = rc(drawPile), dst = id === me() ? rc(handBox) : (chipEls[id] ? rc(chipEls[id]) : null);
+        for (var j = 0; j < Math.min(ev.n, 8); j++) fly(src, dst, { w: 42, dur: 420, delay: j * 90, s1: id === me() ? 1.3 : 0.6, fade: id !== me() });
+        if (ev.pend) { bubble(id, '😱 +' + ev.n, 'u-ouch'); if (id === me()) { shakeRoot(); buzz([100, 40, 100]); } }
+        if (ev.pend && id !== me()) buzz([30]);
+      } else if (k === 'uno') { bubble(id, 'UNO!', 'u-uno'); buzz([30, 30, 30]); if (id === me()) bigText('UNO!', 'u-uno2'); }
+      else if (k === 'caught') {
+        bubble(id, '😜 CAUGHT! +2', 'u-caught'); var src2 = rc(drawPile), dst2 = id === me() ? rc(handBox) : (chipEls[id] ? rc(chipEls[id]) : null);
+        for (var q = 0; q < 2; q++) fly(src2, dst2, { w: 42, dur: 420, delay: q * 120, s1: id === me() ? 1.3 : 0.6, fade: id !== me() });
+        if (id === me()) { shakeRoot(); buzz([200, 60, 200]); } else buzz([60]);
+      } else if (k === 'pass') bubble(id, 'pass', 'u-pass');
+    }
+    /* ---- painting ---- */
+    function paintTop() {
+      var u = S.un; var cur = u ? u.cur : null;
+      fill(topbar, h('button', { class: 'link', type: 'button', onclick: function () { if (confirm('Leave this game?')) send({ t: 'leave' }); } }, '← Leave'),
+        h('div', { class: 'utt' }, S.phase === 'udeal' ? '🔀 Shuffling & dealing…' : S.phase === 'uover' ? '🏁 Game over' : (cur === me() ? '👉 YOUR TURN' : '⏳ ' + nameOf(cur) + '\'s turn') + (S.endsAt ? ' · ' : ''), S.endsAt && S.phase === 'uturn' ? h('b', { class: 'usec' }, secsLeft() + 's') : null),
+        S.me.host ? hostBtn('⏹ End', { t: 'ulobby' }, 'small danger', 'End the game and go back to the lobby?') : h('span'));
+    }
+    function paintOpp() {
+      var u = S.un, ids = u.ids, k = ids.indexOf(me()), order = [], n = ids.length;
+      for (var i = 1; i <= n; i++) { var j = (k < 0 ? i - 1 : k + u.dir * i); j = ((j % n) + n) % n; if (ids[j] !== me()) order.push(ids[j]); }
+      chipEls = {}; var four = order.length > 6;
+      fill(opp, order.map(function (id, ix) {
+        var c = u.counts[id], turn = u.cur === id && S.phase === 'uturn', nm = nameOf(id);
+        var el = h('div', { class: 'uchip' + (turn ? ' turn' : '') + (four ? ' sm' : '') + (c === 1 ? ' one' : ''), style: '--ci:' + ix },
+          h('div', { class: 'uav' }, avatar(nm, pidx(id), null), h('b', { class: 'ucnt' }, String(c)), turn ? h('i', { class: 'uturnring' }) : null),
+          h('span', { class: 'unm' }, nm.length > 8 ? nm.slice(0, 8) + '…' : nm), ix === 0 && n > 2 ? h('span', { class: 'unext' }, 'NEXT') : null);
+        chipEls[id] = el; return el;
+      }));
+    }
+    function paintTable() {
+      var u = S.un; fill(drawPile, uback('l3'), uback('l2'), uback('l1'), h('span', { class: 'upc' }, String(u.pile)));
+      fill(discPile, ucard(u.top, 'big'));
+      discPile.style.setProperty('--glow', UCOL[u.color]); colEl.style.background = UCOL[u.color]; colEl.textContent = UNAME[u.color];
+      colEl.style.color = u.color === 'Y' ? '#121212' : '#fff';
+      dirEl.textContent = u.dir === 1 ? '⟳' : '⟲'; dirEl.className = 'udir' + (u.dir === 1 ? ' cw' : ' ccw');
+      var pend = u.pend, txt = '';
+      if (pend && S.phase === 'uturn') txt = (u.cur === me() ? '😬 Stack +' + pend.n + '. Add a ' + (pend.k === '2' ? '+2' : '+4') + ' or draw ' + pend.n : '💥 Stack +' + pend.n + ' → ' + nameOf(u.cur));
+      else if (u.drew !== null && myTurn()) txt = '✨ Play the card you drew, or pass';
+      banner.textContent = txt; banner.style.display = txt ? '' : 'none';
+      drawPile.classList.toggle('can', myTurn() && u.drew === null);
+    }
+    function paintMe() {
+      var u = S.un, inG = inGame();
+      if (!inG) { fill(meBar, h('div', { class: 'uwatch' }, '👀 You are watching. You play in the next game.')); fill(btns, null); fill(handBox, null); return; }
+      var hand = u.hand, key = hand.join(',');
+      if (key !== lastHand) { sel = []; lastHand = key; }
+      var my = myTurn();
+      fill(meBar, avatar(nameOf(me()), pidx(me()), 'sm'), h('b', null, my ? (u.pend ? 'Draw or stack' : u.drew !== null ? 'Play it or pass' : 'Your turn') : 'You · ' + hand.length + ' cards'), my ? h('i', { class: 'uyou' }) : null);
+      meBar.className = 'ume' + (my ? ' turn' : '');
+      var multi = sel.length ? S.un.hand[sel[0]] : null;
+      fill(btns,
+        h('button', { class: 'ubtn uunoB', type: 'button', onclick: function () { send({ t: 'uuno' }); buzz([25]); } }, 'UNO!'),
+        h('button', { class: 'ubtn ucatchB', type: 'button', onclick: function () { send({ t: 'ucatch' }); buzz([25]); } }, '😜 CATCH'),
+        my && sel.length ? h('button', { class: 'ubtn uplayB', type: 'button', onclick: playSel }, sel.length > 1 ? 'PLAY ×' + sel.length : 'PLAY') : null,
+        my && u.drew === null ? h('button', { class: 'ubtn udrawB', type: 'button', onclick: doDraw }, u.pend ? 'DRAW +' + u.pend.n : 'DRAW') : null,
+        my && u.drew !== null ? h('button', { class: 'ubtn upassB', type: 'button', onclick: function () { send({ t: 'upass' }); } }, 'PASS') : null);
+      var old = handBox.scrollLeft;
+      fill(handBox, hand.map(function (c, i) {
+        var ok = my && (sel.length ? (sel.indexOf(i) >= 0 || addable(c, i)) : canCard(c, i));
+        var el = ucard(c, 'hc' + (sel.indexOf(i) >= 0 ? ' sel' : '') + (my && !ok ? ' dim' : '') + (ok && my ? ' ok' : '') + (dealing ? '' : ' in')); el.style.setProperty('--i', i);
+        el.addEventListener('click', function () { tapCard(i, el); }); return el;
+      }));
+      handBox.scrollLeft = old;
+    }
+    function tapCard(i, el) {
+      if (!myTurn()) { el.classList.remove('nope'); void el.offsetWidth; el.classList.add('nope'); return; }
+      var u = S.un, c = u.hand[i];
+      if (sel.indexOf(i) >= 0) { if (sel.length === 1) return playSel(); sel.splice(sel.indexOf(i), 1); buzz([10]); return paintMe(); }
+      if (sel.length && addable(c, i)) { sel.push(i); buzz([12]); return paintMe(); }
+      if (!canCard(c, i)) { el.classList.remove('nope'); void el.offsetWidth; el.classList.add('nope'); buzz([30, 20, 30]); return; }
+      sel = [i]; buzz([12]); paintMe();
+    }
+    function playSel() {
+      var u = S.un; if (!sel.length || !myTurn()) return;
+      var cards = sel.map(function (i) { return u.hand[i]; });
+      if (cards.some(function (c) { return c[0] === 'X'; })) return pickColor(function (col) { sendPlay(col); });
+      sendPlay(null);
+    }
+    function sendPlay(col) {
+      var u = S.un, idx = sel.slice(), cards = idx.map(function (i) { return u.hand[i]; }), els = handBox.querySelectorAll('.ucard'), to = rc(discPile);
+      idx.forEach(function (i, j) { if (els[i]) fly(rc(els[i]), to, { face: cards[j], w: 56, dur: 460, delay: j * 110, s1: 1.15, rot: Math.random() * 24 - 12 }); });
+      idx.forEach(function (i) { if (els[i]) els[i].style.visibility = 'hidden'; });
+      mineSent = true; send({ t: 'uplay', cards: idx, color: col || undefined }); sel = []; buzz([35]);
+    }
+    var mineSent = false;
+    function doDraw() { if (!myTurn() || S.un.drew !== null) return; mineSent = false; send({ t: 'udraw' }); buzz([20]); }
+    drawPile.addEventListener('click', doDraw);
+    function pickColor(cb) {
+      fill(picker, h('div', { class: 'upick-in' }, h('b', null, 'Pick a colour'), h('div', { class: 'upick-row' }, ['R', 'Y', 'G', 'B'].map(function (c) {
+        return h('button', { class: 'upc-b', type: 'button', style: 'background:' + UCOL[c], onclick: function () { picker.style.display = 'none'; cb(c); } }, UNAME[c][0]);
+      })), h('button', { class: 'link', type: 'button', onclick: function () { picker.style.display = 'none'; } }, 'Cancel')));
+      picker.style.display = 'flex';
+    }
+    function paintOver() {
+      var u = S.un; if (S.phase !== 'uover') { overBox.style.display = 'none'; return; }
+      overBox.style.display = 'flex'; var w = u.winner, key = u.gid + ':' + w;
+      fill(overBox, h('div', { class: 'uover-in' }, h('div', { class: 'utro' }, '🏆'), h('h2', null, (w === me() ? 'YOU WIN!' : nameOf(w) + ' wins!')),
+        u.ranks.map(function (r, i) { return h('div', { class: 'brow' }, h('span', { class: 'rank' }, String(i + 1)), avatar(nameOf(r.id), pidx(r.id), 'sm'), h('span', { class: 'pname' }, nameOf(r.id) + (r.id === me() ? ' (you)' : '')), h('span', { class: 'pts' }, r.left ? r.left + ' left' : '🎉')); }),
+        S.me.host ? h('div', { class: 'row' }, hostBtn('🔁 Play again', { t: 'ustart' }, 'primary'), hostBtn('Back to lobby', { t: 'ulobby' }, 'yellow')) : h('p', { class: 'mute center' }, 'Waiting for the host…')));
+      if (shown !== key) { shown = key; later(function () { if (typeof confetti === 'function') { confetti(); later(confetti, 500); } }, 150); buzz(w === me() ? [100, 60, 100, 60, 400] : [80, 50, 80]); }
+    }
+    function paintAll() { paintTop(); paintOpp(); paintTable(); paintMe(); paintOver(); }
+    return { root: root, tick: function () {
+      if (!S || !S.un) return; var s = S.endsAt && S.phase === 'uturn' ? secsLeft() : 0, el = topbar.querySelector('.usec'); if (el) el.textContent = s + 's';
+      var tot = (S.unSet && S.unSet.secs) || 20; timerBar.firstChild.style.width = (S.phase === 'uturn' && S.endsAt ? Math.min(100, s / tot * 100) : 0) + '%'; timerBar.classList.toggle('low', s <= 5 && s > 0);
+    }, update: function () {
+      var u = S.un; if (!u) return;
+      if (unoDone.gid !== u.gid) { // a new game: play the shuffle + deal show (late joiners just see the table)
+        unoDone.gid = u.gid; unoDone.ev = u.ev; unoDone.resh = u.resh; lastCur = null; shown = '';
+        if (S.phase === 'udeal') { paintAll(); dealAnim(); lastCur = u.cur; this.tick(); return; }
+      }
+      if (dealing) { this.tick(); return; }
+      var prev = lastCur; paintAll();
+      if (u.ev !== unoDone.ev && u.last) { var ev = u.last; unoDone.ev = u.ev; handleEvent(ev, ev.id === me() && ev.k === 'play' && mineSent); if (ev.k === 'play' && ev.id === me()) mineSent = false; }
+      if (u.resh !== unoDone.resh) { unoDone.resh = u.resh; later(function () { bigText('🔀 RESHUFFLE', 'u-shuf'); shuffleAnim(); }, 300); }
+      if (S.phase === 'uturn' && u.cur === me() && prev !== me()) { buzz([60, 40, 60]); drawPile.classList.add('pulse'); setTimeout(function () { drawPile.classList.remove('pulse'); }, 900); }
+      lastCur = u.cur; this.tick();
     } };
   };
 
@@ -3891,6 +4198,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
     if (!S) return mode === 'menu' ? 'menu' : mode === 'solo' ? 'solo' : 'home';
     if (S.game === 'football') return S.phase === 'lobby' ? 'flobby' : (S.phase === 'pkaim' || S.phase === 'pkshow') ? 'fpen' : 'fgame';
     if (S.game === 'race') return S.phase === 'lobby' ? 'rlobby' : 'rgame';
+    if (S.game === 'uno') return S.phase === 'lobby' ? 'ulobby' : 'ugame';
     if (S.phase === 'lobby') return S.me.host ? 'lobby-host' : 'lobby';
     return S.phase;
   }
@@ -3899,7 +4207,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
     var key = keyFor();
     document.body.classList.toggle("menu", key === "menu");
     document.body.classList.toggle("solo", key === "solo");
-    document.body.classList.toggle("fbmode", key === "fgame" || key === "fpen");
+    document.body.classList.toggle("fbmode", key === "fgame" || key === "fpen" || key === "ugame");
     if (key !== curKey) {
       curKey = key; clear(app);
       cur = (key === 'home' ? screens.home : key.indexOf('lobby') === 0 ? screens.lobby : screens[key])();
