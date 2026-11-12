@@ -858,12 +858,12 @@ body.fbmode #app{padding-top:8px}
 .pstage:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.05) 0 7%,rgba(0,0,0,0) 7% 14%)}
 .pstage.mine{box-shadow:5px 5px 0 #121212,0 0 0 4px #FFD600}
 .pgoal{position:absolute;left:9%;right:9%;top:5%;height:36%;border:5px solid #fff;border-bottom:0;border-radius:6px 6px 0 0;background:repeating-linear-gradient(90deg,rgba(255,255,255,.22) 0 1px,transparent 1px 14px),repeating-linear-gradient(0deg,rgba(255,255,255,.22) 0 1px,transparent 1px 14px),rgba(20,30,50,.55)}
-.pz{position:absolute;width:20%;aspect-ratio:1;transform:translate(-50%,-50%);border:3px dashed rgba(255,255,255,.55);border-radius:50%;display:flex;align-items:center;justify-content:center}
-.pz.on{border-color:#FFD600;background:rgba(255,214,0,.3);box-shadow:0 0 0 4px rgba(255,214,0,.35)}
+.pz{position:absolute;width:24%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%}
+.pz.on{background:radial-gradient(rgba(255,214,0,.55),rgba(255,214,0,0) 70%)}
 .pkeeper{position:absolute;width:15%;aspect-ratio:1;z-index:3;transform:translate(-50%,-50%)}.pkeeper .av,.pkicker .av{width:100%;height:100%;border:3px solid #121212;box-shadow:0 3px 0 rgba(0,0,0,.4)}
 .pkeeper:after{content:"🧤";position:absolute;right:-12px;bottom:-6px;font-size:22px}.pbot{font-size:40px}
 .pball{position:absolute;width:9%;aspect-ratio:1;z-index:4;font-size:clamp(18px,6vw,30px);display:flex;align-items:center;justify-content:center;line-height:1;transform:translate(-50%,-50%);filter:drop-shadow(0 3px 0 rgba(0,0,0,.4))}
-.pkicker{position:absolute;left:50%;bottom:-3%;width:26%;aspect-ratio:1;transform:translateX(-50%);z-index:2}.pkicker .av{border-width:4px;border-style:solid;border-color:inherit;box-shadow:0 0 0 3px #fff}
+.pkicker{will-change:transform;position:absolute;left:50%;bottom:-3%;width:26%;aspect-ratio:1;transform:translateX(-50%);z-index:2}.pkicker .av{border-width:4px;border-style:solid;border-color:inherit;box-shadow:0 0 0 3px #fff}
 .pkicker .fdn{top:auto;bottom:-3px}
 .pstamp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.3) rotate(-6deg);opacity:0;z-index:8;white-space:nowrap;font:800 clamp(24px,8vw,38px) var(--f-disp);color:#fff;border:4px solid #121212;border-radius:14px;padding:6px 14px;box-shadow:4px 4px 0 #121212;transition:transform .25s cubic-bezier(.3,1.6,.5,1),opacity .2s}
 .pstamp.show{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-6deg)}.pstamp.g{background:#00A859}.pstamp.x{background:#E6003D}
@@ -871,7 +871,7 @@ body.fbmode #app{padding-top:8px}
 .plegend{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:0 0 6px;font:800 11px var(--f-mono);opacity:.8}
 .pctl{max-width:420px;margin:0 auto 8px}
 .pmeter{position:relative;display:flex;height:34px;border:3px solid #121212;border-radius:999px;overflow:hidden;margin-bottom:8px;touch-action:none}
-.pmeter i{display:block;height:100%}.pmeter .g{width:45%;background:#00C853}.pmeter .o{width:30%;background:#FF9100}.pmeter .r{width:25%;background:#E6003D}
+.pmeter i{display:block;height:100%}.pmeter .g{width:22%;background:#00C853}.pmeter .o{width:38%;background:#FFC400}.pmeter .r{width:40%;background:#E6003D}
 .pmark{position:absolute;top:-3px;bottom:-3px;width:8px;margin-left:-4px;background:#fff;border:2px solid #121212;border-radius:4px}
 .pshoot{width:100%;font-size:20px}
 
@@ -3132,12 +3132,12 @@ html[data-theme=dark] .cbub{border-color:#121212}
     stage.addEventListener('pointerup', function (e) { swipeEnd(e, false); });
     stage.addEventListener('pointercancel', function (e) { swipeEnd(e, true); });
     stage.addEventListener('contextmenu', function (e) { e.preventDefault(); });
-    function pval() { return ((performance.now() - tStart) % 1500) / 1500; }
+    function pval() { return ((performance.now() - tStart) % 850) / 850; }
     function doShoot(e) {
       if (e) e.preventDefault();
       if (!S || S.phase !== 'pkaim' || iAm() !== 'kick' || lockedK) return;
       if (!sel) { toast('Swipe on the goal first: pick a corner!'); buzz([40, 30, 40]); return; }
-      lockedK = true; var p = pval(); buzz(p < 0.45 ? [40] : p < 0.75 ? [60, 30, 60] : [120]);
+      lockedK = true; var p = pval(); buzz(p < 0.22 ? [40] : p < 0.6 ? [60, 30, 60] : [120]);
       send({ t: 'pkick', z: sel, pw: p }); paint();
     }
     shoot.addEventListener('pointerdown', doShoot); meter.addEventListener('pointerdown', doShoot);
@@ -3145,7 +3145,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
     function newKick() { // reset the picture for a new kick
       var k = S.fb.pk, c = k.cur;
       sel = null; lockedK = false; showSel(null); tStart = performance.now();
-      keeper.style.transition = 'none'; ballEl.style.transition = 'none';
+      keeper.style.transition = 'none'; ballEl.style.transition = 'none'; kicker.style.transition = 'none'; kicker.style.transform = 'translateX(-50%)';
       keeper.style.left = '50%'; keeper.style.top = '29%'; keeper.style.transform = 'translate(-50%,-50%) rotate(0deg)';
       ballEl.style.left = '50%'; ballEl.style.top = '80%'; ballEl.style.transform = 'translate(-50%,-50%) scale(1)'; ballEl.style.opacity = '1';
       stamp.className = 'pstamp'; stamp.textContent = ''; stage.classList.remove('shake');
@@ -3156,6 +3156,9 @@ html[data-theme=dark] .cbub{border-color:#121212}
     }
     function animate() { // play the result (same on every phone)
       var r = S.fb.pk.res, kz = r.kz, sz = r.sz, P = ZP[kz], out = r.out;
+      kicker.style.transition = 'transform .26s ease-in'; kicker.style.transform = 'translate(-50%,-85%) scale(.8) rotate(-10deg)';
+      setTimeout(function () { kicker.style.transition = 'transform .9s ease-out'; kicker.style.transform = 'translate(-50%,-30%) scale(.9)'; }, 330);
+      setTimeout(function () {
       keeper.style.transition = 'left .45s ease-out, top .45s ease-out, transform .45s ease-out';
       ballEl.style.transition = 'left .55s cubic-bezier(.2,.7,.3,1), top .55s cubic-bezier(.2,.7,.3,1), transform .55s ease-out, opacity .4s';
       var K = ZP[sz];
@@ -3173,6 +3176,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
         if (out === 'save') { ballEl.style.top = (K[1] + 14) + '%'; ballEl.style.transform = 'translate(-50%,-50%) scale(.6)'; }
         if (out === 'over') ballEl.style.opacity = '0';
       }, 600);
+      }, 260);
     }
     function paintDots(k) {
       var pk = S.fb.pk, hist = pk.hist[k], n = Math.max(5, hist.length), out = [];

@@ -770,8 +770,8 @@ function pkResolve(room) {
   const rz = () => PK_ZONES[Math.floor(Math.random() * 5)];
   const kz = pk.k ? pk.k.z : rz(), pw = pk.k ? pk.k.pw : 0.2;
   const sz = pk.s || (c.keeper ? 'M' : rz());
-  const pc = pw < 0.45 ? 'green' : pw < 0.75 ? 'orange' : 'red';
-  const on = pc === 'green' ? true : pc === 'orange' ? Math.random() < 0.85 : Math.random() < 0.35;
+  const pc = pw < 0.22 ? 'green' : pw < 0.6 ? 'orange' : 'red';
+  const on = pc === 'green' ? true : pc === 'orange' ? Math.random() < 0.85 : Math.random() < 0.05;
   let out;
   if (!on) out = pc === 'orange' ? 'post' : 'over';
   else if (pc === 'red') out = 'goal';
