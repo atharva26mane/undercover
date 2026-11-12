@@ -450,8 +450,8 @@ function view(room, p) {
       const u = room.un, id = p.id, curId = u.ids[u.cur];
       const counts = {}; for (const q of u.ids) counts[q] = u.hands[q].length;
       // never include other hands, the UNO timers or who can be caught: nothing hints at the buttons
-      v.un = { gid: u.gid, ids: u.ids, counts, hand: u.hands[id] || [], top: u.top, color: u.color, dir: u.dir, cur: curId, pend: u.pend,
-        drew: curId === id ? u.drew : null, pile: u.draw.length, disc: u.disc.length, ev: u.ev, last: u.last, winner: u.winner, ranks: u.ranks, resh: u.resh || 0 };
+      v.un = { gid: u.gid, ids: u.ids, counts, hand: u.hands[id] || [], top: u.top, color: u.color, dir: u.dir, cur: curId, pend: u.pend, fin: u.fin,
+        drew: curId === id ? u.drew : null, pile: u.draw.length, disc: u.disc.length, ev: u.ev, last: u.last, log: u.log || [], winner: u.winner, ranks: u.ranks, resh: u.resh || 0 };
     }
   }
   if (room.game === 'race' && room.rc) {
@@ -824,13 +824,13 @@ function uDeck(decks) {
       for (let n = 1; n <= 9; n++) d.push(c + n, c + n);
       for (const sp of ['s', 'r', 'd']) d.push(c + sp, c + sp);
     }
-    for (let i = 0; i < 4; i++) d.push('Xw', 'Xf');
+    for (let i = 0; i < 6; i++) d.push('Xw', 'Xf'); // a few more wilds and +4s than the real deck
   }
   return d;
 }
 const uSort = (h) => h.sort((a, b) => (U_COL[a[0]] - U_COL[b[0]]) || (U_ORD[a[1]] - U_ORD[b[1]]));
 const uCan = (u, c) => c[0] === 'X' || c[0] === u.color || c[1] === u.top[1];
-function uEv(u, o) { u.ev++; u.last = Object.assign({ i: u.ev }, o); }
+function uEv(u, o) { u.ev++; u.last = Object.assign({ i: u.ev }, o); u.log = (u.log || []).concat([u.last]).slice(-6); }
 function uDraw(u, n) { // draw pile ran out? keep the top 2 discards, shuffle the rest into a fresh pile
   const out = [];
   for (let i = 0; i < n; i++) {
@@ -840,7 +840,8 @@ function uDraw(u, n) { // draw pile ran out? keep the top 2 discards, shuffle th
   }
   return out;
 }
-const uAdv = (u, k) => { const n = u.ids.length; u.cur = (((u.cur + u.dir * k) % n) + n) % n; };
+const uAct = (u) => u.ids.filter((id) => !u.fin.includes(id));
+const uAdv = (u, k) => { const n = u.ids.length; for (let s = 0; s < k; s++) { let g = 0; do { u.cur = (((u.cur + u.dir) % n) + n) % n; } while (u.fin.includes(u.ids[u.cur]) && ++g < n); } };
 function unStart(room) {
   const cands = [...room.players.values()].filter((p) => !p.left && p.connected);
   if (cands.length < 2) return 'Need at least 2 players';
@@ -855,7 +856,7 @@ function unStart(room) {
   draw = shuffle(draw.concat(buried));
   for (const id of ids) uSort(hands[id]);
   room.unGid = (room.unGid || 0) + 1;
-  room.un = { gid: room.unGid, ids, hands, draw, disc: [top], top, color: top[0], dir: 1, cur: 0, pend: null, drew: null, said: {}, calls: {}, ev: 0, last: null, winner: null, ranks: null, resh: 0 };
+  room.un = { gid: room.unGid, ids, hands, draw, disc: [top], top, color: top[0], dir: 1, cur: 0, pend: null, drew: null, said: {}, calls: {}, fin: [], ev: 0, last: null, winner: null, ranks: null, resh: 0 };
   setPhase(room, 'udeal');
   schedule(room, 4800, () => unTurn(room)); // shuffle + deal animation plays on every phone first
   broadcast(room);
@@ -865,6 +866,7 @@ function unStart(room) {
 function unTurn(room) {
   const u = room.un; if (!u) return;
   setPhase(room, 'uturn'); u.drew = null;
+  if (u.fin.includes(u.ids[u.cur])) uAdv(u, 1);
   const q = room.players.get(u.ids[u.cur]), secs = room.unSet.secs;
   if (!q || q.left || !q.connected) schedule(room, 3000, () => unAuto(room));
   else if (secs) schedule(room, secs * 1000, () => unAuto(room));
@@ -876,12 +878,13 @@ function unAuto(room) { // time ran out (or the player is away): draw and pass
   if (u.drew !== null) return unPass(room, p);
   unDraw(room, p, true);
 }
-function unOver(room, winnerId) {
+function unOver(room) {
   const u = room.un;
-  const rest = u.ids.filter((id) => id !== winnerId).sort((a, b) => u.hands[a].length - u.hands[b].length);
-  u.winner = winnerId; u.ranks = [winnerId].concat(rest).map((id) => ({ id, left: u.hands[id].length }));
+  const rest = u.ids.filter((id) => !u.fin.includes(id)).sort((a, b) => u.hands[a].length - u.hands[b].length);
+  const w = u.fin[0] || rest[0];
+  u.winner = w; u.ranks = u.fin.concat(rest).map((id) => ({ id, left: u.hands[id].length }));
   setPhase(room, 'uover');
-  for (const id of u.ids) { const q = room.players.get(id); if (q && !q.left) notify(room, q, '🏁 UNO finished', (room.players.get(winnerId) || {}).name + ' won', [70, 50, 70]); }
+  for (const id of u.ids) { const q = room.players.get(id); if (q && !q.left) notify(room, q, '🏁 UNO finished', (room.players.get(w) || {}).name + ' won', [70, 50, 70]); }
   broadcast(room);
 }
 function unPlay(room, p, idxs, color) {
@@ -903,7 +906,7 @@ function unPlay(room, p, idxs, color) {
   for (const i of [...idxs].sort((a, b) => b - a)) hand.splice(i, 1);
   for (const c of cards) u.disc.push(c);
   u.top = last; u.color = last[0] === 'X' ? color : last[0];
-  const n = u.ids.length;
+  const n = uAct(u).length;
   if (cards.length === 1) {
     const v = last[1];
     if (v === 's') uAdv(u, 2);
@@ -914,7 +917,11 @@ function unPlay(room, p, idxs, color) {
   } else uAdv(u, 1);
   u.drew = null;
   uEv(u, { k: 'play', id: p.id, cards, color: u.color, pend: u.pend ? u.pend.n : 0 });
-  if (!hand.length) return unOver(room, p.id), null;
+  if (!hand.length) {
+    u.fin.push(p.id); delete u.calls[p.id]; delete u.said[p.id]; u.last.fin = u.fin.length;
+    if (u.fin.length >= Math.min(3, u.ids.length - 1) || uAct(u).length < 2) return unOver(room), null;
+    u.drew = null; unTurn(room); return null;
+  }
   if (hand.length === 1) { if (u.said[p.id]) delete u.said[p.id]; else u.calls[p.id] = Date.now(); }
   else { delete u.calls[p.id]; if (hand.length > 2) delete u.said[p.id]; }
   unTurn(room);
@@ -969,8 +976,8 @@ function unRemove(room, p) {
   if (!u || !['udeal', 'uturn'].includes(room.phase)) return;
   const i = u.ids.indexOf(p.id); if (i < 0) return;
   u.draw = u.hands[p.id].concat(u.draw); // their cards go under the draw pile
-  u.ids.splice(i, 1); delete u.hands[p.id]; delete u.calls[p.id]; delete u.said[p.id];
-  if (u.ids.length < 2) { notice(room, 'Not enough players left'); return unOver(room, u.ids[0]); }
+  u.ids.splice(i, 1); u.fin = u.fin.filter((x) => x !== p.id); delete u.hands[p.id]; delete u.calls[p.id]; delete u.said[p.id];
+  if (uAct(u).length < 2) { notice(room, 'Not enough players left'); return unOver(room); }
   if (i < u.cur) u.cur--;
   else if (i === u.cur) { u.cur = (((i + (u.dir === -1 ? -1 : 0)) % u.ids.length) + u.ids.length) % u.ids.length; u.drew = null; if (room.phase === 'uturn') return unTurn(room); }
   u.cur = ((u.cur % u.ids.length) + u.ids.length) % u.ids.length;
@@ -1046,7 +1053,7 @@ setInterval(() => { // where every buggy is, 10 times a second (only when 2+ are
     if (!l.length) continue;
     for (const q of room.players.values()) if (q.ws && q.connected) send(q.ws, { t: 'rcars', l });
   }
-}, 100);
+}, 50);
 function notice(room, msg) { for (const p of room.players.values()) if (p.ws && p.connected) send(p.ws, { t: 'notice', msg }); }
 function backToLobby(room) {
   for (const [id, p] of room.players) if (p.left) room.players.delete(id);
@@ -1477,8 +1484,8 @@ function handle(ws, m) {
     case 'chat': {
       const s = room.settings, now = Date.now();
       if (!s.chat) return errTo(ws, 'Chat is off');
-      if (room.game !== 'football' && !['lobby', 'vote', 'elim', 'over'].includes(room.phase)) return errTo(ws, 'Chat opens during the discussion');
-      if (p.watch && room.game !== 'football' && room.phase !== 'lobby' && room.phase !== 'over') return errTo(ws, '👀 You can see the words, so chat opens for you after this game');
+      if (room.game === 'undercover' && !['lobby', 'vote', 'elim', 'over'].includes(room.phase)) return errTo(ws, 'Chat opens during the discussion');
+      if (p.watch && room.game === 'undercover' && room.phase !== 'lobby' && room.phase !== 'over') return errTo(ws, '👀 You can see the words, so chat opens for you after this game');
       if (p.muteUntil && p.muteUntil > now) return errTo(ws, '🔇 You are muted for ' + Math.ceil((p.muteUntil - now) / 1000) + 's');
       const wait = (p.lastChat || 0) + s.chatSlow * 1000 - now;
       if (wait > 0) return errTo(ws, '🐢 Slow mode: wait ' + Math.ceil(wait / 1000) + 's');
