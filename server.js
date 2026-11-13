@@ -450,7 +450,7 @@ function view(room, p) {
       const u = room.un, id = p.id, curId = u.ids[u.cur];
       const counts = {}; for (const q of u.ids) counts[q] = u.hands[q].length;
       // never include other hands, the UNO timers or who can be caught: nothing hints at the buttons
-      v.un = { gid: u.gid, ids: u.ids, counts, hand: u.hands[id] || [], top: u.top, color: u.color, dir: u.dir, cur: curId, pend: u.pend, fin: u.fin,
+      v.un = { gid: u.gid, ids: u.ids, counts, hand: u.hands[id] || [], top: u.top, color: u.color, dir: u.dir, cur: curId, pend: u.pend, fin: u.fin, paused: u.paused ? u.paused.left || 1 : 0,
         drew: curId === id ? u.drew : null, pile: u.draw.length, disc: u.disc.length, ev: u.ev, last: u.last, log: u.log || [], winner: u.winner, ranks: u.ranks, resh: u.resh || 0 };
     }
   }
@@ -865,7 +865,7 @@ function unStart(room) {
 }
 function unTurn(room) {
   const u = room.un; if (!u) return;
-  setPhase(room, 'uturn'); u.drew = null;
+  setPhase(room, 'uturn'); u.drew = null; u.paused = null;
   if (u.fin.includes(u.ids[u.cur])) uAdv(u, 1);
   const q = room.players.get(u.ids[u.cur]), secs = room.unSet.secs;
   if (!q || q.left || !q.connected) schedule(room, 3000, () => unAuto(room));
@@ -1343,14 +1343,25 @@ function handle(ws, m) {
       const err = unStart(room);
       return err ? errTo(ws, err) : undefined;
     }
+    case 'upause': {
+      if (!hostOnly() || room.game !== 'uno' || room.phase !== 'uturn' || !room.un || room.un.paused) return;
+      clearTimeout(room.timer); room.un.paused = { left: room.endsAt ? Math.max(1500, room.endsAt - Date.now()) : 0 }; room.endsAt = null;
+      notice(room, '⏸ Game paused by the host'); return broadcast(room);
+    }
+    case 'uresume': {
+      if (!hostOnly() || room.game !== 'uno' || !room.un || !room.un.paused) return;
+      const left = room.un.paused.left; room.un.paused = null;
+      if (left) schedule(room, left, () => unAuto(room)); else room.endsAt = null;
+      notice(room, '▶️ Game resumed'); return broadcast(room);
+    }
     case 'ulobby':
       if (!hostOnly() || room.game !== 'uno' || !['udeal', 'uturn', 'uover'].includes(room.phase)) return;
       return unBack(room);
-    case 'uplay': { if (room.game !== 'uno') return; const e = unPlay(room, p, m.cards, m.color); return e ? errTo(ws, e) : undefined; }
-    case 'udraw': if (room.game === 'uno') unDraw(room, p, false); return;
-    case 'upass': if (room.game === 'uno') unPass(room, p); return;
-    case 'uuno': if (room.game === 'uno') unUno(room, p); return;
-    case 'ucatch': if (room.game === 'uno') unCatch(room, p); return;
+    case 'uplay': { if (room.game !== 'uno') return; if (room.un && room.un.paused) return errTo(ws, '⏸ Game is paused'); const e = unPlay(room, p, m.cards, m.color); return e ? errTo(ws, e) : undefined; }
+    case 'udraw': if (room.game === 'uno' && !(room.un && room.un.paused)) unDraw(room, p, false); return;
+    case 'upass': if (room.game === 'uno' && !(room.un && room.un.paused)) unPass(room, p); return;
+    case 'uuno': if (room.game === 'uno' && !(room.un && room.un.paused)) unUno(room, p); return;
+    case 'ucatch': if (room.game === 'uno' && !(room.un && room.un.paused)) unCatch(room, p); return;
     case 'rstart': {
       if (!hostOnly() || room.game !== 'race' || !['lobby', 'rover'].includes(room.phase)) return;
       const err = raceStart(room);

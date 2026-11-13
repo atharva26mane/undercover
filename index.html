@@ -962,6 +962,64 @@ body.unomode .ugame{height:calc(100dvh - 82px)}body.unomode .reactbar{left:10px!
 .uallB{background:#00C2FF;font-size:13px}
 .u-uno2{font-size:56px}
 .utable{min-height:300px}
+/* ===== landscape table (v4) ===== */
+body.unomode{overflow:hidden!important;overscroll-behavior:none;background:#2a1a10}
+body.unomode #wrap{max-width:none!important;padding:0!important;margin:0!important}
+body.unomode #app{padding:0!important}
+body.unomode .ugame{position:fixed!important;inset:0;height:auto!important;max-height:none!important;width:auto;margin:0;overflow:hidden;background:repeating-linear-gradient(90deg,#6b4423 0 38px,#5d3a1d 38px 40px),#5d3a1d;z-index:5}
+body.unomode .ugame:after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.55));pointer-events:none}
+body.unomode .utable{position:absolute;left:1.5%;right:1.5%;top:2%;bottom:3%;margin:0;min-height:0!important;border-radius:50%;border:5px solid #3b2412;background:radial-gradient(ellipse at 50% 45%,#2f9a5f 0,#1f7a4a 55%,#145c36 100%);box-shadow:inset 0 0 50px rgba(0,0,0,.45),0 10px 30px rgba(0,0,0,.5),inset 0 0 0 4px rgba(255,255,255,.07)}
+body.unomode .utable:before{content:"UNO";position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);font:800 clamp(60px,22dvh,130px) var(--f-disp);color:rgba(255,255,255,.07);letter-spacing:.05em;pointer-events:none}
+body.unomode .upile{width:calc(var(--ucw) );height:calc(var(--ucw)*1.5);position:absolute;top:47%;margin-top:calc(var(--ucw)*-.75)}
+body.unomode .utable{--ucw:clamp(52px,17dvh,78px)}
+body.unomode .udraw{left:calc(50% - var(--ucw) - 14px);transform:none}
+body.unomode .udisc{left:calc(50% + 14px)}
+body.unomode .udraw .ucard,body.unomode .udisc .ucard{--cw:var(--ucw)}
+body.unomode .udir{top:47%;font-size:clamp(90px,34dvh,170px)}
+body.unomode .upc{bottom:-14px}
+body.unomode .ucolor{left:50%;right:auto;top:calc(47% + var(--ucw)*.75 + 8px);bottom:auto;transform:translateX(-50%)}
+body.unomode .ubanner{top:5%;left:50%;right:auto;transform:translateX(-50%);max-width:46%;font-size:11px;padding:3px 10px;z-index:4}
+body.unomode .uring{z-index:2}
+body.unomode .uchip .uav{width:clamp(34px,10.5dvh,50px);height:clamp(34px,10.5dvh,50px)}
+body.unomode .uchip.sm .uav{width:clamp(30px,9.5dvh,44px);height:clamp(30px,9.5dvh,44px)}
+body.unomode .ufan{height:16px;margin-top:3px}body.unomode .ufan i{width:10px;height:15px;margin-left:-5px}
+body.unomode .uchip .unm{font-size:9px;margin-top:2px}
+body.unomode .uchip.turn{scale:1.2}
+/* top bar & timer */
+body.unomode .ubar{position:absolute;left:0;right:0;top:0;height:6px;margin:0;border:0;border-radius:0;background:rgba(0,0,0,.45);z-index:6}
+body.unomode .utop{position:absolute;left:8px;right:8px;top:10px;z-index:7;pointer-events:none;align-items:flex-start;min-height:0}
+body.unomode .utl,body.unomode .utr{display:flex;gap:6px;align-items:center;pointer-events:auto}
+body.unomode .utt{flex:none;font:800 12px var(--f-mono);background:rgba(18,18,18,.65);color:#fff;border-radius:999px;padding:5px 12px;text-align:left;max-width:34vw;overflow:hidden;white-space:nowrap}
+body.unomode .usec{font:800 12px var(--f-mono);color:#FFD600}
+.ubtn-s{width:38px;height:38px;border-radius:50%;border:3px solid #121212;background:#FFD600;font:800 16px var(--f-disp);box-shadow:2px 2px 0 #121212;padding:0;display:flex;align-items:center;justify-content:center;color:#121212}.ubtn-s.danger{background:#F0344D;color:#fff}
+/* me + buttons + hand */
+body.unomode .ume{position:absolute;left:62px;bottom:6px;z-index:8;background:rgba(18,18,18,.7);color:#fff;border:2px solid transparent;border-radius:999px;padding:3px 12px 3px 4px;font-size:11px;max-width:30vw;overflow:hidden;white-space:nowrap}
+body.unomode .ume.turn{background:linear-gradient(90deg,#FFD600,#FF9100,#FFD600);background-size:200% 100%;color:#121212;border-color:#121212}
+body.unomode .ume .av{width:28px;height:28px}
+body.unomode .uhand{position:absolute;left:0;right:0;bottom:0;z-index:5;min-height:0;height:calc(var(--hcw)*1.5*.82 + 34px);padding:30px 90px 0 92px;align-items:flex-end;justify-content:safe center;--hcw:clamp(54px,19dvh,86px)}
+body.unomode .uhand .ucard{--cw:var(--hcw)}
+body.unomode .hc{margin-left:calc(var(--hcw)*-.46)}body.unomode .hc:first-child{margin-left:0}
+body.unomode .hc.sel{transform:translateY(-30px)}
+body.unomode .ubtns{position:absolute;right:8px;bottom:8px;z-index:9;flex-direction:column;align-items:flex-end;flex-wrap:nowrap;gap:5px;padding:0;pointer-events:none}
+body.unomode .ubtns>*{pointer-events:auto}
+body.unomode .ubtn{padding:5px 11px;font-size:12px;border-radius:10px;border-width:2px;box-shadow:2px 2px 0 #121212}
+body.unomode .uunoB{width:clamp(62px,22dvh,84px);height:clamp(62px,22dvh,84px);border-radius:50%;padding:0;font:800 clamp(17px,6dvh,24px) var(--f-disp);transform:rotate(-6deg);background:radial-gradient(circle at 35% 30%,#ff7a8d,#F0344D 55%,#b3122b);border:4px solid #fff;box-shadow:0 5px 0 #7d0b1d,0 8px 14px rgba(0,0,0,.5);text-shadow:2px 2px 0 #7d0b1d;order:9}
+body.unomode .uunoB:active{transform:rotate(-6deg) translateY(4px);box-shadow:0 1px 0 #7d0b1d}
+body.unomode .ucatchB{order:8}
+body.unomode .upick{position:absolute}
+/* emoji + chat: tucked at the sides in landscape */
+body.unomode .reactbar{left:8px!important;top:50%!important;bottom:auto!important;transform:translateY(-50%)!important;flex-direction:column;padding:4px 2px;gap:0;z-index:12}
+body.unomode .reactbar button{width:36px;height:32px;font-size:19px}
+body.unomode .chatbtn{left:8px!important;right:auto!important;bottom:6px!important;width:44px;height:44px;font-size:20px;z-index:12}
+/* paused + rotate */
+.upaused{position:absolute;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(10,10,10,.72);backdrop-filter:blur(3px)}
+.upaused-in{background:#FFF7E6;border:4px solid #121212;border-radius:20px;padding:14px 26px;text-align:center;box-shadow:6px 6px 0 #121212;display:flex;flex-direction:column;gap:8px;align-items:center;animation:uPop .35s cubic-bezier(.3,1.6,.5,1)}
+.upz{font-size:44px}
+.urotate{position:absolute;inset:0;z-index:99;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#1b1b24;color:#fff;text-align:center;font:700 14px var(--f-body)}
+.urotate b{font:800 22px var(--f-disp);color:#FFD600}.urot-ph{font-size:70px;animation:uRotPh 2s ease-in-out infinite}
+@keyframes uRotPh{0%,25%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
+@media (orientation:portrait){body.unomode .urotate{display:flex}body.unomode .reactbar,body.unomode .chatbtn{display:none!important}}
+.uover{z-index:55}
 
 
 .rmap{position:absolute;right:8px;top:calc(66px + env(safe-area-inset-top));width:92px;height:92px;z-index:3;background:rgba(18,18,18,.35);border:2px solid #121212;border-radius:14px;pointer-events:none}
@@ -3409,7 +3467,8 @@ html[data-theme=dark] .cbub{border-color:#121212}
     var dirEl = h('div', { class: 'udir' }, '⟳'), colEl = h('div', { class: 'ucolor' }), banner = h('div', { class: 'ubanner' });
     table.appendChild(opp); table.appendChild(drawPile); table.appendChild(discPile); table.appendChild(dirEl); table.appendChild(colEl); table.appendChild(banner);
     var meBar = h('div', { class: 'ume' }), handBox = h('div', { class: 'uhand' }), btns = h('div', { class: 'ubtns' }), picker = h('div', { class: 'upick' }), overBox = h('div', { class: 'uover' });
-    var root = h('div', { class: 'ugame' }, topbar, timerBar, table, meBar, btns, handBox, picker, overBox, fx);
+    var pausedBox = h('div', { class: 'upaused' }), rotate = h('div', { class: 'urotate' }, h('div', { class: 'urot-ph' }, '📱'), h('b', null, 'Turn your phone sideways'), h('span', null, 'UNO is played in landscape')) ;
+    var root = h('div', { class: 'ugame' }, table, topbar, timerBar, meBar, btns, handBox, picker, overBox, pausedBox, fx, rotate);
     var chipEls = {};
 
     function me() { return S.me.id; }
@@ -3507,18 +3566,22 @@ html[data-theme=dark] .cbub{border-color:#121212}
     /* ---- painting ---- */
     function paintTop() {
       var u = S.un; var cur = u ? u.cur : null;
-      fill(topbar, h('button', { class: 'link', type: 'button', onclick: function () { if (confirm('Leave this game?')) send({ t: 'leave' }); } }, '← Leave'),
-        h('div', { class: 'utt' }, S.phase === 'udeal' ? '🔀 Shuffling & dealing…' : S.phase === 'uover' ? '🏁 Game over' : (cur === me() ? '👉 YOUR TURN' : '⏳ ' + nameOf(cur) + '\'s turn') + (S.endsAt ? ' · ' : ''), S.endsAt && S.phase === 'uturn' ? h('b', { class: 'usec' }, secsLeft() + 's') : null),
-        S.me.host ? hostBtn('⏹ End', { t: 'ulobby' }, 'small danger', 'End the game and go back to the lobby?') : h('span'));
+      var pz = u && u.paused;
+      fill(topbar, h('div', { class: 'utl' }, h('button', { class: 'ubtn-s', type: 'button', onclick: function () { if (confirm('Leave this game?')) send({ t: 'leave' }); } }, '←'),
+          h('div', { class: 'utt' }, S.phase === 'udeal' ? '🔀 Dealing…' : S.phase === 'uover' ? '🏁 Game over' : pz ? '⏸ Paused' : (cur === me() ? '👉 YOUR TURN' : '⏳ ' + nameOf(cur)), S.endsAt && S.phase === 'uturn' && !pz ? h('b', { class: 'usec' }, ' ' + secsLeft() + 's') : null)),
+        h('div', { class: 'utr' }, S.me.host && S.phase === 'uturn' ? h('button', { class: 'ubtn-s', type: 'button', 'aria-label': pz ? 'Resume' : 'Pause', onclick: function () { send({ t: pz ? 'uresume' : 'upause' }); } }, pz ? '▶' : '⏸') : null,
+          S.me.host ? h('button', { class: 'ubtn-s danger', type: 'button', onclick: function () { if (confirm('End the game and go back to the lobby?')) send({ t: 'ulobby' }); } }, '⏹') : null));
+      var pb = !!pz && S.phase === 'uturn'; pausedBox.style.display = pb ? 'flex' : 'none';
+      if (pb) fill(pausedBox, h('div', { class: 'upaused-in' }, h('div', { class: 'upz' }, '⏸'), h('b', null, 'GAME PAUSED'), S.me.host ? h('button', { class: 'ubtn uplayB', type: 'button', onclick: function () { send({ t: 'uresume' }); } }, '▶ Resume') : h('span', null, 'Waiting for the host to resume…')));
     }
     function paintOpp() {
       var u = S.un, ids = u.ids, k = ids.indexOf(me()), order = [], n = ids.length, fin = u.fin || [];
       for (var i = 1; i <= n; i++) { var j = (k < 0 ? i - 1 : k + i); j = ((j % n) + n) % n; if (ids[j] !== me()) order.push(ids[j]); }
       var nx = null; if (S.phase === 'uturn') { var q = ids.indexOf(u.cur); for (var g = 0; g < n; g++) { q = (((q + u.dir) % n) + n) % n; if (fin.indexOf(ids[q]) < 0) { nx = ids[q]; break; } } }
-      chipEls = {}; var m = order.length, sm = m > 6, rx = m > 8 ? 40 : 40, ry = 39;
+      chipEls = {}; var m = order.length, sm = m > 5, rx = 39, ry = 38;
       fill(opp, order.map(function (id, ix) {
-        var c = u.counts[id], turn = u.cur === id && S.phase === 'uturn', nm = nameOf(id), fp = fin.indexOf(id), ang = 2 * Math.PI * (ix + 1) / (m + 1);
-        var x = 50 - rx * Math.sin(ang), y = 50 + ry * Math.cos(ang);
+        var c = u.counts[id], turn = u.cur === id && S.phase === 'uturn', nm = nameOf(id), fp = fin.indexOf(id), ang = (m === 1 ? Math.PI : (58 + ix * 244 / (m - 1)) * Math.PI / 180);
+        var x = 50 - rx * Math.sin(ang), y = 47 + ry * Math.cos(ang);
         var el = h('div', { class: 'uchip' + (turn ? ' turn' : '') + (sm ? ' sm' : '') + (fp >= 0 ? ' fin' : ''), style: 'left:' + x + '%;top:' + y + '%;--ci:' + ix },
           turn ? h('span', { class: 'uarrow' }, '▼') : null,
           h('div', { class: 'uav' }, turn ? h('i', { class: 'uglow' }) : null, avatar(nm, pidx(id), null), h('b', { class: 'ucnt' }, fp >= 0 ? '🏁' + (fp + 1) : String(c)), turn ? h('i', { class: 'uturnring' }) : null),
@@ -3605,8 +3668,8 @@ html[data-theme=dark] .cbub{border-color:#121212}
     }
     function paintAll() { paintTop(); paintOpp(); paintTable(); paintMe(); paintOver(); }
     return { root: root, say: say, tick: function () {
-      if (!S || !S.un) return; var s = S.endsAt && S.phase === 'uturn' ? secsLeft() : 0, el = topbar.querySelector('.usec'); if (el) el.textContent = s + 's';
-      var tot = (S.unSet && S.unSet.secs) || 20; timerBar.firstChild.style.width = (S.phase === 'uturn' && S.endsAt ? Math.min(100, s / tot * 100) : 0) + '%'; timerBar.classList.toggle('low', s <= 5 && s > 0);
+      if (!S || !S.un) return; var s = S.endsAt && S.phase === 'uturn' && !S.un.paused ? secsLeft() : 0, el = topbar.querySelector('.usec'); if (el) el.textContent = s + 's';
+      var tot = (S.unSet && S.unSet.secs) || 20; timerBar.firstChild.style.width = (S.phase === 'uturn' && S.endsAt && !S.un.paused ? Math.min(100, s / tot * 100) : (S.un.paused && S.un.paused > 1 ? Math.min(100, S.un.paused / 1000 / tot * 100) : 0)) + '%'; timerBar.classList.toggle('low', s <= 5 && s > 0);
     }, update: function () {
       var u = S.un; if (!u) return;
       if (unoDone.gid !== u.gid) { // a new game: play the shuffle + deal show (late joiners just see the table)
