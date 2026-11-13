@@ -1239,7 +1239,7 @@ function handle(ws, m) {
       if (!hostOnly() || !room.undo || !['elim', 'whiteguess', 'over'].includes(room.phase)) return;
       return undoKick(room);
     case 'react': {
-      const E = ['😂', '🤨', '🤡', '🔥', '😱', '👀'];
+      const E = room.game === 'uno' ? ['😂', '😡', '😱', '🔥', '👏', '🤡', '😎', '🙏', '🥶', '💀', '😈', '🤯'] : ['😂', '🤨', '🤡', '🔥', '😱', '👀'];
       if (!room.settings.reacts || !E.includes(m.e) || room.phase === 'lobby') return;
       const now = Date.now(); if (now - (p.lastReact || 0) < room.settings.reactCd * 1000 - 150) return; p.lastReact = now;
       for (const q of room.players.values()) if (q.ws && q.connected) send(q.ws, { t: 'react', e: m.e, from: p.name });

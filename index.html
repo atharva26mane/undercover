@@ -962,64 +962,134 @@ body.unomode .ugame{height:calc(100dvh - 82px)}body.unomode .reactbar{left:10px!
 .uallB{background:#00C2FF;font-size:13px}
 .u-uno2{font-size:56px}
 .utable{min-height:300px}
-/* ===== landscape table (v4) ===== */
-body.unomode{overflow:hidden!important;overscroll-behavior:none;background:#2a1a10}
+/* ===== table v5: one layout, two orientations ===== */
+@property --ua{syntax:'<angle>';inherits:false;initial-value:0deg}
+body.unomode{overflow:hidden!important;overscroll-behavior:none;background:#2a1a10;
+  --hcw:clamp(54px,19dvh,88px);--hh:calc(var(--hcw)*1.23 + 30px);--ucw:clamp(50px,16dvh,78px)}
 body.unomode #wrap{max-width:none!important;padding:0!important;margin:0!important}
 body.unomode #app{padding:0!important}
-body.unomode .ugame{position:fixed!important;inset:0;height:auto!important;max-height:none!important;width:auto;margin:0;overflow:hidden;background:repeating-linear-gradient(90deg,#6b4423 0 38px,#5d3a1d 38px 40px),#5d3a1d;z-index:5}
-body.unomode .ugame:after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.55));pointer-events:none}
-body.unomode .utable{position:absolute;left:1.5%;right:1.5%;top:2%;bottom:3%;margin:0;min-height:0!important;border-radius:50%;border:5px solid #3b2412;background:radial-gradient(ellipse at 50% 45%,#2f9a5f 0,#1f7a4a 55%,#145c36 100%);box-shadow:inset 0 0 50px rgba(0,0,0,.45),0 10px 30px rgba(0,0,0,.5),inset 0 0 0 4px rgba(255,255,255,.07)}
-body.unomode .utable:before{content:"UNO";position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);font:800 clamp(60px,22dvh,130px) var(--f-disp);color:rgba(255,255,255,.07);letter-spacing:.05em;pointer-events:none}
-body.unomode .upile{width:calc(var(--ucw) );height:calc(var(--ucw)*1.5);position:absolute;top:47%;margin-top:calc(var(--ucw)*-.75)}
-body.unomode .utable{--ucw:clamp(52px,17dvh,78px)}
-body.unomode .udraw{left:calc(50% - var(--ucw) - 14px);transform:none}
-body.unomode .udisc{left:calc(50% + 14px)}
-body.unomode .udraw .ucard,body.unomode .udisc .ucard{--cw:var(--ucw)}
-body.unomode .udir{top:47%;font-size:clamp(90px,34dvh,170px)}
-body.unomode .upc{bottom:-14px}
-body.unomode .ucolor{left:50%;right:auto;top:calc(47% + var(--ucw)*.75 + 8px);bottom:auto;transform:translateX(-50%)}
-body.unomode .ubanner{top:5%;left:50%;right:auto;transform:translateX(-50%);max-width:46%;font-size:11px;padding:3px 10px;z-index:4}
-body.unomode .uring{z-index:2}
-body.unomode .uchip .uav{width:clamp(34px,10.5dvh,50px);height:clamp(34px,10.5dvh,50px)}
-body.unomode .uchip.sm .uav{width:clamp(30px,9.5dvh,44px);height:clamp(30px,9.5dvh,44px)}
-body.unomode .ufan{height:16px;margin-top:3px}body.unomode .ufan i{width:10px;height:15px;margin-left:-5px}
-body.unomode .uchip .unm{font-size:9px;margin-top:2px}
-body.unomode .uchip.turn{scale:1.2}
-/* top bar & timer */
-body.unomode .ubar{position:absolute;left:0;right:0;top:0;height:6px;margin:0;border:0;border-radius:0;background:rgba(0,0,0,.45);z-index:6}
-body.unomode .utop{position:absolute;left:8px;right:8px;top:10px;z-index:7;pointer-events:none;align-items:flex-start;min-height:0}
+body.unomode .reactbar{display:none!important}
+body.unomode .ugame{position:fixed!important;inset:0;height:auto!important;max-height:none!important;margin:0;overflow:hidden;z-index:5;
+  background:radial-gradient(ellipse at 50% 120%,rgba(60,120,60,.35),transparent 60%),repeating-linear-gradient(90deg,#7a4f2a 0 46px,#6a4222 46px 48px,#74492a 48px 94px,#5e3a1e 94px 96px),#5e3a1e}
+body.unomode .ugame:after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.6));pointer-events:none;z-index:1}
+/* table: wooden rim + felt + inner ring + faint logo */
+body.unomode .utable{position:absolute;margin:0;min-height:0!important;border-radius:50%;z-index:2;
+  border:clamp(8px,2.4dvh,14px) solid #4a2c15;
+  background:radial-gradient(ellipse at 50% 42%,#4fae58 0,#3d9a4a 40%,#2c7d3a 75%,#1f6430 100%);
+  box-shadow:inset 0 0 0 3px rgba(255,255,255,.06),inset 0 8px 40px rgba(0,0,0,.35),0 0 0 3px #2a170a,0 18px 40px rgba(0,0,0,.6)}
+body.unomode .utable:after{content:"";position:absolute;left:18%;right:18%;top:20%;bottom:22%;border-radius:50%;border:2px solid rgba(255,255,255,.08);pointer-events:none}
+body.unomode .utable:before{content:"UNO";position:absolute;left:50%;top:47%;transform:translate(-50%,-50%) rotate(-12deg);font:800 clamp(60px,24dvh,150px) var(--f-disp);color:rgba(255,255,255,.06);letter-spacing:.04em;pointer-events:none}
+/* direction arrows round the centre card */
+body.unomode .udir{position:absolute;left:50%;top:47%;width:calc(var(--ucw)*3.6);height:calc(var(--ucw)*3.6);transform:translate(-50%,-50%);font-size:0;pointer-events:none;z-index:1;filter:drop-shadow(0 0 6px currentColor) drop-shadow(0 2px 2px rgba(0,0,0,.4));opacity:.85}
+.udir-svg{width:100%;height:100%;overflow:visible}.udir-svg path{fill:none;stroke:currentColor;stroke-width:13;stroke-linecap:round}.udir-svg polygon{fill:currentColor}
+.udir-svg .ua-g{transform-origin:100px 100px}
+body.unomode .udir.cw .ua-g{animation:uDirCw 6s linear infinite}
+body.unomode .udir.ccw .udir-svg{transform:scaleX(-1)}body.unomode .udir.ccw .ua-g{animation:uDirCw 6s linear infinite}
+@keyframes uDirCw{to{transform:rotate(360deg)}}
+body.unomode .udir.uspin{animation:uDirPop .9s cubic-bezier(.3,1.5,.5,1)}
+@keyframes uDirPop{0%{transform:translate(-50%,-50%) scale(1.5);opacity:1}100%{transform:translate(-50%,-50%) scale(1)}}
+/* piles */
+body.unomode .upile{width:var(--ucw);height:calc(var(--ucw)*1.5);position:absolute;top:47%;margin-top:calc(var(--ucw)*-.75);z-index:3}
+body.unomode .udraw{left:calc(50% - var(--ucw)*2.55);transform:perspective(500px) rotateX(28deg) rotate(-16deg)}
+body.unomode .udraw .ucard{--cw:var(--ucw)}
+body.unomode .udraw .l3{box-shadow:0 0 0 1px #121212,0 3px 0 0 #e9e9e9,0 5px 0 0 #cfcfcf,0 7px 0 0 #e9e9e9,0 9px 0 0 #bdbdbd,0 11px 0 0 #dcdcdc,0 13px 0 0 #a9a9a9,0 20px 18px rgba(0,0,0,.55)}
+body.unomode .udraw .l2,body.unomode .udraw .l1{transform:none;box-shadow:0 0 0 1px #121212}
+body.unomode .udraw.can{animation:uHint 1.3s ease-in-out infinite}
+body.unomode .upc{bottom:-18px;color:#fff;text-shadow:0 1px 2px #000}
+body.unomode .udisc{left:calc(50% - var(--ucw)/2);filter:none}
+body.unomode .udisc:before{inset:-30%;opacity:.45}
+body.unomode .udisc .ucard{--cw:var(--ucw);position:absolute;left:0;top:0;box-shadow:0 0 0 1.5px #121212,0 6px 10px rgba(0,0,0,.45)}
+body.unomode .udisc .uunder{filter:brightness(.88)}
+body.unomode .ucolor{left:50%;right:auto;top:calc(47% + var(--ucw)*.75 + 14px);bottom:auto;transform:translateX(-50%);z-index:3;font-size:9px;padding:2px 8px}
+body.unomode .ubanner{top:auto;bottom:calc(53% + var(--ucw)*.75 + 10px);left:50%;right:auto;transform:translateX(-50%);max-width:56%;font-size:11px;padding:3px 10px;z-index:4}
+/* players: rounded-square avatars, name plates, real card fans */
+body.unomode .uring{z-index:3}
+body.unomode .uchip .uav,body.unomode .umeav{width:clamp(36px,11.5dvh,56px);height:clamp(36px,11.5dvh,56px)}
+body.unomode .uchip.sm .uav{width:clamp(32px,10dvh,48px);height:clamp(32px,10dvh,48px)}
+body.unomode .uav .av{border-radius:22%;border:3px solid #fff;box-shadow:0 0 0 2px #121212,0 4px 8px rgba(0,0,0,.45)}
+body.unomode .uchip .unm,body.unomode .umet{font:800 10px var(--f-body);color:#FFE38A;background:rgba(20,40,20,.75);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:1px 8px;margin-top:3px;max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.unomode .uchip.turn .unm{background:#FFD600;color:#121212}
+body.unomode .ufan{height:clamp(16px,6dvh,26px);margin-top:3px}
+body.unomode .ufan i{width:clamp(11px,4dvh,17px);height:clamp(16px,6dvh,26px);margin-left:calc(clamp(11px,4dvh,17px)*-.62);border-radius:3px;border:1.5px solid #fff;box-shadow:0 0 0 1px #121212,0 2px 3px rgba(0,0,0,.4);
+  background:radial-gradient(ellipse 34% 26% at 50% 50%,#FFC800 0 30%,#F0344D 34% 96%,transparent 100%),#141418}
+body.unomode .uchip.turn{scale:1.15}
+body.unomode .uchip .ucnt,body.unomode .umeav .ucnt{right:-9px;bottom:-6px}
+/* moving shine border on whoever's turn it is */
+body.unomode .uturnring{inset:-7px;border-radius:26%;padding:4px;background:conic-gradient(from var(--ua),#FFD600,#fff6b0,#FF9100,#FFD600,#fff6b0,#FFD600);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:uUa 1.2s linear infinite}
+@keyframes uUa{to{--ua:360deg}}
+body.unomode .uglow{border-radius:26%;inset:-6px}
+/* top bar */
+body.unomode .ubar{position:absolute;left:0;right:0;top:0;height:5px;margin:0;border:0;border-radius:0;background:rgba(0,0,0,.45);z-index:8}
+body.unomode .utop{position:absolute;left:8px;right:8px;top:calc(9px + env(safe-area-inset-top));z-index:9;pointer-events:none;align-items:flex-start;min-height:0}
 body.unomode .utl,body.unomode .utr{display:flex;gap:6px;align-items:center;pointer-events:auto}
-body.unomode .utt{flex:none;font:800 12px var(--f-mono);background:rgba(18,18,18,.65);color:#fff;border-radius:999px;padding:5px 12px;text-align:left;max-width:34vw;overflow:hidden;white-space:nowrap}
+body.unomode .utt{flex:none;font:800 12px var(--f-mono);background:rgba(18,18,18,.65);color:#fff;border-radius:999px;padding:6px 12px;max-width:38vw;overflow:hidden;white-space:nowrap}
 body.unomode .usec{font:800 12px var(--f-mono);color:#FFD600}
-.ubtn-s{width:38px;height:38px;border-radius:50%;border:3px solid #121212;background:#FFD600;font:800 16px var(--f-disp);box-shadow:2px 2px 0 #121212;padding:0;display:flex;align-items:center;justify-content:center;color:#121212}.ubtn-s.danger{background:#F0344D;color:#fff}
-/* me + buttons + hand */
-body.unomode .ume{position:absolute;left:62px;bottom:6px;z-index:8;background:rgba(18,18,18,.7);color:#fff;border:2px solid transparent;border-radius:999px;padding:3px 12px 3px 4px;font-size:11px;max-width:30vw;overflow:hidden;white-space:nowrap}
-body.unomode .ume.turn{background:linear-gradient(90deg,#FFD600,#FF9100,#FFD600);background-size:200% 100%;color:#121212;border-color:#121212}
-body.unomode .ume .av{width:28px;height:28px}
-body.unomode .uhand{position:absolute;left:0;right:0;bottom:0;z-index:5;min-height:0;height:calc(var(--hcw)*1.5*.82 + 34px);padding:30px 90px 0 92px;align-items:flex-end;justify-content:safe center;--hcw:clamp(54px,19dvh,86px)}
-body.unomode .uhand .ucard{--cw:var(--hcw)}
-body.unomode .hc{margin-left:calc(var(--hcw)*-.46)}body.unomode .hc:first-child{margin-left:0}
-body.unomode .hc.sel{transform:translateY(-30px)}
-body.unomode .ubtns{position:absolute;right:8px;bottom:8px;z-index:9;flex-direction:column;align-items:flex-end;flex-wrap:nowrap;gap:5px;padding:0;pointer-events:none}
+.ubtn-s{min-width:36px;height:36px;border-radius:50%;border:3px solid #121212;background:#FFD600;font:800 15px var(--f-disp);box-shadow:2px 2px 0 #121212;padding:0;display:flex;align-items:center;justify-content:center;color:#121212}
+.ubtn-s.danger{background:#F0344D;color:#fff}.ubtn-s.ufs{background:#fff}.ubtn-s.wide{border-radius:999px;padding:0 10px;font-size:11px}
+/* me + emoji/chat corner */
+body.unomode .ubot{position:absolute;left:8px;z-index:9;display:flex;align-items:flex-end;gap:8px}
+body.unomode .uemo-col{display:flex;flex-direction:column;gap:6px;align-items:center}
+body.unomode .ume{position:static;flex-direction:column;align-items:center;gap:0;background:none;border:0;padding:0;max-width:none;color:#fff}
+body.unomode .ume.turn{background:none;animation:none}
+body.unomode .ume.turn .umet{background:#FFD600;color:#121212}
+.uemoB{width:46px;height:46px;border-radius:50%;border:0;background:radial-gradient(circle at 35% 30%,#fff3a0,#FFD600 55%,#e0a800);box-shadow:0 3px 0 #9a7200,0 5px 8px rgba(0,0,0,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;line-height:1}
+.uemoB span{font-size:22px}.uemoB small{font:800 8px var(--f-body);color:#5a3d00;margin-top:1px}
+.uemo-pop{position:absolute;left:8px;z-index:30;display:none;background:#FFF7E6;border:3px solid #121212;border-radius:18px;padding:8px;box-shadow:5px 5px 0 #121212;width:min(300px,calc(100vw - 16px));animation:uPop .3s cubic-bezier(.3,1.6,.5,1)}
+.uemo-pop.open{display:block}
+.uemo-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:2px}.uemo-grid button{font-size:24px;height:40px;border:0;background:none;border-radius:10px;padding:0}.uemo-grid button:active{background:#FFD600;transform:scale(1.2)}
+.uemo-ph{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;border-top:2px dashed #e2d3b5;padding-top:7px}.uemo-ph button{font:700 12px var(--f-body);border:2px solid #121212;border-radius:999px;background:#fff;padding:4px 9px}.uemo-ph button:active{background:#FFD600}
+body.unomode .chatbtn{left:8px!important;right:auto!important;width:46px;height:46px;font-size:20px;z-index:12;display:flex;align-items:center;justify-content:center}
+/* hand */
+body.unomode .uhand{position:absolute;left:0;right:0;bottom:0;z-index:6;min-height:0;height:var(--hh);padding:30px 12px 0;align-items:flex-start;justify-content:safe center;overflow-y:hidden}
+body.unomode .uhand .ucard{--cw:var(--hcw);box-shadow:0 0 0 1.5px #121212,-3px 0 8px rgba(0,0,0,.35)}
+body.unomode .hc{margin-left:calc(var(--hcw)*-.42)}body.unomode .hc:first-child{margin-left:0}
+body.unomode .hc.sel{transform:translateY(-26px)}
+body.unomode .hc.ok{box-shadow:0 0 0 1.5px #121212,0 0 14px 4px rgba(255,230,80,.9)}
+/* buttons */
+body.unomode .ubtns{position:absolute;right:8px;z-index:9;flex-wrap:nowrap;gap:6px;padding:0;pointer-events:none}
 body.unomode .ubtns>*{pointer-events:auto}
-body.unomode .ubtn{padding:5px 11px;font-size:12px;border-radius:10px;border-width:2px;box-shadow:2px 2px 0 #121212}
-body.unomode .uunoB{width:clamp(62px,22dvh,84px);height:clamp(62px,22dvh,84px);border-radius:50%;padding:0;font:800 clamp(17px,6dvh,24px) var(--f-disp);transform:rotate(-6deg);background:radial-gradient(circle at 35% 30%,#ff7a8d,#F0344D 55%,#b3122b);border:4px solid #fff;box-shadow:0 5px 0 #7d0b1d,0 8px 14px rgba(0,0,0,.5);text-shadow:2px 2px 0 #7d0b1d;order:9}
-body.unomode .uunoB:active{transform:rotate(-6deg) translateY(4px);box-shadow:0 1px 0 #7d0b1d}
+body.unomode .ubtn{padding:6px 12px;font-size:12px;border-radius:12px;border-width:2px;box-shadow:0 3px 0 #121212}
+body.unomode .uunoB{width:clamp(64px,22dvh,92px);height:clamp(64px,22dvh,92px);border-radius:50%;padding:0;line-height:.9;font:800 clamp(17px,6.2dvh,25px) var(--f-disp);color:#FFD600;-webkit-text-stroke:1.5px #121212;paint-order:stroke fill;transform:rotate(-8deg);
+  background:radial-gradient(circle at 38% 28%,#ff8fa0 0,#F0344D 45%,#b0122a 80%);border:4px solid #f4f4f4;box-shadow:0 7px 0 #c9c9c9,0 9px 0 #8a8a8a,0 14px 16px rgba(0,0,0,.55);order:9}
+body.unomode .uunoB:active{transform:rotate(-8deg) translateY(6px);box-shadow:0 1px 0 #c9c9c9,0 3px 0 #8a8a8a,0 5px 8px rgba(0,0,0,.5)}
 body.unomode .ucatchB{order:8}
 body.unomode .upick{position:absolute}
-/* emoji + chat: tucked at the sides in landscape */
-body.unomode .reactbar{left:8px!important;top:50%!important;bottom:auto!important;transform:translateY(-50%)!important;flex-direction:column;padding:4px 2px;gap:0;z-index:12}
-body.unomode .reactbar button{width:36px;height:32px;font-size:19px}
-body.unomode .chatbtn{left:8px!important;right:auto!important;bottom:6px!important;width:44px;height:44px;font-size:20px;z-index:12}
-/* paused + rotate */
+body.unomode .ugame.myturn:before{position:absolute;z-index:4}
+/* paused */
 .upaused{position:absolute;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(10,10,10,.72);backdrop-filter:blur(3px)}
 .upaused-in{background:#FFF7E6;border:4px solid #121212;border-radius:20px;padding:14px 26px;text-align:center;box-shadow:6px 6px 0 #121212;display:flex;flex-direction:column;gap:8px;align-items:center;animation:uPop .35s cubic-bezier(.3,1.6,.5,1)}
 .upz{font-size:44px}
-.urotate{position:absolute;inset:0;z-index:99;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#1b1b24;color:#fff;text-align:center;font:700 14px var(--f-body)}
-.urotate b{font:800 22px var(--f-disp);color:#FFD600}.urot-ph{font-size:70px;animation:uRotPh 2s ease-in-out infinite}
-@keyframes uRotPh{0%,25%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
-@media (orientation:portrait){body.unomode .urotate{display:flex}body.unomode .reactbar,body.unomode .chatbtn{display:none!important}}
 .uover{z-index:55}
+
+/* ---------- LANDSCAPE ---------- */
+@media (orientation:landscape){
+  body.unomode .utable{left:1.5%;right:1.5%;top:3%;bottom:4%}
+  body.unomode .ubot{bottom:6px}
+  body.unomode .chatbtn{bottom:calc(6px + 46px + 8px)!important}
+  body.unomode .uemo-col{margin-top:52px}
+  body.unomode .uemo-pop{bottom:60px}
+  body.unomode .uhand{padding-left:calc(46px + 16px + clamp(36px,11.5dvh,56px) + 30px);padding-right:calc(clamp(64px,22dvh,92px) + 30px)}
+  body.unomode .ubtns{bottom:8px;flex-direction:column;align-items:flex-end}
+}
+/* ---------- PORTRAIT ---------- */
+@media (orientation:portrait){
+  body.unomode{--hcw:clamp(56px,17vw,78px);--ucw:clamp(48px,13vw,68px)}
+  body.unomode .utable{left:2%;right:2%;top:calc(52px + env(safe-area-inset-top));bottom:calc(var(--hh) + 86px)}
+  body.unomode .ubot{bottom:calc(var(--hh) + 4px)}
+  body.unomode .chatbtn{left:calc(8px + 46px + 8px)!important;bottom:calc(var(--hh) + 6px)!important}
+  body.unomode .ubot .ume{margin-left:54px}
+  body.unomode .uemo-pop{bottom:calc(var(--hh) + 86px)}
+  body.unomode .ubtns{bottom:calc(var(--hh) + 6px);flex-direction:row-reverse;align-items:flex-end;flex-wrap:wrap-reverse;max-width:60vw;justify-content:flex-start}
+  body.unomode .uunoB{width:68px;height:68px;font-size:18px}
+  body.unomode .udir{width:calc(var(--ucw)*3.1);height:calc(var(--ucw)*3.1)}
+  body.unomode .udraw{left:calc(50% - var(--ucw)*1.85)}body.unomode .udisc{left:calc(50% - var(--ucw)*.15)}
+  body.unomode .uchip .uav,body.unomode .umeav{width:clamp(40px,12.5vw,56px);height:clamp(40px,12.5vw,56px)}
+  body.unomode .uchip.sm .uav{width:clamp(36px,11vw,48px);height:clamp(36px,11vw,48px)}
+  body.unomode .ufan{height:22px}body.unomode .ufan i{width:15px;height:22px;margin-left:-9px}
+  body.unomode .uchip.sm .uav{width:36px;height:36px}body.unomode .uchip.sm .ufan{height:17px;margin-top:2px}body.unomode .uchip.sm .ufan i{width:12px;height:17px;margin-left:-7px}body.unomode .uchip.sm .unm{font-size:9px;padding:0 6px;margin-top:1px}
+  body.unomode .utable:before{font-size:26vw}
+}
 
 
 .rmap{position:absolute;right:8px;top:calc(66px + env(safe-area-inset-top));width:92px;height:92px;z-index:3;background:rgba(18,18,18,.35);border:2px solid #121212;border-radius:14px;pointer-events:none}
@@ -3464,12 +3534,29 @@ html[data-theme=dark] .cbub{border-color:#121212}
     var topbar = h('div', { class: 'utop' }), timerBar = h('div', { class: 'ubar' }, h('i'));
     var opp = h('div', { class: 'uring' }), table = h('div', { class: 'utable' });
     var drawPile = h('button', { class: 'upile udraw', type: 'button', 'aria-label': 'Draw a card' }), discPile = h('div', { class: 'upile udisc' });
-    var dirEl = h('div', { class: 'udir' }, '⟳'), colEl = h('div', { class: 'ucolor' }), banner = h('div', { class: 'ubanner' });
+    var dirEl = h('div', { class: 'udir' }), colEl = h('div', { class: 'ucolor' }), banner = h('div', { class: 'ubanner' });
     table.appendChild(opp); table.appendChild(drawPile); table.appendChild(discPile); table.appendChild(dirEl); table.appendChild(colEl); table.appendChild(banner);
     var meBar = h('div', { class: 'ume' }), handBox = h('div', { class: 'uhand' }), btns = h('div', { class: 'ubtns' }), picker = h('div', { class: 'upick' }), overBox = h('div', { class: 'uover' });
-    var pausedBox = h('div', { class: 'upaused' }), rotate = h('div', { class: 'urotate' }, h('div', { class: 'urot-ph' }, '📱'), h('b', null, 'Turn your phone sideways'), h('span', null, 'UNO is played in landscape')) ;
-    var root = h('div', { class: 'ugame' }, table, topbar, timerBar, meBar, btns, handBox, picker, overBox, pausedBox, fx, rotate);
-    var chipEls = {};
+    dirEl.innerHTML = '<svg viewBox="0 0 200 200" class="udir-svg"><defs><filter id="uaglow"><feGaussianBlur stdDeviation="3"/></filter></defs><g class="ua-g"><path d="M30 92 A72 72 0 0 1 148 46" /><polygon points="136,26 172,52 134,66" /><path d="M170 108 A72 72 0 0 1 52 154" /><polygon points="64,174 28,148 66,134" /></g></svg>';
+    var emoPop = h('div', { class: 'uemo-pop' }), emoBtn = h('button', { class: 'uemoB', type: 'button', 'aria-label': 'Emojis', onclick: function (e) { e.stopPropagation(); emoPop.classList.toggle('open'); } }, h('span', null, '😊'), h('small', null, 'Chat'));
+    fill(emoPop, h('div', { class: 'uemo-grid' }, ['😂', '😡', '😱', '🔥', '👏', '🤡', '😎', '🙏', '🥶', '💀', '😈', '🤯'].map(function (e) {
+      return h('button', { type: 'button', onclick: function () { send({ t: 'react', e: e }); emoPop.classList.remove('open'); buzz([15]); } }, e); })),
+      h('div', { class: 'uemo-ph' }, ['Hi! 👋', 'Hurry up! ⏰', 'Oops 😅', 'Nice one 👏', 'Sorry 🙏', 'Good game 🤝', 'UNO is mine 😈', 'Not again 😩'].map(function (t) {
+        return h('button', { type: 'button', onclick: function () { send({ t: 'chat', text: t }); emoPop.classList.remove('open'); buzz([15]); } }, t); })));
+    var ubot = h('div', { class: 'ubot' }, h('div', { class: 'uemo-col' }, emoBtn), meBar);
+    var fsBtn = h('button', { class: 'ubtn-s ufs', type: 'button', onclick: function (e) { e.stopPropagation(); toggleFs(); } });
+    var fsOff = false;
+    function isFs() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+    function landscape() { return window.matchMedia && matchMedia('(orientation: landscape)').matches; }
+    function goFs() { var d = document.documentElement, f = d.requestFullscreen || d.webkitRequestFullscreen; if (f && !isFs()) { try { var pr = f.call(d, { navigationUI: 'hide' }); if (pr && pr.catch) pr.catch(function () {}); } catch (x) {} } }
+    function exitFs() { var f = document.exitFullscreen || document.webkitExitFullscreen; if (f && isFs()) { try { var pr = f.call(document); if (pr && pr.catch) pr.catch(function () {}); } catch (x) {} } }
+    function toggleFs() { if (isFs()) { fsOff = true; exitFs(); } else { fsOff = false; goFs(); } }
+    function paintFs() { var can = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen); fsBtn.style.display = can ? '' : 'none'; fsBtn.textContent = isFs() ? '✕ Exit full screen' : '⛶'; fsBtn.classList.toggle('wide', isFs()); }
+    document.addEventListener('fullscreenchange', paintFs); document.addEventListener('webkitfullscreenchange', paintFs);
+    var pausedBox = h('div', { class: 'upaused' });
+    var root = h('div', { class: 'ugame' }, table, topbar, timerBar, ubot, btns, handBox, emoPop, picker, overBox, pausedBox, fx);
+    root.addEventListener('pointerdown', function (e) { if (!emoPop.contains(e.target) && e.target !== emoBtn) emoPop.classList.remove('open'); if (landscape() && !fsOff && !isFs()) goFs(); }, true);
+    var chipEls = {}, dHist = [], dTop = { c: null, g: null, r: 0 };
 
     function me() { return S.me.id; }
     function inGame() { return S.un && S.un.ids.indexOf(me()) >= 0; }
@@ -3545,7 +3632,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
           if (v === 'd') { bigText('+2', 'u-d'); shakeRoot(); buzz([90, 40, 90]); }
           else if (v === 'f') { bigText('+4', 'u-f'); shakeRoot(); buzz([120, 50, 120, 50, 200]); }
           else if (v === 's') { bigText('🚫 SKIP', 'u-s'); buzz([70]); }
-          else if (v === 'r') { bigText('🔄 REVERSE', 'u-r'); dirEl.classList.remove('uspin'); void dirEl.offsetWidth; dirEl.classList.add('uspin'); buzz([40, 40, 40]); }
+          else if (v === 'r') { bigText('🔄 REVERSE', 'u-r'); dirEl.classList.remove('uspin'); void dirEl.offsetWidth; dirEl.classList.add('uspin'); setTimeout(function () { dirEl.classList.remove('uspin'); }, 950); buzz([40, 40, 40]); }
           else if (v === 'w') { bigText('🎨 ' + UNAME[ev.color], 'u-w'); }
           else if (ev.cards.length > 1) bigText('×' + ev.cards.length + ' COMBO!', 'u-c');
           if (ev.fin) { later(function () { bigText('🏁 ' + (id === me() ? 'YOU' : nameOf(id)) + ' finished #' + ev.fin, 'u-c'); if (typeof confetti === 'function') confetti(); buzz([80, 50, 80]); }, 900); }
@@ -3569,9 +3656,9 @@ html[data-theme=dark] .cbub{border-color:#121212}
       var pz = u && u.paused;
       fill(topbar, h('div', { class: 'utl' }, h('button', { class: 'ubtn-s', type: 'button', onclick: function () { if (confirm('Leave this game?')) send({ t: 'leave' }); } }, '←'),
           h('div', { class: 'utt' }, S.phase === 'udeal' ? '🔀 Dealing…' : S.phase === 'uover' ? '🏁 Game over' : pz ? '⏸ Paused' : (cur === me() ? '👉 YOUR TURN' : '⏳ ' + nameOf(cur)), S.endsAt && S.phase === 'uturn' && !pz ? h('b', { class: 'usec' }, ' ' + secsLeft() + 's') : null)),
-        h('div', { class: 'utr' }, S.me.host && S.phase === 'uturn' ? h('button', { class: 'ubtn-s', type: 'button', 'aria-label': pz ? 'Resume' : 'Pause', onclick: function () { send({ t: pz ? 'uresume' : 'upause' }); } }, pz ? '▶' : '⏸') : null,
+        h('div', { class: 'utr' }, fsBtn, S.me.host && S.phase === 'uturn' ? h('button', { class: 'ubtn-s', type: 'button', 'aria-label': pz ? 'Resume' : 'Pause', onclick: function () { send({ t: pz ? 'uresume' : 'upause' }); } }, pz ? '▶' : '⏸') : null,
           S.me.host ? h('button', { class: 'ubtn-s danger', type: 'button', onclick: function () { if (confirm('End the game and go back to the lobby?')) send({ t: 'ulobby' }); } }, '⏹') : null));
-      var pb = !!pz && S.phase === 'uturn'; pausedBox.style.display = pb ? 'flex' : 'none';
+      paintFs(); var pb = !!pz && S.phase === 'uturn'; pausedBox.style.display = pb ? 'flex' : 'none';
       if (pb) fill(pausedBox, h('div', { class: 'upaused-in' }, h('div', { class: 'upz' }, '⏸'), h('b', null, 'GAME PAUSED'), S.me.host ? h('button', { class: 'ubtn uplayB', type: 'button', onclick: function () { send({ t: 'uresume' }); } }, '▶ Resume') : h('span', null, 'Waiting for the host to resume…')));
     }
     function paintOpp() {
@@ -3579,8 +3666,12 @@ html[data-theme=dark] .cbub{border-color:#121212}
       for (var i = 1; i <= n; i++) { var j = (k < 0 ? i - 1 : k + i); j = ((j % n) + n) % n; if (ids[j] !== me()) order.push(ids[j]); }
       var nx = null; if (S.phase === 'uturn') { var q = ids.indexOf(u.cur); for (var g = 0; g < n; g++) { q = (((q + u.dir) % n) + n) % n; if (fin.indexOf(ids[q]) < 0) { nx = ids[q]; break; } } }
       chipEls = {}; var m = order.length, sm = m > 5, rx = 39, ry = 38;
+      // seats spread evenly by distance along the oval (not by angle), so the sides never get crowded
+      var tw = table.clientWidth || 800, th = table.clientHeight || 360, A0 = th > tw ? 42 : 58, A1 = th > tw ? 318 : 302, N = 120, cum = [0], P = [];
+      for (var k2 = 0; k2 <= N; k2++) { var a2 = (A0 + (A1 - A0) * k2 / N) * Math.PI / 180; P.push(a2); if (k2) { var a1 = P[k2 - 1]; cum.push(cum[k2 - 1] + Math.hypot((Math.sin(a2) - Math.sin(a1)) * rx * tw, (Math.cos(a2) - Math.cos(a1)) * ry * th)); } }
+      function seatAng(ix) { if (m === 1) return Math.PI; var L = cum[N] * ix / (m - 1); for (var k3 = 1; k3 <= N; k3++) if (cum[k3] >= L) { var f = (L - cum[k3 - 1]) / ((cum[k3] - cum[k3 - 1]) || 1); return P[k3 - 1] + (P[k3] - P[k3 - 1]) * f; } return P[N]; }
       fill(opp, order.map(function (id, ix) {
-        var c = u.counts[id], turn = u.cur === id && S.phase === 'uturn', nm = nameOf(id), fp = fin.indexOf(id), ang = (m === 1 ? Math.PI : (58 + ix * 244 / (m - 1)) * Math.PI / 180);
+        var c = u.counts[id], turn = u.cur === id && S.phase === 'uturn', nm = nameOf(id), fp = fin.indexOf(id), ang = seatAng(ix);
         var x = 50 - rx * Math.sin(ang), y = 47 + ry * Math.cos(ang);
         var el = h('div', { class: 'uchip' + (turn ? ' turn' : '') + (sm ? ' sm' : '') + (fp >= 0 ? ' fin' : ''), style: 'left:' + x + '%;top:' + y + '%;--ci:' + ix },
           turn ? h('span', { class: 'uarrow' }, '▼') : null,
@@ -3592,10 +3683,13 @@ html[data-theme=dark] .cbub{border-color:#121212}
     }
     function paintTable() {
       var u = S.un; fill(drawPile, uback('l3'), uback('l2'), uback('l1'), h('span', { class: 'upc' }, String(u.pile)));
-      fill(discPile, ucard(u.top, 'big'));
+      if (u.top !== dTop.c || u.gid !== dTop.g) { if (dTop.c && u.gid === dTop.g) dHist.push({ c: dTop.c, r: dTop.r }); if (u.gid !== dTop.g) dHist = []; dHist = dHist.slice(-3); dTop = { c: u.top, g: u.gid, r: Math.round(Math.random() * 26 - 13) }; }
+      var topEl = ucard(u.top, 'big'); topEl.style.rotate = dTop.r + 'deg';
+      fill(discPile, dHist.map(function (d) { var e = ucard(d.c, 'uunder'); e.style.rotate = d.r + 'deg'; return e; }), topEl);
+      dirEl.style.color = UCOL[u.color];
       discPile.style.setProperty('--glow', UCOL[u.color]); colEl.style.background = UCOL[u.color]; colEl.textContent = UNAME[u.color];
       colEl.style.color = u.color === 'Y' ? '#121212' : '#fff';
-      dirEl.textContent = u.dir === 1 ? '⟳' : '⟲'; dirEl.className = 'udir' + (u.dir === 1 ? ' cw' : ' ccw');
+      var dc = 'udir' + (u.dir === 1 ? ' cw' : ' ccw'); dirEl.className = dc + (dirEl.classList.contains('uspin') ? ' uspin' : '');
       var pend = u.pend, txt = '';
       if (pend && S.phase === 'uturn') txt = (u.cur === me() ? '😬 Stack +' + pend.n + '. Add a ' + (pend.k === '2' ? '+2' : '+4') + ' or draw ' + pend.n : '💥 Stack +' + pend.n + ' → ' + nameOf(u.cur));
       else if (u.drew !== null && myTurn()) txt = '✨ Play the card you drew, or pass';
@@ -3610,7 +3704,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
       var hand = u.hand, key = hand.join(',');
       if (key !== lastHand) { sel = []; lastHand = key; }
       var my = myTurn();
-      fill(meBar, avatar(nameOf(me()), pidx(me()), 'sm'), h('b', null, my ? (u.pend ? 'Draw or stack' : u.drew !== null ? 'Play it or pass' : 'Your turn') : 'You · ' + hand.length + ' cards'), my ? h('i', { class: 'uyou' }) : null);
+      fill(meBar, h('div', { class: 'uav umeav' }, my ? h('i', { class: 'uglow' }) : null, avatar(nameOf(me()), pidx(me()), null), my ? h('i', { class: 'uturnring' }) : null, h('b', { class: 'ucnt' }, String(hand.length))), h('b', { class: 'umet' }, my ? (u.pend ? 'Draw or stack' : u.drew !== null ? 'Play it or pass' : 'Your turn!') : nameOf(me())));
       meBar.className = 'ume' + (my ? ' turn' : ''); root.classList.toggle('myturn', my);
       var same = []; if (sel.length && uIsNum(hand[sel[0]]) && !u.pend && u.drew === null) hand.forEach(function (c, i) { if (uIsNum(c) && c[1] === hand[sel[0]][1]) same.push(i); });
       var allBtn = my && same.length > sel.length ? h('button', { class: 'ubtn uallB', type: 'button', onclick: function () { sel = same.slice(); buzz([15, 20, 15]); paintMe(); } }, '✅ ALL ' + same.length + '× ' + hand[sel[0]][1]) : null;
