@@ -1209,6 +1209,73 @@ html[data-theme=dark] .cbub{border-color:#121212}
 .avbtn{position:relative;border:0;background:none;padding:0;margin:0;cursor:pointer;flex:none;display:inline-flex}
 .avbtn i{position:absolute;right:-5px;bottom:-4px;font-style:normal;font-size:11px;background:#FFD600;border:2px solid #121212;border-radius:50%;width:19px;height:19px;display:flex;align-items:center;justify-content:center;line-height:1}
 .avbtn:active{transform:scale(.92)}
+.hb{padding-bottom:20px}
+.hb-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 12px}
+.hb-top h1{font-size:26px;margin:0}
+.hb-me{display:flex;align-items:center;gap:7px;background:var(--card);border:3px solid var(--ink);border-radius:999px;padding:3px 12px 3px 4px;box-shadow:3px 3px 0 var(--ink);font:800 13px var(--f-mono);color:var(--ink);max-width:62%;cursor:pointer}
+.hb-me span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hb-me i{font-style:normal;opacity:.6}
+.hb-join{padding:12px}.hb-jrow{display:flex;gap:10px;align-items:stretch}.hb-jrow input{flex:1 1 0;width:0;min-width:0;text-align:center;font:800 26px var(--f-mono);letter-spacing:.3em;text-transform:uppercase}.hb-jrow .btn{flex:none;width:auto;min-width:104px}
+.hb-rj{margin-top:10px;width:100%}
+.hb-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.hb-tile{position:relative;display:flex;flex-direction:column;padding:0;overflow:hidden;background:var(--card);border:3px solid var(--ink);border-radius:18px;box-shadow:4px 4px 0 var(--ink);text-align:left;color:var(--ink);cursor:pointer;font:inherit;transition:transform .12s}
+.hb-tile:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+.hb-tt{display:flex;flex-direction:column;gap:2px;padding:8px 10px 10px;border-top:3px solid var(--ink);background:var(--card)}
+.hb-tt b{font:800 15px var(--f-disp);text-transform:uppercase;letter-spacing:-.01em}.hb-tt small{font:700 10px var(--f-mono);opacity:.7}
+.hb-art{position:relative;height:128px;overflow:hidden;width:100%}
+.hb-h{font-size:17px;margin:6px 2px}
+.hb-room{display:flex;align-items:center;gap:10px;background:var(--card);border:3px solid var(--ink);border-radius:14px;padding:8px 10px;margin:8px 0;box-shadow:3px 3px 0 var(--ink)}
+.hb-ri{flex:1;min-width:0;display:flex;flex-direction:column}.hb-ri b{font:800 14px var(--f-disp)}.hb-ri small{font:700 11px var(--f-mono);opacity:.7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hb-room .btn{min-height:40px;flex:none}
+.hb-uc{background:#14162a}
+.hb-cone{position:absolute;top:-8px;left:50%;width:150px;height:150px;margin-left:-75px;background:linear-gradient(to bottom,rgba(255,214,0,.7),rgba(255,214,0,0) 85%);clip-path:polygon(44% 0,56% 0,100% 100%,0 100%);transform-origin:50% 0;animation:hbSweep 5.5s ease-in-out infinite}
+@keyframes hbSweep{0%,100%{transform:rotate(-22deg)}50%{transform:rotate(22deg)}}
+.hb-fan{position:absolute;left:0;right:0;bottom:6px;height:86px}
+.hb-c{position:absolute;left:50%;bottom:0;width:36px;height:52px;margin-left:-18px;background:#fff;border:2px solid #121212;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:23px;transform-origin:50% 150%;transform:rotate(var(--r));animation:hbPick 5.5s var(--d) infinite}
+@keyframes hbPick{0%,18%,100%{transform:rotate(var(--r)) translateY(0);box-shadow:none}4%,12%{transform:rotate(var(--r)) translateY(-18px) scale(1.14);box-shadow:0 0 16px 3px rgba(255,214,0,.9)}}
+.hb-uno{background:radial-gradient(circle at 50% 60%,#2a8a4a,#14502c)}
+.hb-deck{position:absolute;left:50%;top:50%;width:34px;height:48px;margin:-24px 0 0 -17px;animation:hbShuf 4.2s infinite}
+.hb-deck i{position:absolute;inset:0;background:#121212;border:2px solid #fff;border-radius:6px}.hb-deck i:nth-child(2){transform:translate(2px,-2px) rotate(3deg)}.hb-deck i:nth-child(3){transform:translate(-2px,-3px) rotate(-3deg);background:#E6003D}
+@keyframes hbShuf{0%{transform:rotate(0)}6%{transform:rotate(-10deg) translateX(-4px)}12%{transform:rotate(10deg) translateX(4px)}18%,100%{transform:rotate(0)}}
+.hb-d{position:absolute;left:50%;top:50%;width:32px;height:46px;margin:-23px 0 0 -16px;border:2px solid #fff;border-radius:6px;color:#fff;font:800 14px var(--f-disp);display:flex;align-items:center;justify-content:center;text-shadow:1px 1px 0 rgba(0,0,0,.5);opacity:0;animation:hbDeal 4.2s var(--dl) infinite}
+@keyframes hbDeal{0%{transform:translate(0,0) rotate(0) scale(.9);opacity:0}6%{opacity:1}30%,78%{transform:translate(var(--x),var(--y)) rotate(var(--r)) scale(1);opacity:1}92%,100%{transform:translate(var(--x),var(--y)) rotate(var(--r)) scale(1);opacity:0}}
+.hb-fb{background:repeating-linear-gradient(0deg,#2f9e4f 0 16px,#37b05a 16px 32px)}
+.hb-goal{position:absolute;top:10px;left:50%;width:74px;height:34px;margin-left:-37px;border:3px solid #fff;border-bottom:none;background:repeating-linear-gradient(45deg,rgba(255,255,255,.35) 0 2px,transparent 2px 7px),repeating-linear-gradient(-45deg,rgba(255,255,255,.35) 0 2px,transparent 2px 7px)}
+.hb-gtxt{position:absolute;left:50%;top:48px;transform:translateX(-50%) scale(0);font:800 22px var(--f-disp);color:#FFD600;text-shadow:2px 2px 0 #121212;white-space:nowrap;animation:hbGoal 2.8s infinite}
+@keyframes hbGoal{0%,56%{transform:translateX(-50%) scale(0)}64%{transform:translateX(-50%) scale(1.25)}72%,90%{transform:translateX(-50%) scale(1)}100%{transform:translateX(-50%) scale(0)}}
+.hb-by{position:absolute;left:50%;bottom:6px;margin-left:-12px;font-size:24px;line-height:1;animation:hbBy 2.8s infinite}
+.hb-bx{display:block;animation:hbBx 2.8s infinite}
+@keyframes hbBy{0%{transform:translateY(0) scale(1);opacity:1}58%{transform:translateY(-84px) scale(.55);opacity:1}86%{transform:translateY(-84px) scale(.55);opacity:1}100%{transform:translateY(-84px) scale(.55);opacity:0}}
+@keyframes hbBx{0%{transform:translateX(-40px) rotate(0)}58%{transform:translateX(0) rotate(540deg)}100%{transform:translateX(0) rotate(540deg)}}
+.hb-bg{background:linear-gradient(to bottom,#7fd4ff 0 38%,#1ea7d8 38% 52%,#f3d99a 52%)}
+.hb-sun{position:absolute;top:10px;right:14px;width:22px;height:22px;border-radius:50%;background:#FFD600;box-shadow:0 0 14px #FFD600}
+.hb-palm{position:absolute;top:36px;font-size:24px;animation:hbPalm 4s linear infinite}
+@keyframes hbPalm{0%{left:110%}100%{left:-20%}}
+.hb-road{position:absolute;left:0;right:0;bottom:8px;height:44px;background:#3b3b46;border-top:3px solid #121212;border-bottom:3px solid #121212}
+.hb-road:after{content:"";position:absolute;left:0;right:0;top:50%;height:4px;margin-top:-2px;background:repeating-linear-gradient(90deg,#fff 0 18px,transparent 18px 36px);animation:hbRoad .45s linear infinite}
+@keyframes hbRoad{to{background-position:-36px 0}}
+.hb-car{position:absolute;left:50%;bottom:20px;width:54px;height:20px;margin-left:-27px;background:#FF4D00;border:2px solid #121212;border-radius:8px 12px 6px 6px;animation:hbBob .35s ease-in-out infinite alternate}
+.hb-cab{position:absolute;left:14px;top:-12px;width:24px;height:12px;background:#9be6ff;border:2px solid #121212;border-radius:7px 7px 0 0}
+.hb-w{position:absolute;bottom:-8px;width:13px;height:13px;border-radius:50%;background:#121212;border:2px solid #ddd}.hb-w1{left:5px}.hb-w2{right:5px}
+.hb-w:after{content:"";position:absolute;left:50%;top:1px;width:2px;height:7px;background:#ddd;transform-origin:50% 5px;animation:hbSpin .25s linear infinite}
+@keyframes hbSpin{to{transform:rotate(360deg)}}@keyframes hbBob{to{transform:translateY(-2px)}}
+.hb-speed{position:absolute;left:8px;bottom:26px;width:30px}.hb-speed i{position:absolute;left:0;height:2px;width:22px;background:rgba(255,255,255,.8);border-radius:2px;animation:hbSl .5s linear infinite}
+.hb-speed i:nth-child(1){top:0}.hb-speed i:nth-child(2){top:8px;animation-delay:.15s}.hb-speed i:nth-child(3){top:16px;animation-delay:.3s}
+@keyframes hbSl{0%{transform:translateX(24px);opacity:0}30%{opacity:1}100%{transform:translateX(-24px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.hb-art *,.hb-art{animation:none!important}.hb-d{opacity:1}}
+.pf-prev{display:flex;justify-content:center;margin:4px 0 12px}.pf-prev .av.xl{width:112px;height:112px;font-size:48px}
+.pf-avs{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}.pf-av{aspect-ratio:1;border:3px solid var(--ink);border-radius:50%;font-size:24px;line-height:1;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.pf-av:active{transform:scale(.92)}
+.cam-circle{width:240px;height:240px;max-width:100%;border-radius:50%;overflow:hidden;border:4px solid var(--ink);margin:10px auto;background:#000}.cam-circle video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block}
+.codebar{background:var(--card);border:3px solid var(--ink);border-radius:18px;box-shadow:4px 4px 0 var(--ink);padding:10px 12px 12px;margin:0 0 12px;text-align:center}
+.codebar>small{font:800 10px var(--f-mono);letter-spacing:.16em;opacity:.7}
+.cb-code{display:flex;justify-content:center;gap:8px;margin:6px 0 10px}
+.cb-code b{width:52px;height:64px;display:flex;align-items:center;justify-content:center;background:var(--yellow);border:3px solid var(--ink);border-radius:12px;box-shadow:3px 3px 0 var(--ink);font:800 36px var(--f-mono);color:var(--ink)}
+.cb-btns{display:flex;gap:10px;justify-content:center}.cb-btns .btn{flex:1;max-width:160px}
+.cb-sw{margin:12px auto 0;display:flex;align-items:center;gap:10px;background:none;border:none;color:var(--ink);font:800 13px var(--f-body);cursor:pointer;padding:4px}
+.cb-sw i{position:relative;width:44px;height:24px;border-radius:999px;border:3px solid var(--ink);background:#ccc;flex:none;transition:background .15s}
+.cb-sw i:after{content:"";position:absolute;top:1px;left:1px;width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid var(--ink);transition:transform .15s}
+.cb-sw.on i{background:#00C853}.cb-sw.on i:after{transform:translateX(20px)}
+.cb-sw em{font:800 11px var(--f-mono);font-style:normal;opacity:.7}
 </style>
 </head>
 <body>
@@ -1348,7 +1415,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
 
   var lastPhase = null;
   function onMsg(m) {
-    if (m.t === 'joined') { session = { id: m.id, token: m.token, code: m.code }; store('uc.session', JSON.stringify(session)); vapidKey = m.vapid || null; if (load('uc.push') === 'on') enablePush(false); setTimeout(function () { send({ t: 'vis', hidden: document.visibilityState === 'hidden' }); }, 300); }
+    if (m.t === 'joined') { session = { id: m.id, token: m.token, code: m.code }; store('uc.session', JSON.stringify(session)); store('uc.last', m.code); hideWait(); setTimeout(sendProfilePhoto, 900); vapidKey = m.vapid || null; if (load('uc.push') === 'on') enablePush(false); setTimeout(function () { send({ t: 'vis', hidden: document.visibilityState === 'hidden' }); }, 300); }
     else if (m.t === 'state') {
       offset = m.now - Date.now();
       var phaseChanged = !S || S.phase !== m.phase;
@@ -1357,7 +1424,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
       lastPhase = m.phase;
       render();
     }
-    else if (m.t === 'err') { toast(m.msg); if (S && S.game === 'uno' && cur && cur.update) cur.update(); }
+    else if (m.t === 'err') { toast(m.msg); if (m.msg === 'No lobby with that code' && load('uc.last')) { store('uc.last', null); if (!S && mode === 'hub') { curKey = null; render(); } } if (S && S.game === 'uno' && cur && cur.update) cur.update(); }
     else if (m.t === 'notice') toast(m.msg);
     else if (m.t === 'react') floatReact(m.e, m.from);
     else if (m.t === 'wguess') showWhiteGuess(m);
@@ -1375,11 +1442,14 @@ html[data-theme=dark] .cbub{border-color:#121212}
       if (Array.isArray(m.used)) store('uc.used', JSON.stringify(m.used));
       if (Array.isArray(m.recent)) store('uc.recent', JSON.stringify(m.recent));
     }
-    else if (m.t === 'norejoin') { session = null; store('uc.session', null); S = null; render(); }
+    else if (m.t === 'rooms') { openRooms = m.list || []; if (cur && cur.rooms) cur.rooms(); }
+    else if (m.t === 'reqwait') showWait();
+    else if (m.t === 'reqres') { hideWait(); if (m.msg) toast(m.msg); }
+    else if (m.t === 'norejoin') { session = null; store('uc.session', null); S = null; if (!wantGame) mode = 'hub'; render(); }
     else if (m.t === 'kicked' || m.t === 'left') {
       chatList = []; chatOpen = false; chatUnread = 0; photoMap = {};
       if (m.t === 'kicked') toast('The host removed you from the lobby');
-      session = null; store('uc.session', null); S = null; render();
+      session = null; store('uc.session', null); S = null; wantGame = null; mode = 'hub'; render();
     }
   }
 
@@ -1539,7 +1609,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
   /* ---------- header ---------- */
   var hdr = document.getElementById('hdr');
   function renderHeader() {
-    if (!S) return fill(hdr, h('span', { class: 'logo' }, logoText()), h('div', { class: 'hdr-r' }, setBtn(), mode === 'menu' ? null : h('button', { class: 'link', type: 'button', onclick: goMenu }, '← Menu')));
+    if (!S) return fill(hdr, h('span', { class: 'logo' }, logoText()), h('div', { class: 'hdr-r' }, setBtn(), mode === 'hub' ? null : h('button', { class: 'link', type: 'button', onclick: goBack }, (mode === 'menu' || mode === 'profile' || (mode === 'online' && wantGame)) ? '← Games' : '← Menu')));
     var parts = [];
     if (S.round > 0 && S.phase !== 'lobby') parts.push(h('span', { class: 'tag rtag' }, 'R' + S.round));
     fill(hdr, h('span', { class: 'logo' }, logoText()),
@@ -2289,12 +2359,6 @@ html[data-theme=dark] .cbub{border-color:#121212}
         h('button', { class: 'hm-tkt hm-two', type: 'button', onclick: function () { mode = 'online'; render(); } },
           h('span', { class: 'hm-tk-stub' }, h('span', null, 'join with a', h('br'), '4-letter code'), h('i', { class: 'hm-bars' })),
           h('span', { class: 'hm-tk-main' }, h('small', null, '📶 OWN PHONES'), h('b', null, 'Play on', h('br'), 'separate', h('br'), 'phones'), h('i', { class: 'hm-arr' }, '→')))),
-      h('button', { class: 'hm-fbtn', type: 'button', onclick: function () { wantGame = 'football'; mode = 'online'; render(); } },
-        h('span', { class: 'hm-fe' }, '⚽'), h('span', { class: 'hm-ft' }, h('small', null, '🆕 NEW GAME'), h('b', null, 'Gully Football'), h('span', null, '1–10 players · everyone flicks at once'))),
-      h('button', { class: 'hm-fbtn hm-rbtn', type: 'button', onclick: function () { wantGame = 'race'; mode = 'online'; render(); } },
-        h('span', { class: 'hm-fe hm-re' }, '🏎️'), h('span', { class: 'hm-ft' }, h('small', null, '🆕 NEW GAME'), h('b', null, 'Beach Buggy'), h('span', null, '1–10 players · 3-lap beach race'))),
-      h('button', { class: 'hm-fbtn hm-ubtn', type: 'button', onclick: function () { wantGame = 'uno'; mode = 'online'; render(); } },
-        h('span', { class: 'hm-fe' }, '🃏'), h('span', { class: 'hm-ft' }, h('small', null, '🆕 NEW GAME'), h('b', null, 'UNO'), h('span', null, '2–12 players · stack, combo, catch!'))),
       h('button', { class: 'hm-howlink', type: 'button', onclick: howToPlay }, '🤚 How to play?'));
     fitTextSoon(title, 72);
     [].forEach.call(root.querySelectorAll('.hm-tk-main b'), function (b) { fitTextSoon(b, 21); });
@@ -2342,6 +2406,239 @@ html[data-theme=dark] .cbub{border-color:#121212}
     }, 600);
   }
 
+  /* ================= Main hub, join, open rooms, profile ================= */
+  var GAMES = { undercover: { n: 'Undercover', i: '🕵️' }, football: { n: 'Gully Football', i: '⚽' }, race: { n: 'Beach Buggy', i: '🏎️' }, uno: { n: 'UNO', i: '🃏' } };
+  var openRooms = [], waitEl = null;
+  var myCid = load('uc.cid');
+  if (!myCid) { myCid = Math.random().toString(36).slice(2, 12); store('uc.cid', myCid); }
+  function myPic() { return load('uc.photo') || ''; }
+  function meFace(cls) {
+    var ph = myPic();
+    if (ph) return h('span', { class: 'av toon pic ' + (cls || ''), role: 'img' }, h('img', { src: ph, alt: '' }));
+    return avatar(savedName || '?', 0, cls);
+  }
+  function sendProfilePhoto() {
+    var ph = myPic();
+    if (!ph || !S || photoMap[S.me.name.trim().toLowerCase()]) return;
+    send({ t: 'photo', data: ph });
+  }
+  function needName() {
+    if (savedName) return true;
+    toast('Set your name in Profile first');
+    mode = 'profile'; render();
+    return false;
+  }
+  function joinCode(code) {
+    code = String(code || '').trim().toUpperCase();
+    if (code.length < 4) { toast('Enter the 4-letter code'); return; }
+    if (!needName()) return;
+    send({ t: 'join', name: savedName, code: code });
+  }
+  function askJoin(code) {
+    if (!needName()) return;
+    send({ t: 'req', code: code, name: savedName, cid: myCid, photo: myPic() || undefined });
+  }
+  function showWait() {
+    hideWait();
+    waitEl = h('div', { class: 'modal' }, h('div', { class: 'modal-in center' },
+      h('div', { class: 'spot', style: 'margin:0 auto 8px' }, meFace('xl')),
+      h('h1', { style: 'font-size:22px' }, 'Waiting for host…'),
+      h('p', { class: 'mute small' }, 'The host will see your name and photo and can let you in.'),
+      h('button', { class: 'btn danger', type: 'button', onclick: function () { send({ t: 'reqcancel' }); hideWait(); } }, 'Cancel')));
+    document.body.appendChild(waitEl);
+  }
+  function hideWait() { if (waitEl && waitEl.parentNode) waitEl.parentNode.removeChild(waitEl); waitEl = null; }
+
+  /* animated game scenes */
+  function artUC() {
+    var faces = ['🙂', '😎', '🤓', '🥸', '😏'];
+    return h('div', { class: 'hb-art hb-uc' }, h('i', { class: 'hb-cone' }),
+      h('div', { class: 'hb-fan' }, faces.map(function (f, i) { return h('span', { class: 'hb-c', style: '--r:' + ((i - 2) * 14) + 'deg;--d:' + (i * 1.1) + 's' }, f); })));
+  }
+  function artUNO() {
+    var cs = [['#E6003D', '7', -14, -46, -4], ['#FFD600', '⇄', 6, 44, -10], ['#00A859', '+2', 14, -26, 30], ['#1E6BFF', '9', -8, 30, 34]];
+    return h('div', { class: 'hb-art hb-uno' }, h('span', { class: 'hb-deck' }, h('i'), h('i'), h('i')),
+      cs.map(function (c, i) { return h('span', { class: 'hb-d', style: 'background:' + c[0] + ';--r:' + c[2] + 'deg;--x:' + c[3] + 'px;--y:' + c[4] + 'px;--dl:' + (0.5 + i * 0.35) + 's' }, c[1]); }));
+  }
+  function artFB() {
+    return h('div', { class: 'hb-art hb-fb' }, h('i', { class: 'hb-goal' }), h('b', { class: 'hb-gtxt' }, 'GOAL!'),
+      h('span', { class: 'hb-by' }, h('span', { class: 'hb-bx' }, '⚽')));
+  }
+  function artBG() {
+    return h('div', { class: 'hb-art hb-bg' }, h('i', { class: 'hb-sun' }), h('span', { class: 'hb-palm' }, '🌴'), h('i', { class: 'hb-road' }),
+      h('span', { class: 'hb-speed' }, h('i'), h('i'), h('i')),
+      h('span', { class: 'hb-car' }, h('i', { class: 'hb-cab' }), h('i', { class: 'hb-w hb-w1' }), h('i', { class: 'hb-w hb-w2' })));
+  }
+  function goGame(g) { wantGame = g; mode = 'online'; render(); }
+  function tile(cls, art, title, sub, fn) {
+    return h('button', { class: 'hb-tile ' + cls, type: 'button', onclick: fn }, art, h('span', { class: 'hb-tt' }, h('b', null, title), h('small', null, sub)));
+  }
+
+  screens.hub = function () {
+    var codeIn = h('input', { type: 'text', class: 'code', maxlength: 4, placeholder: 'CODE', autocomplete: 'off', autocapitalize: 'characters', 'aria-label': 'Room code' });
+    codeIn.addEventListener('input', function () { codeIn.value = codeIn.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); });
+    codeIn.addEventListener('keydown', function (e) { if (e.key === 'Enter') joinCode(codeIn.value); });
+    var last = load('uc.last');
+    var roomsBox = h('div', { class: 'hb-rooms' });
+    function paintRooms() {
+      fill(roomsBox, h('h2', { class: 'hb-h' }, '🌐 Open rooms'),
+        openRooms.length ? openRooms.map(function (r) {
+          var g = GAMES[r.game] || GAMES.undercover;
+          var face = r.photo ? h('span', { class: 'av toon pic sm' }, h('img', { src: r.photo, alt: '' })) : avatar(r.host, 0, 'sm');
+          return h('div', { class: 'hb-room' }, face, h('span', { class: 'hb-ri' }, h('b', null, g.i + ' ' + g.n), h('small', null, r.host + ' · ' + r.n + ' in room')),
+            h('button', { class: 'btn small', type: 'button', onclick: function () { askJoin(r.code); } }, 'Ask to join'));
+        }) : h('p', { class: 'mute small', style: 'margin:4px 2px' }, 'No open rooms right now. Start a game and nearby friends will see it here.'));
+    }
+    paintRooms();
+    var pill = h('button', { class: 'hb-me', type: 'button', onclick: function () { mode = 'profile'; render(); } }, meFace('sm'),
+      h('span', null, savedName || 'Set your name'), h('i', null, '✎'));
+    var root = h('div', { class: 'hb' },
+      h('div', { class: 'hb-top' }, h('h1', null, 'Games'), pill),
+      h('div', { class: 'card hb-join' }, h('div', { class: 'hb-jrow' }, codeIn,
+        h('button', { class: 'btn primary', type: 'button', onclick: function () { joinCode(codeIn.value); } }, 'Join')),
+        h('p', { class: 'mute small', style: 'margin:6px 2px 0' }, 'Got a room code? Type it here. The game is found automatically.'),
+        last ? h('button', { class: 'btn small hb-rj', type: 'button', onclick: function () { joinCode(last); } }, '↩ Rejoin room ' + last) : null),
+      h('div', { class: 'hb-grid' },
+        tile('t-uc', artUC(), 'Undercover', 'Word party · 3–20', function () { mode = 'menu'; render(); }),
+        tile('t-uno', artUNO(), 'UNO', 'Cards · 2–12', function () { goGame('uno'); }),
+        tile('t-fb', artFB(), 'Gully Football', 'Flick & score · 1–10', function () { goGame('football'); }),
+        tile('t-bg', artBG(), 'Beach Buggy', 'Race · 1–10', function () { goGame('race'); })),
+      roomsBox);
+    var lastAsk = 0;
+    return { root: root, update: function () {}, rooms: paintRooms, tick: function () {
+      if (open && Date.now() - lastAsk > 5000) { lastAsk = Date.now(); send({ t: 'rooms' }); }
+    } };
+  };
+
+  /* ---------- profile: name + photo (saved on this phone) ---------- */
+  function shrinkCanvas(c) {
+    var q = 0.8, d = c.toDataURL('image/jpeg', q);
+    while (d.length > 15000 && q > 0.3) { q -= 0.1; d = c.toDataURL('image/jpeg', q); }
+    return d;
+  }
+  function squareFrom(src, sw, sh, mirror) {
+    var c = document.createElement('canvas'), N = 160; c.width = c.height = N;
+    var g = c.getContext('2d'), side = Math.min(sw, sh);
+    if (mirror) { g.translate(N, 0); g.scale(-1, 1); }
+    g.drawImage(src, (sw - side) / 2, Math.max(0, (sh - side) / 2 - side * 0.05), side, side, 0, 0, N, N);
+    return shrinkCanvas(c);
+  }
+  function uploadPhoto(cb) {
+    var inp = h('input', { type: 'file', accept: 'image/*', style: 'display:none' });
+    inp.addEventListener('change', function () {
+      var f = inp.files && inp.files[0]; if (inp.parentNode) inp.parentNode.removeChild(inp);
+      if (!f) return;
+      var url = URL.createObjectURL(f), img = new Image();
+      img.onload = function () { URL.revokeObjectURL(url); cb(squareFrom(img, img.width, img.height, false)); };
+      img.onerror = function () { URL.revokeObjectURL(url); toast('Could not open that photo'); };
+      img.src = url;
+    });
+    document.body.appendChild(inp); inp.click();
+  }
+  function emojiPhoto(e, bg) {
+    var c = document.createElement('canvas'); c.width = c.height = 160;
+    var g = c.getContext('2d'); g.fillStyle = bg; g.fillRect(0, 0, 160, 160);
+    g.font = '92px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(e, 80, 88);
+    return shrinkCanvas(c);
+  }
+  function openCamera(cb) {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { toast('Camera not available here. Use Upload'); return; }
+    var video = h('video', { autoplay: '', playsinline: '' });
+    video.muted = true; video.setAttribute('playsinline', '');
+    var stream = null, m;
+    function close() { if (stream) stream.getTracks().forEach(function (t) { t.stop(); }); if (m.parentNode) m.parentNode.removeChild(m); }
+    m = h('div', { class: 'modal' }, h('div', { class: 'modal-in center' },
+      h('h1', { style: 'font-size:22px' }, '📷 Take a photo'),
+      h('div', { class: 'cam-circle' }, video),
+      h('p', { class: 'mute small' }, 'Put your face in the circle, then tap the button.'),
+      h('button', { class: 'btn primary', type: 'button', onclick: function () {
+        var vw = video.videoWidth, vh = video.videoHeight;
+        if (!vw) { toast('Camera is still starting'); return; }
+        cb(squareFrom(video, vw, vh, true)); close();
+      } }, '📸 Capture'), h('div', { class: 'gap' }),
+      h('button', { class: 'btn yellow', type: 'button', onclick: close }, 'Cancel')));
+    document.body.appendChild(m);
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 720 } }, audio: false }).then(function (s) {
+      stream = s; video.srcObject = s; var p = video.play && video.play(); if (p && p.catch) p.catch(function () {});
+    }, function () { close(); toast('Camera is blocked. Allow it in the browser, or use Upload'); });
+  }
+  var AVS = [['😎', '#7c4dff'], ['🦁', '#ff7a2f'], ['🐼', '#12b5a0'], ['🦊', '#e8384f'], ['🐸', '#27b866'], ['🤖', '#3d8bff'], ['👻', '#a65cff'], ['🐯', '#d99a00'], ['🦄', '#ff4f9a'], ['🐵', '#0ea5c6'], ['👽', '#27b866'], ['🔥', '#e8384f']];
+  screens.profile = function () {
+    var draft = myPic();
+    var nameIn = h('input', { type: 'text', maxlength: 14, placeholder: 'Your name', value: savedName, autocomplete: 'off' });
+    var prev = h('div', { class: 'pf-prev' });
+    function paint() {
+      fill(prev, draft ? h('span', { class: 'av toon pic xl' }, h('img', { src: draft, alt: '' })) : avatar(nameIn.value.trim() || '?', 0, 'xl'));
+    }
+    nameIn.addEventListener('input', function () { if (!draft) paint(); });
+    paint();
+    function setD(d) { draft = d; paint(); }
+    var root = h('div', { class: 'hb pf' },
+      h('h1', null, 'Your profile'),
+      h('div', { class: 'card' }, prev,
+        h('div', { class: 'tools', style: 'justify-content:center' },
+          h('button', { class: 'btn small', type: 'button', onclick: function () { openCamera(setD); } }, '📷 Use camera'),
+          h('button', { class: 'btn small', type: 'button', onclick: function () { uploadPhoto(setD); } }, '🖼️ Upload'),
+          h('button', { class: 'btn small danger', type: 'button', onclick: function () { setD(''); } }, 'Remove')),
+        h('p', { class: 'mute small center', style: 'margin:10px 0 4px' }, 'Or pick an avatar'),
+        h('div', { class: 'pf-avs' }, AVS.map(function (a) {
+          return h('button', { class: 'pf-av', type: 'button', style: 'background:' + a[1], onclick: function () { setD(emojiPhoto(a[0], a[1])); } }, a[0]);
+        })),
+        h('div', { class: 'gap' }), h('label', { class: 'mute small' }, 'Name'), nameIn),
+      h('button', { class: 'btn primary', type: 'button', onclick: function () {
+        var n = nameIn.value.trim();
+        if (!n) { toast('Enter a name'); nameIn.focus(); return; }
+        savedName = n; store('uc.name', n); store('uc.photo', draft || null);
+        toast('Saved ✓'); mode = 'hub'; render();
+      } }, 'Save'), h('div', { class: 'gap' }),
+      h('p', { class: 'mute small center' }, 'Saved on this phone. Everyone in your room sees your name and photo.'));
+    return { root: root, update: function () {} };
+  };
+
+  /* ---------- big room code (every lobby) ---------- */
+  var codeBar = h('div', { class: 'codebar' }), cbSig = '';
+  function copyCode() {
+    if (navigator.clipboard) navigator.clipboard.writeText(S.code).then(function () { toast('Code ' + S.code + ' copied'); }, function () { toast('Code: ' + S.code); });
+    else toast('Code: ' + S.code);
+  }
+  function syncCodeBar() {
+    if (!S || S.phase !== 'lobby') { if (codeBar.parentNode) codeBar.parentNode.removeChild(codeBar); cbSig = ''; return; }
+    var sig = S.code + '|' + S.open + '|' + S.me.host;
+    if (sig !== cbSig) {
+      cbSig = sig;
+      fill(codeBar, h('small', null, 'ROOM CODE · tell your friends'),
+        h('div', { class: 'cb-code' }, S.code.split('').map(function (l) { return h('b', null, l); })),
+        h('div', { class: 'cb-btns' }, h('button', { class: 'btn small', type: 'button', onclick: copyCode }, '📋 Copy'),
+          h('button', { class: 'btn small', type: 'button', onclick: shareLink }, '🔗 Share link')),
+        S.me.host ? h('button', { class: 'cb-sw' + (S.open ? ' on' : ''), type: 'button', onclick: function () { send({ t: 'settings', open: !S.open }); } },
+          h('i'), h('span', null, 'Show in open rooms'), h('em', null, S.open ? 'ON' : 'OFF')) : null);
+    }
+    if (codeBar.parentNode !== app) app.insertBefore(codeBar, app.firstChild);
+  }
+
+  /* ---------- host: someone asks to join ---------- */
+  var reqEl = null, reqFor = null;
+  function syncReqModal() {
+    var r = S && S.me.host && S.phase === 'lobby' && S.reqs && S.reqs.length ? S.reqs[0] : null;
+    if (r && reqFor === r.id && reqEl && reqEl.parentNode) return;
+    if (reqEl && reqEl.parentNode) reqEl.parentNode.removeChild(reqEl);
+    reqEl = null; reqFor = null;
+    if (!r) return;
+    reqFor = r.id; buzz([60, 40, 60]);
+    var face = r.photo ? h('span', { class: 'av toon pic xl' }, h('img', { src: r.photo, alt: '' })) : avatar(r.name, 0, 'xl');
+    function ans(ok, block) { send({ t: 'reqans', id: r.id, ok: ok, block: !!block }); }
+    reqEl = h('div', { class: 'modal' }, h('div', { class: 'modal-in' },
+      h('div', { class: 'spot', style: 'margin:0 auto 8px' }, face),
+      h('h1', { class: 'center', style: 'font-size:24px' }, r.name + ' wants to join'),
+      S.reqs.length > 1 ? h('p', { class: 'mute center small' }, '+' + (S.reqs.length - 1) + ' more waiting') : null,
+      h('div', { class: 'yn' },
+        h('button', { class: 'btn green', type: 'button', onclick: function () { ans(true); } }, '✓ Accept'),
+        h('button', { class: 'btn danger', type: 'button', onclick: function () { ans(false); } }, '✗ Decline')),
+      h('button', { class: 'link', type: 'button', style: 'display:block;margin:10px auto 0', onclick: function () { ans(false, true); } }, 'Decline and block this person')));
+    document.body.appendChild(reqEl);
+  }
+
   /* ---------- one-phone (pass-and-play) mode ---------- */
   var L = null;
   function newSolo(names) {
@@ -2359,16 +2656,17 @@ html[data-theme=dark] .cbub{border-color:#121212}
   if (!('sheriff' in L.cfg)) L.cfg.sheriff = true;
   if (!Array.isArray(L.cfg.modes) || !L.cfg.modes.length) L.cfg.modes = ['mix'];
   function saveSolo() { store('uc.solo', JSON.stringify(L)); }
-  var mode = (session || /[?&]c=/.test(location.search)) ? 'online' : (L.step !== 'roster' ? 'solo' : 'menu');
+  var mode = (session || /[?&]c=/.test(location.search)) ? 'online' : (L.step !== 'roster' ? 'solo' : 'hub');
   var IN_ROUND = { spin: 1, reveal: 1, play: 1, result: 1 };
   function goMenu() {
-    wantGame = null;
+    var backTo = wantGame ? 'hub' : 'menu'; wantGame = null;
     if (mode === 'solo') {
       if (IN_ROUND[L.step] && !confirm('Leave this round? The roles and words will be lost. Your players are kept.')) return;
       L.step = 'roster'; L.players = []; saveSolo();
     }
-    mode = 'menu'; render();
+    mode = backTo; render();
   }
+  function goBack() { if (mode === 'menu' || mode === 'profile') { mode = 'hub'; render(); } else goMenu(); }
   function rnd(n) { try { var a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; } catch (e) { return Math.floor(Math.random() * n); } }
   function shuf(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = rnd(i + 1), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
   function normW(s) { return String(s).toLowerCase().normalize('NFKD').replace(/[^\p{L}\p{N}]+/gu, ' ').trim(); }
@@ -4536,7 +4834,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
   };
 
   function keyFor() {
-    if (!S) return mode === 'menu' ? 'menu' : mode === 'solo' ? 'solo' : 'home';
+    if (!S) return mode === 'menu' ? 'menu' : mode === 'solo' ? 'solo' : mode === 'hub' ? 'hub' : mode === 'profile' ? 'profile' : 'home';
     if (S.game === 'football') return S.phase === 'lobby' ? 'flobby' : (S.phase === 'pkaim' || S.phase === 'pkshow') ? 'fpen' : 'fgame';
     if (S.game === 'race') return S.phase === 'lobby' ? 'rlobby' : 'rgame';
     if (S.game === 'uno') return S.phase === 'lobby' ? 'ulobby' : 'ugame';
@@ -4558,7 +4856,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
     }
     if (S && S.phase !== 'lobby' && S.phase !== 'over') wakeLock();
     cur.update();
-    syncSupModal(); syncHostbar(); syncWatch(); syncWhiteTry(); syncUc(); syncReactBar(); paintChat();
+    syncSupModal(); syncCodeBar(); syncReqModal(); syncHostbar(); syncWatch(); syncWhiteTry(); syncUc(); syncReactBar(); paintChat();
   }
   setInterval(function () { if (cur && cur.tick) cur.tick(); }, 250);
 

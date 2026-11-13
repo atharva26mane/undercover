@@ -333,10 +333,31 @@ function shareWords(room) { // phones save the updated memory
   const msg = { t: 'words', used: [...room.words.used], recent: room.words.recent };
   for (const p of room.players.values()) if (p.ws && p.connected) send(p.ws, msg);
 }
+function okPhoto(d) { return typeof d === 'string' && d.length <= 16000 && /^data:image\/(jpeg|webp|png);base64,[A-Za-z0-9+/=]+$/.test(d); }
+function openList() { // rooms that appear on the main page
+  const out = [];
+  for (const r of rooms.values()) {
+    if (r.open === false || r.phase !== 'lobby') continue;
+    const n = [...r.players.values()].filter((q) => !q.left).length;
+    const hp = r.players.get(r.hostId);
+    if (n >= MAX_PLAYERS || !hp) continue;
+    out.push({ code: r.code, game: r.game, host: hp.name, photo: hp.photo || null, n, max: MAX_PLAYERS });
+    if (out.length >= 20) break;
+  }
+  return out;
+}
+function dropReq(room, r, msg) { // forget a join request (declined, cancelled, timed out)
+  clearTimeout(r.tm);
+  if (room) room.pending.delete(r.id);
+  if (r.ws && r.ws.pend === r) r.ws.pend = null;
+  if (msg && r.ws && r.ws.readyState === 1) send(r.ws, { t: 'reqres', ok: false, msg });
+  if (room && rooms.get(room.code) === room) broadcast(room);
+}
 function makeRoom(words) {
   const room = {
     code: newCode(), hostId: null, supervisorId: null, players: new Map(),
     game: 'undercover', unSet: { secs: 20 }, un: null, fbSet: { goals: 3, secs: 8, mode: 'match', tie: 'pens' }, fb: null, rc: null,
+    open: true, pending: new Map(), blocked: new Set(), cool: new Map(),
     phase: 'lobby', round: 0, seq: 0, timer: null, endsAt: 0,
     settings: { describeSecs: 30, autoRoles: true, undercover: 1, white: 1, whiteGuess: true, hint: false, board: true, reacts: true, modes: ['mix'], joker: false, chat: true, chatSlow: 5, reactCd: 3, ucGuess: true, whiteTries: 2, sheriff: true },
     words: words || { used: new Set(), recent: [] }, pair: null, nextPair: null, customPair: null, supReq: null,
@@ -422,7 +443,9 @@ function view(room, p) {
     history: room.history, tie: room.tie, lastElim: room.lastElim, guess: room.guess, whiteId: room.whiteId,
     winner: over ? room.winner : null, pair: over ? room.pair : null,
     me: { id: p.id, name: p.name, host: p.id === room.hostId, sup, watch: watching, alive: p.alive && !p.left && !watching },
+    open: room.open !== false,
   };
+  if (p.id === room.hostId && room.phase === 'lobby' && room.pending.size) v.reqs = [...room.pending.values()].map((r) => ({ id: r.id, name: r.name, photo: r.photo }));
   if (inGame && p.role) {
     v.me.white = p.role === 'white'; v.me.joker = p.role === 'joker'; v.me.word = p.word;
     if (p.role === 'white') v.me.wLeft = Math.max(0, (room.settings.whiteTries || 0) - (p.wTried || 0));
@@ -1110,7 +1133,7 @@ function removePlayer(room, p, selfLeft) {
 }
 
 // ---------------------------------------------------------------- websocket
-const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 16384, perMessageDeflate: false });
+const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 32768, perMessageDeflate: false });
 
 function attach(ws, room, p) {
   if (p.ws && p.ws !== ws) { p.ws.ctx = null; try { p.ws.close(); } catch (e) { /* ignore */ } }
@@ -1138,6 +1161,7 @@ function handle(ws, m) {
     if (!name) return errTo(ws, 'Enter your name');
     const room = makeRoom(loadWords(m));
     if (m.game === 'football' || m.game === 'race' || m.game === 'uno') room.game = m.game;
+    if (m.open === false) room.open = false;
     const p = addPlayer(room, name);
     room.hostId = room.ownerId = p.id;
     attach(ws, room, p);
@@ -1154,6 +1178,28 @@ function handle(ws, m) {
     if (room.phase !== 'lobby' && room.phase !== 'over' && room.phase !== 'fover' && room.phase !== 'rover' && room.phase !== 'uover') { np.watch = true; notice(room, '👀 ' + name + ' joined. Watching until the next game'); }
     return attach(ws, room, np);
   }
+  if (m.t === 'rooms') { if (Date.now() - (ws.roomsAt || 0) < 1500) return; ws.roomsAt = Date.now(); return send(ws, { t: 'rooms', list: openList() }); }
+  if (m.t === 'req') { // ask the host to let me in
+    if (ws.ctx) return;
+    const name = clean(m.name, 14), cid = clean(m.cid, 24) || 'x';
+    const room = rooms.get(clean(m.code, 4).toUpperCase());
+    const no = (msg) => send(ws, { t: 'reqres', ok: false, msg });
+    if (!name) return no('Set your name first');
+    if (!room || room.open === false || room.phase !== 'lobby') return no('That room is not open any more');
+    if ([...room.players.values()].filter((q) => !q.left).length >= MAX_PLAYERS) return no('Room is full');
+    if ([...room.players.values()].some((q) => !q.left && norm(q.name) === norm(name))) return no('That name is already in the room. Change your name in Profile');
+    if (room.blocked.has(cid)) return no('The host declined your request');
+    if ((room.cool.get(cid) || 0) > Date.now()) return no('Wait a minute before asking again');
+    if (ws.pend) dropReq(rooms.get(ws.pend.room), ws.pend, null);
+    if ([...room.pending.values()].some((r) => r.cid === cid)) return no('You already asked this room');
+    if (room.pending.size >= 5) return no('The host has too many requests. Try again soon');
+    const r = { id: Math.random().toString(36).slice(2, 8), ws, name, cid, photo: okPhoto(m.photo) ? m.photo : null, room: room.code };
+    r.tm = setTimeout(() => dropReq(rooms.get(r.room), r, 'The host did not reply'), 60000);
+    room.pending.set(r.id, r); ws.pend = r;
+    send(ws, { t: 'reqwait', code: room.code });
+    return broadcast(room);
+  }
+  if (m.t === 'reqcancel') { const r = ws.pend; if (r) dropReq(rooms.get(r.room), r, null); return; }
   if (m.t === 'rejoin') {
     const room = rooms.get(clean(m.code, 4).toUpperCase());
     const p = room && [...room.players.values()].find((q) => !q.left && typeof m.token === 'string' && q.token === m.token);
@@ -1171,9 +1217,25 @@ function handle(ws, m) {
   const hostOnly = () => { if (!isHost) { errTo(ws, 'Only the host can do that'); return false; } return true; };
 
   switch (m.t) {
+    case 'reqans': {
+      if (!hostOnly()) return;
+      const r = room.pending.get(String(m.id));
+      if (!r) return;
+      if (!m.ok) { room.cool.set(r.cid, Date.now() + 60000); if (m.block) room.blocked.add(r.cid); return dropReq(room, r, 'The host declined your request'); }
+      dropReq(room, r, null);
+      if (!r.ws || r.ws.readyState !== 1 || r.ws.ctx || room.phase !== 'lobby') return;
+      if ([...room.players.values()].filter((q) => !q.left).length >= MAX_PLAYERS) return send(r.ws, { t: 'reqres', ok: false, msg: 'Room is full' });
+      if ([...room.players.values()].some((q) => !q.left && norm(q.name) === norm(r.name))) return send(r.ws, { t: 'reqres', ok: false, msg: 'That name is already in the room' });
+      const np = addPlayer(room, r.name);
+      if (r.photo) np.photo = r.photo;
+      attach(r.ws, room, np);
+      if (np.photo) for (const q of room.players.values()) if (q.ws && q.connected) send(q.ws, { t: 'photo', name: np.name, data: np.photo });
+      return;
+    }
     case 'settings': {
       if (!hostOnly() || room.phase !== 'lobby') return;
       const s = room.settings;
+      if ('open' in m) room.open = !!m.open;
       if ('describeSecs' in m) s.describeSecs = clamp(m.describeSecs, 5, 300);
       if ('autoRoles' in m) s.autoRoles = !!m.autoRoles;
       if ('undercover' in m) s.undercover = clamp(m.undercover, 0, 10);
@@ -1435,7 +1497,7 @@ function handle(ws, m) {
       return;
     case 'photo': { // session profile photo: kept in memory for this lobby only, never saved
       const d = m.data;
-      if (d !== null && (typeof d !== 'string' || !/^data:image\/(jpeg|webp|png);base64,[A-Za-z0-9+/=]+$/.test(d) || d.length > 14000)) return errTo(ws, 'Photo too big');
+      if (d !== null && (typeof d !== 'string' || !/^data:image\/(jpeg|webp|png);base64,[A-Za-z0-9+/=]+$/.test(d) || d.length > 16000)) return errTo(ws, 'Photo too big');
       if (Date.now() - (p.photoAt || 0) < 2000) return errTo(ws, 'Slow down');
       p.photoAt = Date.now(); p.photo = d || null;
       for (const q of room.players.values()) if (q.ws && q.connected) send(q.ws, { t: 'photo', name: p.name, data: p.photo });
@@ -1554,6 +1616,7 @@ wss.on('connection', (ws) => {
     const ctx = ws.ctx;
     const room = ctx && rooms.get(ctx.code);
     const p = room && room.players.get(ctx.pid);
+    if (ws.pend) dropReq(rooms.get(ws.pend.room), ws.pend, null);
     if (p && p.ws === ws) { p.ws = null; p.connected = false; p.discAt = Date.now(); broadcast(room); }
   });
   ws.on('error', () => {});
