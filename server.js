@@ -353,10 +353,402 @@ function dropReq(room, r, msg) { // forget a join request (declined, cancelled, 
   if (msg && r.ws && r.ws.readyState === 1) send(r.ws, { t: 'reqres', ok: false, msg });
   if (room && rooms.get(room.code) === room) broadcast(room);
 }
+// ---------------------------------------------------------------- Gully Cricket (2 to 8 players)
+// Field units: batter at (0,0), bowler's end at (0,22), boundary circle radius CK_R around the batter.
+// Angle th in degrees: 0 = straight back past the bowler, +90 = off side, -90 = leg side, +-180 = behind the keeper.
+const CK_R = 60;
+const CK_SPOT = { cover: [55, 33], midwicket: [-58, 31], midoff: [18, 33], point: [96, 29], midon: [-18, 33], sqleg: [-100, 27], slip: [150, 10], longoff: [24, 54], longon: [-24, 54], deepcover: [64, 54], deepmid: [-64, 54], fineleg: [-148, 42], third: [128, 50] };
+const CK_ORDER = ['cover', 'midwicket', 'midoff', 'point', 'midon', 'sqleg', 'slip', 'longoff', 'longon', 'deepcover', 'deepmid', 'fineleg', 'third'];
+const CK_BUILD = [-122, -58]; // the building on the leg side: a six into it is OUT (gully rule)
+const ckP = (deg, r) => { const a = deg * Math.PI / 180; return [Math.round(Math.sin(a) * r * 10) / 10, Math.round(Math.cos(a) * r * 10) / 10]; };
+const ckD = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+const ckRnd = (a, b) => a + Math.random() * (b - a);
+const ckPick = (a) => a[Math.floor(Math.random() * a.length)];
+
+function ckSched(room, ms, fn) { clearTimeout(room.timer); room.seq++; schedule(room, ms, fn); }
+function ckOn(room, id) { const q = room.players.get(id); return !!(q && !q.left); }
+function ckLive(room, id) { const q = room.players.get(id); return !!(q && !q.left && q.connected); }
+function ckName(room, id) { const q = room.players.get(id); return q ? q.name : 'Someone'; }
+
+function ckTeams(room) { // lobby teams: everybody always has a team; newcomers go to the smaller side
+  const t = room.ckTeam || (room.ckTeam = {});
+  const ps = [...room.players.values()].filter((p) => !p.left);
+  for (const id of Object.keys(t)) if (!ps.some((p) => p.id === id)) delete t[id];
+  for (const p of ps) if (t[p.id] !== 0 && t[p.id] !== 1) {
+    const n0 = ps.filter((q) => t[q.id] === 0).length, n1 = ps.filter((q) => t[q.id] === 1).length;
+    t[p.id] = n0 <= n1 ? 0 : 1;
+  }
+  return t;
+}
+function ckShuffle(room) {
+  const ps = shuffle([...room.players.values()].filter((p) => !p.left));
+  room.ckTeam = {}; ps.forEach((p, i) => { room.ckTeam[p.id] = i % 2; });
+}
+
+function ckStart(room) {
+  const cands = [...room.players.values()].filter((p) => !p.left && p.connected);
+  if (cands.length < 2) return 'Need at least 2 players';
+  const set = room.ckSet;
+  let sel = cands.slice(0, 8);
+  for (const p of room.players.values()) p.watch = false;
+  for (const p of cands) if (!sel.includes(p)) p.watch = true;
+  const ids = sel.map((p) => p.id), inns = [];
+  let teams = null, common = null;
+  if (set.mode === 'team') {
+    const t = ckTeams(room);
+    teams = [ids.filter((id) => t[id] === 0), ids.filter((id) => t[id] === 1)];
+    if (!teams[0].length || !teams[1].length) return 'Both teams need at least 1 player';
+    if (ids.length % 2 === 1 && Math.abs(teams[0].length - teams[1].length) === 1 && ids.length >= 3) { // odd number: the common player plays for both sides
+      const big = teams[0].length > teams[1].length ? 0 : 1;
+      common = teams[big][teams[big].length - 1]; teams[big] = teams[big].slice(0, -1);
+    }
+    const first = Math.random() < 0.5 ? 0 : 1;
+    for (const k of [first, 1 - first]) {
+      const bat = shuffle(teams[k].slice()); if (common) bat.push(common);
+      const fld = teams[1 - k].slice(); if (common) fld.push(common);
+      inns.push({ team: k, bat, fld, r: 0, w: 0, b: 0, ex: 0, maxW: bat.length, overs: [[]] });
+    }
+  } else { // everyone for themselves: each player bats their own innings (2 lives) against everybody else
+    for (const id of shuffle(ids.slice())) inns.push({ team: null, bat: [id], fld: ids.filter((x) => x !== id), r: 0, w: 0, b: 0, ex: 0, maxW: 2, overs: [[]] });
+  }
+  const stats = {}; for (const id of ids) stats[id] = { r: 0, b: 0, f: 0, s: 0, w: 0, c: 0, ro: 0, st: 0 };
+  room.ckGid = (room.ckGid || 0) + 1;
+  room.ck = { gid: room.ckGid, mode: set.mode, ids, teams, common, overs: set.overs, building: !!set.building, onetip: !!set.onetip,
+    inns, inn: -1, striker: null, sw: 0, bowler: null, lastBowler: null, keeper: null, field: {}, target: null,
+    del: null, seg: null, segN: 0, ch: null, chN: 0, chFn: null, step: null, ballN: 0, ev: 0, last: null, log: [], stats,
+    banner: null, winner: null, mom: null };
+  for (const p of sel) notify(room, p, '🏏 Gully Cricket started', 'Open the game and play!', [100, 60, 100]);
+  ckInn(room);
+  return null;
+}
+
+function ckInn(room) { // start the next innings
+  const c = room.ck; c.inn++;
+  const I = c.inns[c.inn];
+  I.bat = I.bat.filter((id) => ckOn(room, id)); I.maxW = Math.max(1, c.mode === 'team' ? I.bat.length : 2);
+  c.sw = 0; c.striker = I.bat[0]; c.lastBowler = null; c.field = {}; c.del = null; c.seg = null; c.ch = null; c.step = null;
+  const bn = c.mode === 'team' ? (I.team === 0 ? 'Team Red' : 'Team Blue') : ckName(room, c.striker);
+  c.banner = c.mode === 'team'
+    ? (c.inn === 0 ? bn + ' won the toss and will bat first!' : bn + ' need ' + c.target + ' to win in ' + c.overs + (c.overs > 1 ? ' overs' : ' over'))
+    : bn + ' is batting' + (c.inn ? ' · score to beat: ' + Math.max(...c.inns.slice(0, c.inn).map((x) => x.r)) : '');
+  setPhase(room, 'cintro');
+  schedule(room, 3600, () => ckOver(room));
+  broadcast(room);
+}
+
+function ckFielders(room) { // everybody on the fielding side who is still here, minus the batter
+  const c = room.ck, I = c.inns[c.inn];
+  return I.fld.filter((id) => ckOn(room, id) && id !== c.striker);
+}
+function ckOver(room) { // a new over: pick the bowler and keeper, then set the field
+  const c = room.ck, I = c.inns[c.inn];
+  if (I.overs[I.overs.length - 1].length) I.overs.push([]);
+  const f = ckFielders(room);
+  if (!f.length) return ckEnd(room);
+  const live = f.filter((id) => ckLive(room, id));
+  const pool = (live.length ? live : f).filter((id) => id !== c.lastBowler);
+  const ov = I.overs.length - 1;
+  c.bowler = (pool.length ? pool : f)[ov % (pool.length || f.length)];
+  c.lastBowler = c.bowler;
+  const rest = f.filter((id) => id !== c.bowler);
+  c.keeper = rest.find((id) => id === c.keeper) || rest[0] || null;
+  const used = new Set();
+  const newField = {};
+  for (const id of rest) {
+    if (id === c.keeper) continue;
+    if (c.field[id]) { newField[id] = c.field[id]; continue; }
+    const spot = CK_ORDER.find((s) => !used.has(s) && !Object.values(newField).some((p) => p.s === s)) || 'cover';
+    used.add(spot); const pp = ckP(CK_SPOT[spot][0], CK_SPOT[spot][1]); newField[id] = { x: pp[0], y: pp[1], s: spot };
+  }
+  c.field = newField;
+  c.banner = null;
+  setPhase(room, 'cfield');
+  schedule(room, Object.keys(newField).length ? 9000 : 1200, () => ckBowlPhase(room));
+  broadcast(room);
+}
+function ckBowlPhase(room) {
+  const c = room.ck; c.step = null; c.ch = null; c.seg = null;
+  setPhase(room, 'cbowl');
+  schedule(room, ckLive(room, c.bowler) ? 15000 : 2200, () => ckDeliver(room, null));
+  broadcast(room);
+}
+function ckDeliver(room, b) { // the bowler let it go (or the timer did)
+  const c = room.ck; if (!c || room.phase !== 'cbowl') return;
+  const I = c.inns[c.inn];
+  if (!b) b = { line: ckPick([-1, 0, 0, 1]), len: ckPick([0, 1, 2, 2, 3]), spin: Math.random() < 0.4, pw: ckRnd(0.3, 0.75) };
+  const pw = Math.max(0, Math.min(1, Number(b.pw) || 0));
+  const line = [-1, 0, 1].includes(Number(b.line)) ? Number(b.line) : 0, len = [0, 1, 2, 3].includes(Number(b.len)) ? Number(b.len) : 2, spin = !!b.spin;
+  if (pw > 0.86 && Math.random() < 0.42) { // red zone: too hard, sprays wide
+    I.r += 1; I.ex += 1; I.overs[I.overs.length - 1].push('wd');
+    return ckResult(room, { k: 'wd', runs: 1, txt: ckPick(['WIDE! Too much pace, no control.', 'Wide ball! The bowler went for too much.', 'Sprayed down the leg side. WIDE.']) }, true);
+  }
+  let wob = 0; if (pw > 0.66) wob = ckRnd(-0.35, 0.35); // orange zone: a bit less accurate
+  const turn = spin ? ckRnd(0.25, 0.75) * (Math.random() < 0.5 ? -1 : 1) : 0;
+  const fl = Math.round(spin ? 1300 - 300 * pw : 1060 - 430 * pw);
+  c.ballN++;
+  c.del = { n: c.ballN, line: Math.round((line + wob) * 100) / 100, len, spin, pw: Math.round(pw * 100) / 100, turn: Math.round(turn * 100) / 100, fl, lead: 1500, by: c.bowler };
+  c.step = 'bat'; c.seg = null; c.ch = null;
+  setPhase(room, 'cplay');
+  schedule(room, c.del.lead + fl + (ckLive(room, c.striker) ? 2600 : 300), () => ckShot(room, ckLive(room, c.striker) ? null : ckBotShot()));
+  broadcast(room);
+}
+function ckBotShot() { return { e: ckRnd(-160, 160), th: ckRnd(-110, 110), s: ckRnd(0.3, 0.9), loft: Math.random() < 0.3, def: Math.random() < 0.2 }; }
+
+function ckFly(c, a, b, air, ms, k) { c.seg = { i: ++c.segN, a, b, air: !!air, ms: Math.round(ms), k: k || null, at: Date.now() }; }
+
+// a fielder gets a quick tap challenge; fn(ok) decides what happens next
+function ckChallenge(room, k, id, ms, diff, fn) {
+  const c = room.ck;
+  c.ch = { k, id, ms: Math.round(ms), diff: Math.round(Math.max(0, Math.min(1, diff)) * 100) / 100, n: ++c.chN };
+  c.chFn = fn; c.step = 'ch';
+  if (ckLive(room, id)) ckSched(room, ms + 1600, () => ckChRes(room, c.ch.n, false));
+  else ckSched(room, ms + 200, () => ckChRes(room, c.ch.n, Math.random() < 0.65 - 0.4 * c.ch.diff)); // away: the game guesses
+  broadcast(room);
+}
+function ckChRes(room, n, ok) {
+  const c = room.ck; if (!c || !c.ch || c.ch.n !== n) return;
+  const fn = c.chFn; c.chFn = null; c.ch = null; c.step = null;
+  fn(!!ok);
+}
+
+function ckShot(room, sh) { // the batter swung (sh) or didn't (null)
+  const c = room.ck; if (!c || c.step !== 'bat') return;
+  c.step = null; clearTimeout(room.timer);
+  const d = c.del, I = c.inns[c.inn];
+  const st = c.stats[c.striker]; if (st) st.b++;
+  const effLine = d.line + (d.spin ? d.turn : 0);
+  const onStumps = Math.abs(effLine) < 0.6 && d.len !== 3;
+  const miss = !sh || Math.abs(sh.e) > 150;
+  if (miss) {
+    if (onStumps && Math.random() < 0.9) return ckOut(room, 'bowled', c.bowler, null, ckPick(['BOWLED HIM! Stumps everywhere!', 'Timber! Clean bowled.', 'Through the gate and OUT!']));
+    const kp = c.keeper && ckOn(room, c.keeper) ? c.keeper : null;
+    const stumpy = !!(sh && sh.loft);
+    if (!kp) return ckRuns(room, d.spin ? 0 : 1, { k: d.spin ? '.' : 'b', txt: d.spin ? 'Beaten! Dot ball.' : 'Beaten, and they sneak a bye.' }, d.spin ? 0 : 1);
+    ckFly(c, [d.line * 1.2, 0], [0, -6], false, 260);
+    return ckChallenge(room, stumpy ? 'stump' : 'keep', kp, 900, stumpy ? 0.45 : 0.25, (ok) => {
+      if (ok && stumpy) return ckOut(room, 'stumped', c.bowler, kp, 'Stepped out, missed it, and STUMPED by ' + ckName(room, kp) + '!');
+      if (ok) return ckRuns(room, 0, { k: '.', txt: ckPick(['Beaten! Good take by the keeper.', 'Played and missed. Dot ball.', 'Past the bat, safe in the gloves.']) });
+      const by = d.pw > 0.8 && !d.spin ? 4 : 1;
+      return ckRuns(room, by, { k: 'b', txt: by === 4 ? 'The keeper fumbles it, four byes!' : 'Keeper misses it, they run a bye.' }, by);
+    });
+  }
+  const e = Math.max(-150, Math.min(150, Number(sh.e) || 0)), q = Math.max(0, 1 - Math.abs(e) / 110), s = Math.max(0, Math.min(1, Number(sh.s) || 0));
+  const qWord = Math.abs(e) < 40 ? 'perfect' : Math.abs(e) < 90 ? 'good' : 'edge';
+  if (Math.abs(e) > 110) { // got an edge
+    const th = (e > 0 ? 1 : -1) * ckRnd(140, 168);
+    if (Math.random() < 0.6) return ckAir(room, th, ckRnd(12, 26), 'edge');
+    return ckGround(room, th, 0, ckRnd(20, 64), 'edge');
+  }
+  if (sh.def) { ckFly(c, [0, 0], ckP(ckRnd(-30, 30), 4), false, 450); return ckRuns(room, 0, { k: '.', txt: ckPick(['Solid defence. Dead bat.', 'Blocked. Nothing doing.', 'Respect for that one, defended.']) }); }
+  let th = Math.max(-140, Math.min(140, Number(sh.th) || 0)) + e * 0.25; // early pulls it leg side, late pushes it off side
+  th = Math.max(-150, Math.min(150, th));
+  let qq = q;
+  if (d.len === 0 && sh.loft) qq *= 0.6; // hard to loft a yorker
+  if (d.len === 3 && th < -30 && th > -130) qq = Math.min(1, qq * 1.15); // short ball: pull it!
+  const pace = d.spin ? 1 : 1 + 0.15 * d.pw;
+  if (sh.loft) return ckAir(room, th, (24 + 66 * s) * (0.35 + 0.65 * qq) * pace, qWord);
+  return ckGround(room, th, 0, (18 + 58 * s) * (0.4 + 0.6 * qq) * pace, qWord);
+}
+
+function ckCatchers(room) { // everyone who can catch: field + keeper + bowler (from where they stand after bowling)
+  const c = room.ck, out = [];
+  for (const id of Object.keys(c.field)) if (ckOn(room, id)) out.push([id, [c.field[id].x, c.field[id].y]]);
+  if (c.keeper && ckOn(room, c.keeper)) out.push([c.keeper, [0, -6]]);
+  if (c.bowler && ckOn(room, c.bowler)) out.push([c.bowler, [0, 18]]);
+  return out;
+}
+function ckAir(room, th, D, q) { // a lofted hit (or an edge in the air)
+  const c = room.ck;
+  const big = D >= CK_R, P = ckP(th, big ? CK_R - 1 : D);
+  let best = null;
+  for (const [id, pos] of ckCatchers(room)) { const dd = ckD(pos, P); if (!best || dd < best[1]) best = [id, dd, pos]; }
+  const tf = 420 + Math.hypot(P[0], P[1]) * 15;
+  const intoBuilding = c.building && big && th > CK_BUILD[0] && th < CK_BUILD[1];
+  const landOrSix = () => {
+    if (big) {
+      ckFly(c, P, ckP(th, CK_R + 10), true, 500, 'six');
+      if (intoBuilding) return ckOut(room, 'building', null, null, ckPick(['Huge hit... straight into the building! Gully rule: OUT!', 'Into Sharma uncle’s balcony. That is OUT!']));
+      return ckRuns(room, 6, { k: '6', txt: ckPick(['SIX! That’s gone into the next street!', 'MASSIVE! Six runs!', 'Out of the gully! SIX!']) });
+    }
+    // lands in the field: one-tip-one-hand chance for whoever is closest to the bounce
+    let tip = null;
+    if (c.onetip) for (const [id, pos] of ckCatchers(room)) { const dd = ckD(pos, P); if (dd < 9 && (!tip || dd < tip[1])) tip = [id, dd]; }
+    if (tip) {
+      const L2 = ckP(th, Math.min(CK_R, D * 1.18));
+      ckFly(c, P, L2, false, 420, 'tip');
+      return ckChallenge(room, 'tip', tip[0], 650, 0.55 + 0.4 * tip[1] / 9, (ok) => {
+        if (ok) return ckOut(room, 'caught', c.bowler, tip[0], 'ONE TIP ONE HAND! ' + ckName(room, tip[0]) + ' takes it after the bounce. OUT!');
+        return ckGround(room, th, D, D * 1.25, 'rolled');
+      });
+    }
+    return ckGround(room, th, D, D * 1.25, 'rolled');
+  };
+  if (best && best[1] < 11) {
+    ckFly(c, [0, 0], P, true, tf, 'air');
+    const who = best[0];
+    return ckChallenge(room, 'catch', who, tf, best[1] / 11, (ok) => {
+      if (ok) return ckOut(room, 'caught', c.bowler, who, (best[1] > 7 ? 'WHAT A DIVE! ' : '') + 'Caught by ' + ckName(room, who) + '! OUT!');
+      c.drops = (c.drops || 0) + 1; c.lastDrop = ckName(room, who);
+      if (big && !intoBuilding) { ckFly(c, P, ckP(th, CK_R + 10), true, 450, 'six'); return ckRuns(room, 6, { k: '6', txt: 'Dropped by ' + ckName(room, who) + ' and it goes for SIX!' }); }
+      if (big && intoBuilding) { ckFly(c, P, ckP(th, CK_R + 10), true, 450, 'six'); return ckOut(room, 'building', null, null, 'Dropped... but it lands in the building. Gully rule: OUT!'); }
+      return ckGround(room, th, D, D * 1.2, 'dropped');
+    });
+  }
+  ckFly(c, [0, 0], P, true, tf, 'air');
+  ckSched(room, tf, landOrSix);
+  broadcast(room);
+}
+function ckGround(room, th, r0, D, q) { // the ball runs along the ground from radius r0
+  const c = room.ck;
+  const end = Math.min(D, CK_R);
+  let best = null;
+  for (const [id, pos] of ckCatchers(room)) {
+    const a = th * Math.PI / 180, ux = Math.sin(a), uy = Math.cos(a);
+    const t = pos[0] * ux + pos[1] * uy, dp = Math.abs(pos[0] * uy - pos[1] * ux);
+    if (t <= r0 + 1 || t > end + 4) continue;
+    const reach = 5 + t * 0.12;
+    if (dp < reach && (!best || t < best[1])) best = [id, t, dp / reach];
+  }
+  const from = ckP(th, r0);
+  const runsFor = (dist) => (dist < 14 ? 0 : dist < 30 ? 1 : dist < 46 ? 2 : 3);
+  if (best) {
+    const [who, t, diff] = best, at = ckP(th, t);
+    ckFly(c, from, at, false, 260 + (t - r0) * 15, 'roll');
+    return ckChallenge(room, 'stop', who, 260 + (t - r0) * 15, diff, (ok) => {
+      if (ok) {
+        const runs = runsFor(t);
+        if (!runs) return ckRuns(room, 0, { k: '.', txt: 'Stopped by ' + ckName(room, who) + '. No run.' });
+        if (runs === 1 && Math.random() < 0.65) return ckRuns(room, 1, { k: '1', txt: 'Fielded by ' + ckName(room, who) + '. Easy single.' });
+        return ckThrow(room, who, at, runs, 'Fielded by ' + ckName(room, who) + ', they push for ' + (runs === 1 ? 'a quick single!' : 'run number ' + runs + '!'));
+      }
+      if (D >= CK_R) { ckFly(c, at, ckP(th, CK_R + 4), false, 380, 'four'); return ckRuns(room, 4, { k: '4', txt: 'Misfield by ' + ckName(room, who) + '! Races away for FOUR!' }); }
+      const stop = ckP(th, D); ckFly(c, at, stop, false, 300 + (D - t) * 12, 'roll');
+      return ckChaseThrow(room, stop, runsFor(D) + 1, 'Through ' + ckName(room, who) + '’s legs!');
+    });
+  }
+  if (D >= CK_R) { ckFly(c, from, ckP(th, CK_R + 4), false, 260 + (CK_R - r0) * 13, 'four'); return ckRuns(room, 4, { k: '4', txt: ckPick(['FOUR! Into the gap, nobody there.', 'Cracking shot, FOUR runs!', 'Bisects the field. FOUR!']) }); }
+  const stop = ckP(th, D); ckFly(c, from, stop, false, 260 + (D - r0) * 14, 'roll');
+  return ckChaseThrow(room, stop, Math.max(1, runsFor(D)), null);
+}
+function ckChaseThrow(room, stop, runs, pre) { // nobody stopped it: the nearest fielder runs to it and throws
+  const c = room.ck;
+  let best = null; for (const [id, pos] of ckCatchers(room)) { if (id === c.keeper && ckCatchers(room).length > 1) continue; const dd = ckD(pos, stop); if (!best || dd < best[1]) best = [id, dd]; }
+  if (!best || runs < 2 || Math.random() < 0.5) { ckSched(room, (c.seg ? Math.max(0, c.seg.at + c.seg.ms - Date.now()) : 400), () => ckRuns(room, runs, { k: String(runs), txt: (pre ? pre + ' ' : '') + (runs === 1 ? 'Pushed for a single.' : runs + ' runs, good running!') })); return broadcast(room); }
+  ckSched(room, (c.seg ? Math.max(0, c.seg.at + c.seg.ms - Date.now()) : 400), () => ckThrow(room, best[0], stop, runs, pre));
+  broadcast(room);
+}
+function ckThrow(room, who, at, runs, pre) { // they go for the last run; the fielder throws at the stumps
+  const c = room.ck;
+  const dist = Math.hypot(at[0], at[1]);
+  c.seg = null;
+  return ckChallenge(room, 'throw', who, 1700, Math.min(1, dist / 60), (ok) => {
+    ckFly(c, at, [0, -0.5], dist > 30, 220 + dist * 8, ok ? 'hit' : 'miss');
+    const close = Math.random() < 0.75 - dist / 120; // a direct hit only gets them if they were short
+    if (ok && !close) return ckRuns(room, runs, { k: String(runs), txt: (pre ? pre + ' ' : '') + 'Direct hit by ' + ckName(room, who) + '... but they made it in time!' });
+    if (ok) return ckOut(room, 'runout', null, who, (pre ? pre + ' ' : '') + 'Direct hit by ' + ckName(room, who) + '! RUN OUT going for ' + (runs === 1 ? 'the single' : 'run number ' + runs) + '!', runs - 1);
+    return ckRuns(room, runs, { k: String(runs), txt: (pre ? pre + ' ' : '') + 'The throw misses! They complete ' + runs + (runs === 1 ? ' run.' : ' runs.') });
+  });
+}
+
+function ckRuns(room, runs, info, byes) { // a legal ball with runs (no wicket)
+  const c = room.ck, I = c.inns[c.inn], st = c.stats[c.striker];
+  I.r += runs; I.b++;
+  if (byes) I.ex += byes; else if (st) { st.r += runs; if (runs === 4) st.f++; if (runs === 6) st.s++; }
+  I.overs[I.overs.length - 1].push(info.k === '.' || runs === 0 ? '0' : info.k === 'b' ? runs + 'b' : String(runs));
+  return ckResult(room, { k: info.k, runs, txt: info.txt }, false);
+}
+function ckOut(room, how, bowlerId, fielderId, txt, runsDone) { // a wicket
+  const c = room.ck, I = c.inns[c.inn];
+  const r = runsDone || 0;
+  I.r += r; I.b++; I.w++;
+  const st = c.stats[c.striker]; if (st) st.r += r;
+  if (bowlerId && how !== 'runout' && c.stats[bowlerId]) c.stats[bowlerId].w++;
+  if (fielderId && c.stats[fielderId]) { if (how === 'caught') c.stats[fielderId].c++; if (how === 'runout') c.stats[fielderId].ro++; if (how === 'stumped') c.stats[fielderId].st++; }
+  I.overs[I.overs.length - 1].push('W');
+  return ckResult(room, { k: 'W', how, runs: r, out: c.striker, fielder: fielderId || null, txt }, false);
+}
+function ckResult(room, res, again) {
+  const c = room.ck;
+  c.ev++; c.last = Object.assign({ i: c.ev, batter: c.striker, bowler: c.bowler }, res);
+  c.log = c.log.concat([{ i: c.ev, txt: res.txt, k: res.k }]).slice(-5);
+  c.step = 'res'; c.ch = null;
+  const slow = res.k === '6' || res.k === 'W';
+  const segLeft = c.seg ? Math.max(0, c.seg.at + c.seg.ms - Date.now()) : 0;
+  if (room.phase !== 'cplay') setPhase(room, 'cplay');
+  ckSched(room, segLeft + (slow ? 3600 : 2200), () => (again ? ckBowlPhase(room) : ckNext(room)));
+  broadcast(room);
+}
+function ckNext(room) { // after each ball: innings over? next batter? next over?
+  const c = room.ck, I = c.inns[c.inn];
+  const chased = c.mode === 'team' && c.inn === 1 && I.r >= c.target;
+  if (I.w >= I.maxW || I.b >= c.overs * 6 || chased || !ckFielders(room).length) {
+    if (c.mode === 'team' && c.inn === 0) {
+      c.target = I.r + 1;
+      c.banner = (I.team === 0 ? 'Team Red' : 'Team Blue') + ' made ' + I.r + '/' + I.w + '. Target: ' + c.target;
+      setPhase(room, 'cbreak'); schedule(room, 4500, () => ckInn(room)); return broadcast(room);
+    }
+    if (c.mode === 'solo' && c.inn < c.inns.length - 1) {
+      c.banner = ckName(room, I.bat[0]) + ' scored ' + I.r + (I.w ? ' (out ' + I.w + 'x)' : ' not out');
+      setPhase(room, 'cbreak'); schedule(room, 3500, () => ckInn(room)); return broadcast(room);
+    }
+    return ckEnd(room);
+  }
+  const last = c.last;
+  if (last && last.k === 'W') { // next batter in
+    c.sw++;
+    const nb = I.bat.slice(c.sw).find((id) => ckOn(room, id));
+    if (c.mode === 'solo') c.striker = I.bat[0]; else if (nb) c.striker = nb; else return ckEnd(room);
+  }
+  if (I.b > 0 && I.b % 6 === 0 && I.overs[I.overs.length - 1].filter((x) => x !== 'wd').length >= 6) return ckOver(room);
+  return ckBowlPhase(room);
+}
+function ckEnd(room) {
+  const c = room.ck;
+  if (c.mode === 'team') {
+    const a = c.inns[0], b = c.inns[1];
+    if (!b || b.r < a.r) c.winner = { team: a.team, txt: (a.team === 0 ? 'Team Red' : 'Team Blue') + ' win by ' + (a.r - (b ? b.r : 0)) + (a.r - (b ? b.r : 0) === 1 ? ' run!' : ' runs!') };
+    else if (b.r > a.r) c.winner = { team: b.team, txt: (b.team === 0 ? 'Team Red' : 'Team Blue') + ' win by ' + Math.max(1, b.maxW - b.w) + ' wicket' + (b.maxW - b.w === 1 ? '' : 's') + '!' };
+    else c.winner = { team: null, txt: 'It’s a TIE! What a game!' };
+  } else {
+    const top = Math.max(...c.inns.map((x) => x.r));
+    const ws = c.inns.filter((x) => x.r === top).map((x) => x.bat[0]);
+    c.winner = { ids: ws, txt: ws.map((id) => ckName(room, id)).join(' & ') + (ws.length > 1 ? ' tie' : ' wins') + ' with ' + top + ' runs!' };
+  }
+  let mom = null, best = -1;
+  for (const id of c.ids) { const s = c.stats[id]; if (!s || !ckOn(room, id)) continue; const pts = s.r + s.f + 2 * s.s + 20 * s.w + 12 * (s.c + s.ro + s.st); if (pts > best) { best = pts; mom = id; } }
+  c.mom = mom; c.step = null; c.ch = null;
+  setPhase(room, 'cover');
+  broadcast(room);
+}
+function ckBack(room) {
+  setPhase(room, 'lobby'); room.ck = null;
+  for (const [id, p] of room.players) if (p.left) room.players.delete(id);
+  for (const p of room.players.values()) p.watch = false;
+  broadcast(room);
+}
+function ckCheck(room) { // someone left mid-game
+  const c = room.ck; if (!c || !['cintro', 'cfield', 'cbowl', 'cplay', 'cbreak'].includes(room.phase)) return broadcast(room);
+  if (c.ids.filter((id) => ckOn(room, id)).length < 2) return ckEnd(room);
+  if (c.ch && !ckOn(room, c.ch.id)) return ckChRes(room, c.ch.n, false);
+  if (!ckOn(room, c.striker) && c.step !== 'res' && room.phase !== 'cintro' && room.phase !== 'cbreak') {
+    c.inns[c.inn].maxW = Math.max(c.inns[c.inn].w + 1, c.inns[c.inn].maxW);
+    return ckOut(room, 'retired', null, null, ckName(room, c.striker) + ' left the game. Next batter!');
+  }
+  if (!ckOn(room, c.bowler) && (room.phase === 'cbowl' || room.phase === 'cfield')) { c.lastBowler = null; return ckOver(room); }
+  broadcast(room);
+}
+function ckView(room, p) {
+  const c = room.ck; if (!c) return null;
+  return { gid: c.gid, mode: c.mode, ids: c.ids, teams: c.teams, common: c.common, overs: c.overs, building: c.building, onetip: c.onetip,
+    inns: c.inns.map((I) => ({ team: I.team, bat: I.bat, r: I.r, w: I.w, b: I.b, ex: I.ex, maxW: I.maxW, ov: I.overs.slice(-1)[0] })), inn: c.inn,
+    striker: c.striker, bowler: c.bowler, keeper: c.keeper, field: c.field, target: c.target, del: c.del, seg: c.seg, ch: c.ch, step: c.step,
+    ballN: c.ballN, ev: c.ev, last: c.last, log: c.log, stats: c.stats, banner: c.banner, winner: c.winner, mom: c.mom, build: CK_BUILD, R: CK_R };
+}
+
 function makeRoom(words) {
   const room = {
     code: newCode(), hostId: null, supervisorId: null, players: new Map(),
-    game: 'undercover', unSet: { secs: 20 }, un: null, fbSet: { goals: 3, secs: 8, mode: 'match', tie: 'pens' }, fb: null, rc: null,
+    game: 'undercover', unSet: { secs: 20 }, un: null, ckSet: { mode: 'team', overs: 2, building: true, onetip: true }, ck: null, ckTeam: {}, fbSet: { goals: 3, secs: 8, mode: 'match', tie: 'pens' }, fb: null, rc: null,
     open: true, pending: new Map(), blocked: new Set(), cool: new Map(),
     phase: 'lobby', round: 0, seq: 0, timer: null, endsAt: 0,
     settings: { describeSecs: 30, autoRoles: true, undercover: 1, white: 1, whiteGuess: true, hint: false, board: true, reacts: true, modes: ['mix'], joker: false, chat: true, chatSlow: 5, reactCd: 3, ucGuess: true, whiteTries: 2, sheriff: true },
@@ -461,7 +853,7 @@ function view(room, p) {
     if (room.fb) {
       const f = room.fb;
       v.fb = { ids: f.ids, team: f.team, pos: f.pos, ball: f.ball, score: f.score, turn: f.turn, sudden: f.sudden, W: f.W, H: f.H, gw: f.sudden ? f.gws : f.gw,
-        goals: f.goals, aimed: Object.keys(f.aims), winner: f.winner, last: f.last, lastTurn: f.lastTurn };
+        goals: f.goals, aimed: Object.keys(f.aims), winner: f.winner, last: f.last, lastTurn: f.lastTurn, paused: f.paused ? 1 : 0 };
       if (f.pk) { // penalties: never include anybody's secret pick, only whether they have picked
         const k = f.pk, pk = room.pkPick || {};
         v.fb.pk = { why: k.why, score: k.score, hist: k.hist, cur: k.cur, sd: k.sd, kdone: !!pk.k, sdone: !!pk.s, res: k.res, n: k.n };
@@ -478,6 +870,7 @@ function view(room, p) {
         drew: curId === id ? u.drew : null, pile: u.draw.length, disc: u.disc.length, ev: u.ev, last: u.last, log: u.log || [], winner: u.winner, ranks: u.ranks, resh: u.resh || 0 };
     }
   }
+  if (room.game === 'cricket') { v.ckSet = room.ckSet; v.ckTeam = ckTeams(room); v.ck = ckView(room, p); }
   if (room.game === 'race' && room.rc) {
     const r = room.rc;
     v.rc = { ids: r.ids, startAt: r.startAt, laps: RACE_LAPS, fin: r.fin, results: r.results, rank: raceRank(room) };
@@ -1094,6 +1487,7 @@ function afterRemoval(room) {
   if (room.game === 'football') return fbCheck(room);
   if (room.game === 'race') return raceCheck(room);
   if (room.game === 'uno') return broadcast(room);
+  if (room.game === 'cricket') return ckCheck(room);
   if (!['describe', 'vote', 'whiteguess', 'elim'].includes(room.phase)) return broadcast(room);
   const win = checkWin(room);
   if (win) return endGame(room, win);
@@ -1162,7 +1556,7 @@ function handle(ws, m) {
     const name = clean(m.name, 14);
     if (!name) return errTo(ws, 'Enter your name');
     const room = makeRoom(loadWords(m));
-    if (m.game === 'football' || m.game === 'race' || m.game === 'uno') room.game = m.game;
+    if (m.game === 'football' || m.game === 'race' || m.game === 'uno' || m.game === 'cricket') room.game = m.game;
     if (m.open === false) room.open = false;
     const p = addPlayer(room, name);
     room.hostId = room.ownerId = p.id;
@@ -1177,7 +1571,7 @@ function handle(ws, m) {
     if ([...room.players.values()].filter((q) => !q.left).length >= MAX_PLAYERS) return errTo(ws, 'Lobby is full');
     if ([...room.players.values()].some((q) => !q.left && norm(q.name) === norm(name))) return errTo(ws, 'That name is taken in this lobby');
     const np = addPlayer(room, name);
-    if (room.phase !== 'lobby' && room.phase !== 'over' && room.phase !== 'fover' && room.phase !== 'rover' && room.phase !== 'uover') { np.watch = true; notice(room, '👀 ' + name + ' joined. Watching until the next game'); }
+    if (room.phase !== 'lobby' && room.phase !== 'over' && room.phase !== 'fover' && room.phase !== 'rover' && room.phase !== 'uover' && room.phase !== 'cover') { np.watch = true; notice(room, '👀 ' + name + ' joined. Watching until the next game'); }
     return attach(ws, room, np);
   }
   if (m.t === 'rooms') { if (Date.now() - (ws.roomsAt || 0) < 700) return; ws.roomsAt = Date.now(); return send(ws, { t: 'rooms', list: openList() }); }
@@ -1219,6 +1613,36 @@ function handle(ws, m) {
   const hostOnly = () => { if (!isHost) { errTo(ws, 'Only the host can do that'); return false; } return true; };
 
   switch (m.t) {
+    case 'ckset': {
+      if (!hostOnly() || room.game !== 'cricket' || room.phase !== 'lobby') return;
+      const s = room.ckSet;
+      if (m.mode === 'team' || m.mode === 'solo') s.mode = m.mode;
+      if ([1, 2, 3, 5].includes(Number(m.overs))) s.overs = Number(m.overs);
+      if ('building' in m) s.building = !!m.building;
+      if ('onetip' in m) s.onetip = !!m.onetip;
+      return broadcast(room);
+    }
+    case 'ckshuffle': if (!hostOnly() || room.game !== 'cricket' || room.phase !== 'lobby') return; ckShuffle(room); return broadcast(room);
+    case 'ckmove': { if (!hostOnly() || room.game !== 'cricket' || room.phase !== 'lobby') return; const t = ckTeams(room), id = String(m.id); if (t[id] === 0 || t[id] === 1) t[id] = 1 - t[id]; return broadcast(room); }
+    case 'ckstart': { if (!hostOnly() || room.game !== 'cricket' || !['lobby', 'cover'].includes(room.phase)) return; const err = ckStart(room); return err ? errTo(ws, err) : undefined; }
+    case 'cklobby': if (!hostOnly() || room.game !== 'cricket' || room.phase === 'lobby') return; return ckBack(room);
+    case 'ckpos': { // a fielder moves their spot (the bowler can move anyone)
+      const c = room.ck; if (room.game !== 'cricket' || room.phase !== 'cfield' || !c) return;
+      const id = m.id && p.id === c.bowler ? String(m.id) : p.id; if (!c.field[id]) return;
+      let x = Number(m.x), y = Number(m.y); if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+      const r = Math.hypot(x, y); if (r > CK_R - 2) { x *= (CK_R - 2) / r; y *= (CK_R - 2) / r; }
+      if (Math.abs(x) < 3 && y > -4 && y < 24) x = x < 0 ? -3 : 3; // keep off the pitch
+      c.field[id] = { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10, s: null };
+      return broadcast(room);
+    }
+    case 'ckready': { const c = room.ck; if (room.game !== 'cricket' || room.phase !== 'cfield' || !c || (p.id !== c.bowler && p.id !== room.hostId)) return; return ckBowlPhase(room); }
+    case 'ckbowl': { const c = room.ck; if (room.game !== 'cricket' || room.phase !== 'cbowl' || !c || p.id !== c.bowler) return; return ckDeliver(room, m); }
+    case 'ckshot': {
+      const c = room.ck; if (room.game !== 'cricket' || !c || c.step !== 'bat' || p.id !== c.striker || !c.del || m.n !== c.del.n) return;
+      const e = Number(m.e);
+      return ckShot(room, { e: Number.isFinite(e) ? e : 999, th: Number(m.th) || 0, s: Number(m.s) || 0, loft: !!m.loft, def: !!m.def });
+    }
+    case 'ckact': { const c = room.ck; if (room.game !== 'cricket' || !c || !c.ch || c.ch.id !== p.id || m.n !== c.ch.n) return; return ckChRes(room, c.ch.n, !!m.ok); }
     case 'vjoin': { // live voice: join (max 6, phones connect to each other directly)
       if (p.voice) return;
       if ([...room.players.values()].filter((q) => q.voice && q.connected && !q.left).length >= 6) return errTo(ws, 'Voice is full (6 people max)');
@@ -1383,8 +1807,35 @@ function handle(ws, m) {
     case 'flobby':
       if (!hostOnly() || room.game !== 'football' || !['fover', 'faim', 'fplay', 'pkaim', 'pkshow'].includes(room.phase)) return;
       return fbBack(room);
+    case 'fpause': {
+      if (!hostOnly() || room.game !== 'football' || room.phase !== 'faim' || !room.fb || room.fb.paused) return;
+      clearTimeout(room.timer); room.fb.paused = { left: room.endsAt ? Math.max(1500, room.endsAt - Date.now()) : 3000 }; room.endsAt = 0;
+      notice(room, '⏸ Match paused by the host'); return broadcast(room);
+    }
+    case 'fresume': {
+      if (!hostOnly() || room.game !== 'football' || !room.fb || !room.fb.paused) return;
+      const fleft = room.fb.paused.left; room.fb.paused = null;
+      schedule(room, fleft, () => fbFire(room));
+      notice(room, '▶️ Match resumed'); return broadcast(room);
+    }
+    case 'switchgame': {
+      if (!hostOnly()) return;
+      const g = ['undercover', 'football', 'race', 'uno', 'cricket'].includes(m.game) ? m.game : null;
+      if (!g) return;
+      if (!['lobby', 'over', 'fover', 'rover', 'uover', 'cover'].includes(room.phase)) return errTo(ws, 'Finish or end the current game first');
+      if (g === room.game && room.phase === 'lobby') return;
+      clearTimeout(room.timer); room.seq++;
+      room.game = g; room.un = null; room.fb = null; room.pkPick = null; room.rc = null; room.ck = null; room.winner = null; room.guess = null; room.votes = {}; room.tie = false; room.descs = {}; room.history = [];
+      for (const [qid, q] of room.players) if (q.left) room.players.delete(qid);
+      for (const q of room.players.values()) { q.watch = false; q.alive = true; q.role = null; q.word = ''; q.revealed = false; }
+      setPhase(room, 'lobby');
+      const gn = { undercover: '🕵️ Undercover', football: '⚽ Football', race: '🏖️ Beach Buggy', uno: '🃏 UNO', cricket: '🏏 Cricket' }[g];
+      notice(room, '🎮 The host switched the game to ' + gn);
+      return broadcast(room);
+    }
     case 'faim': {
       if (room.phase !== 'faim' || !room.fb || !room.fb.ids.includes(p.id)) return;
+      if (room.fb.paused) return errTo(ws, '⏸ Match is paused');
       const dx = Number(m.dx), dy = Number(m.dy), pw = Number(m.pw);
       if (![dx, dy, pw].every(Number.isFinite) || Math.hypot(dx, dy) < 0.001) return;
       room.fb.aims[p.id] = { dx, dy, pw: Math.max(0, Math.min(1, pw)) };
@@ -1624,7 +2075,7 @@ wss.on('connection', (ws) => {
     ws.isAlive = true;
     let m;
     try { m = JSON.parse(raw.toString()); } catch (e) { return; }
-    const hot = m && (m.t === 'rpos' || m.t === 'rprog' || m.t === 'rbump' || m.t === 'vsig' || m.t === 'ping');
+    const hot = m && (m.t === 'rpos' || m.t === 'ckpos' || m.t === 'rprog' || m.t === 'rbump' || m.t === 'vsig' || m.t === 'ping');
     if (hot ? ++ws.rh > 260 : ++ws.rl > 40) return; // flood guard (reset every 5s); race positions & voice setup have their own, bigger budget
     try { handle(ws, m); } catch (e) { console.error('handler error:', e); }
   });
