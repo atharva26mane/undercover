@@ -340,7 +340,7 @@ function openList() { // rooms that appear on the main page
     if (r.open === false || r.phase !== 'lobby') continue;
     const n = [...r.players.values()].filter((q) => !q.left).length;
     const hp = r.players.get(r.hostId);
-    if (n >= MAX_PLAYERS || !hp) continue;
+    if (n >= MAX_PLAYERS || !hp || !hp.connected || hp.left) continue; // host gone/offline: not joinable
     out.push({ code: r.code, game: r.game, host: hp.name, photo: hp.photo || null, n, max: MAX_PLAYERS });
     if (out.length >= 20) break;
   }
@@ -444,6 +444,7 @@ function view(room, p) {
     winner: over ? room.winner : null, pair: over ? room.pair : null,
     me: { id: p.id, name: p.name, host: p.id === room.hostId, sup, watch: watching, alive: p.alive && !p.left && !watching },
     open: room.open !== false,
+    voice: [...room.players.values()].filter((q) => q.voice && q.connected && !q.left).map((q) => q.id),
   };
   if (p.id === room.hostId && room.phase === 'lobby' && room.pending.size) v.reqs = [...room.pending.values()].map((r) => ({ id: r.id, name: r.name, photo: r.photo }));
   if (inGame && p.role) {
@@ -1071,7 +1072,8 @@ setInterval(() => { // live standings, 3 times a second, only while racing
 setInterval(() => { // where every buggy is, 10 times a second (only when 2+ are racing)
   for (const room of rooms.values()) {
     const r = room.rc;
-    if (room.phase !== 'rrace' || !r || r.ids.length < 2 || !r.cars) continue;
+    if (room.phase !== 'rrace' || !r || r.ids.length < 2 || !r.cars || !r.dirty) continue;
+    r.dirty = false; // nothing new since last time: don't send a repeat (phones read repeats as the car stopping)
     const l = r.ids.filter((id) => r.cars[id] && r.fin[id] == null && room.players.get(id) && !room.players.get(id).left).map((id) => r.cars[id]);
     if (!l.length) continue;
     for (const q of room.players.values()) if (q.ws && q.connected) send(q.ws, { t: 'rcars', l });
@@ -1178,7 +1180,7 @@ function handle(ws, m) {
     if (room.phase !== 'lobby' && room.phase !== 'over' && room.phase !== 'fover' && room.phase !== 'rover' && room.phase !== 'uover') { np.watch = true; notice(room, '👀 ' + name + ' joined. Watching until the next game'); }
     return attach(ws, room, np);
   }
-  if (m.t === 'rooms') { if (Date.now() - (ws.roomsAt || 0) < 1500) return; ws.roomsAt = Date.now(); return send(ws, { t: 'rooms', list: openList() }); }
+  if (m.t === 'rooms') { if (Date.now() - (ws.roomsAt || 0) < 700) return; ws.roomsAt = Date.now(); return send(ws, { t: 'rooms', list: openList() }); }
   if (m.t === 'req') { // ask the host to let me in
     if (ws.ctx) return;
     const name = clean(m.name, 14), cid = clean(m.cid, 24) || 'x';
@@ -1217,6 +1219,18 @@ function handle(ws, m) {
   const hostOnly = () => { if (!isHost) { errTo(ws, 'Only the host can do that'); return false; } return true; };
 
   switch (m.t) {
+    case 'vjoin': { // live voice: join (max 6, phones connect to each other directly)
+      if (p.voice) return;
+      if ([...room.players.values()].filter((q) => q.voice && q.connected && !q.left).length >= 6) return errTo(ws, 'Voice is full (6 people max)');
+      p.voice = true; return broadcast(room);
+    }
+    case 'vleave': { if (!p.voice) return; p.voice = false; return broadcast(room); }
+    case 'vsig': { // pass call setup between two phones in this room
+      const q = room.players.get(String(m.to));
+      if (!p.voice || !q || q === p || !q.voice || !q.ws || !q.connected || !m.d || typeof m.d !== 'object') return;
+      if (JSON.stringify(m.d).length > 12000) return;
+      return send(q.ws, { t: 'vsig', from: p.id, d: m.d });
+    }
     case 'reqans': {
       if (!hostOnly()) return;
       const r = room.pending.get(String(m.id));
@@ -1446,9 +1460,10 @@ function handle(ws, m) {
     case 'rpos': { // this phone's buggy: distance, side position, speed, flags (turbo/drift/shield/air…), height
       const r = room.rc;
       if (room.phase !== 'rrace' || !r || !r.cars || !r.ids.includes(p.id) || r.fin[p.id] != null) return;
-      const d = Number(m.d), x = Number(m.x), sp = Number(m.sp), hh = Number(m.h) || 0;
+      const d = Number(m.d), x = Number(m.x), sp = Number(m.sp), hh = Number(m.h) || 0, ts = Number(m.ts);
       if (![d, x, sp].every(Number.isFinite)) return;
-      r.cars[p.id] = [p.id, Math.round(d), Math.round(Math.max(-3, Math.min(3, x)) * 1000) / 1000, Math.round(Math.max(0, Math.min(40000, sp))), (Number(m.f) | 0) & 127, Math.round(Math.max(0, Math.min(5000, hh)))];
+      r.cars[p.id] = [p.id, Math.round(d), Math.round(Math.max(-3, Math.min(3, x)) * 1000) / 1000, Math.round(Math.max(0, Math.min(40000, sp))), (Number(m.f) | 0) & 127, Math.round(Math.max(0, Math.min(5000, hh))), Number.isFinite(ts) ? Math.round(ts) : null, (p.rseq = ((p.rseq || 0) + 1) % 1e6)];
+      r.dirty = true;
       return;
     }
     case 'rbump': { // a buggy hit another one: tell the other phone so it gets pushed too
@@ -1603,13 +1618,14 @@ function handle(ws, m) {
 }
 
 wss.on('connection', (ws) => {
-  ws.isAlive = true; ws.rl = 0;
+  ws.isAlive = true; ws.rl = 0; ws.rh = 0;
   ws.on('pong', () => { ws.isAlive = true; });
   ws.on('message', (raw) => {
     ws.isAlive = true;
-    if (++ws.rl > 40) return; // flood guard (reset every 5s)
     let m;
     try { m = JSON.parse(raw.toString()); } catch (e) { return; }
+    const hot = m && (m.t === 'rpos' || m.t === 'rprog' || m.t === 'rbump' || m.t === 'vsig' || m.t === 'ping');
+    if (hot ? ++ws.rh > 260 : ++ws.rl > 40) return; // flood guard (reset every 5s); race positions & voice setup have their own, bigger budget
     try { handle(ws, m); } catch (e) { console.error('handler error:', e); }
   });
   ws.on('close', () => {
@@ -1617,12 +1633,12 @@ wss.on('connection', (ws) => {
     const room = ctx && rooms.get(ctx.code);
     const p = room && room.players.get(ctx.pid);
     if (ws.pend) dropReq(rooms.get(ws.pend.room), ws.pend, null);
-    if (p && p.ws === ws) { p.ws = null; p.connected = false; p.discAt = Date.now(); broadcast(room); }
+    if (p && p.ws === ws) { p.ws = null; p.connected = false; p.voice = false; p.discAt = Date.now(); broadcast(room); }
   });
   ws.on('error', () => {});
 });
 
-setInterval(() => { for (const c of wss.clients) c.rl = 0; }, 5000);
+setInterval(() => { for (const c of wss.clients) { c.rl = 0; c.rh = 0; } }, 5000);
 setInterval(() => { // drop dead sockets so "offline" shows quickly
   for (const c of wss.clients) { if (!c.isAlive) { c.terminate(); continue; } c.isAlive = false; try { c.ping(); } catch (e) { /* ignore */ } }
 }, 15000);

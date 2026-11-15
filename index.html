@@ -1276,6 +1276,21 @@ html[data-theme=dark] .cbub{border-color:#121212}
 .cb-sw i:after{content:"";position:absolute;top:1px;left:1px;width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid var(--ink);transition:transform .15s}
 .cb-sw.on i{background:#00C853}.cb-sw.on i:after{transform:translateX(20px)}
 .cb-sw em{font:800 11px var(--f-mono);font-style:normal;opacity:.7}
+.rdbg{font:800 10px var(--f-mono);padding:2px 7px;border-radius:999px;border:2px solid #121212;background:#fff;color:#121212}.rdbg.g{background:#7CFF9B}.rdbg.o{background:#FFD600}.rdbg.r{background:#FF8FA9}
+.vbox{position:fixed;left:12px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:65;display:flex;flex-direction:column-reverse;align-items:flex-start;gap:6px;pointer-events:none}
+body.unomode .vbox{bottom:auto;top:calc(50px + env(safe-area-inset-top));left:8px;flex-direction:column}
+body.racing .vbox,body.fbmode .vbox{bottom:auto;top:42%;left:6px;flex-direction:column}
+body.unomode .vb,body.racing .vb,body.fbmode .vb{width:38px;height:38px;font-size:17px}
+.vbox>*{pointer-events:auto}
+.vb{position:relative;width:42px;height:42px;border-radius:50%;border:3px solid #121212;background:#fff;box-shadow:2px 2px 0 #121212;font-size:19px;line-height:1;padding:0;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.92}
+.vb:active{transform:translate(1px,1px);box-shadow:1px 1px 0 #121212}
+.vb.on{background:#FFD600}.vmic{background:#ddd}.vmic.live{background:#00C853;animation:vlive 1.2s ease-in-out infinite}
+@keyframes vlive{50%{box-shadow:0 0 0 6px rgba(0,200,83,.35),2px 2px 0 #121212}}
+.vb em{position:absolute;right:-6px;top:-6px;min-width:18px;height:18px;border-radius:9px;background:#E6003D;color:#fff;font:800 10px/18px var(--f-mono);font-style:normal;text-align:center;border:2px solid #121212}
+.vwarn{font-size:16px;margin-left:10px}
+.vtalk{display:flex;flex-direction:column;gap:4px}
+.vt{display:flex;align-items:center;gap:5px;background:rgba(18,18,18,.78);color:#fff;border-radius:999px;padding:2px 9px 2px 2px;font:800 11px var(--f-mono);animation:fade .15s}
+.vt .av{box-shadow:0 0 0 3px #00C853}
 </style>
 </head>
 <body>
@@ -1424,7 +1439,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
       lastPhase = m.phase;
       render();
     }
-    else if (m.t === 'err') { toast(m.msg); if (m.msg === 'No lobby with that code' && load('uc.last')) { store('uc.last', null); if (!S && mode === 'hub') { curKey = null; render(); } } if (S && S.game === 'uno' && cur && cur.update) cur.update(); }
+    else if (m.t === 'err') { toast(m.msg); if (/^Voice is full/.test(m.msg)) voiceStop(false); if (m.msg === 'No lobby with that code' && load('uc.last')) { store('uc.last', null); if (!S && mode === 'hub') { curKey = null; render(); } } if (S && S.game === 'uno' && cur && cur.update) cur.update(); }
     else if (m.t === 'notice') toast(m.msg);
     else if (m.t === 'react') floatReact(m.e, m.from);
     else if (m.t === 'wguess') showWhiteGuess(m);
@@ -1444,12 +1459,13 @@ html[data-theme=dark] .cbub{border-color:#121212}
     }
     else if (m.t === 'rooms') { openRooms = m.list || []; if (cur && cur.rooms) cur.rooms(); }
     else if (m.t === 'reqwait') showWait();
+    else if (m.t === 'vsig') voiceSig(m);
     else if (m.t === 'reqres') { hideWait(); if (m.msg) toast(m.msg); }
     else if (m.t === 'norejoin') { session = null; store('uc.session', null); S = null; if (!wantGame) mode = 'hub'; render(); }
     else if (m.t === 'kicked' || m.t === 'left') {
       chatList = []; chatOpen = false; chatUnread = 0; photoMap = {};
       if (m.t === 'kicked') toast('The host removed you from the lobby');
-      session = null; store('uc.session', null); S = null; wantGame = null; mode = 'hub'; render();
+      session = null; store('uc.session', null); S = null; wantGame = null; mode = 'hub'; openRooms = []; render(); send({ t: 'rooms' }); setTimeout(function () { send({ t: 'rooms' }); }, 900);
     }
   }
 
@@ -2637,6 +2653,126 @@ html[data-theme=dark] .cbub{border-color:#121212}
         h('button', { class: 'btn danger', type: 'button', onclick: function () { ans(false); } }, '✗ Decline')),
       h('button', { class: 'link', type: 'button', style: 'display:block;margin:10px auto 0', onclick: function () { ans(false, true); } }, 'Decline and block this person')));
     document.body.appendChild(reqEl);
+  }
+
+  /* ================= Live voice: phones talk straight to each other (WebRTC); the server only introduces them ================= */
+  var V = { on: false, mic: false, starting: false, stream: null, peers: {}, ctx: null, meter: {}, speaking: {}, joinAt: 0 };
+  var vBox = h('div', { class: 'vbox' }), vSig = '';
+  var ICE = { iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302', 'stun:stun.cloudflare.com:3478'] }] };
+  function voiceOK() { return !!(window.RTCPeerConnection && navigator.mediaDevices && navigator.mediaDevices.getUserMedia); }
+  function vKey(id) { return String(id); }
+  function offerer(id) { return String(S.me.id) < String(id); } // only one side starts each call, so they never talk over each other
+  function voiceStart() {
+    if (V.on || V.starting) return;
+    if (!voiceOK()) { toast('Voice is not supported on this browser'); return; }
+    try { var AC = window.AudioContext || window.webkitAudioContext; if (!V.ctx && AC) V.ctx = new AC(); if (V.ctx && V.ctx.resume) V.ctx.resume(); } catch (e) {}
+    V.starting = true; paintVoice();
+    navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false }).then(function (s) {
+      V.starting = false;
+      if (!S) { s.getTracks().forEach(function (t) { t.stop(); }); return; }
+      V.stream = s; V.on = true; setMic(false); watchLevel('me', s);
+      V.joinAt = Date.now(); send({ t: 'vjoin' }); buzz(30);
+      toast('Voice on. Tap 🔇 to talk'); paintVoice();
+    }, function () { V.starting = false; paintVoice(); toast('Microphone is blocked. Allow it in your browser settings'); });
+  }
+  function voiceStop(tell) {
+    Object.keys(V.peers).forEach(dropPeer);
+    if (V.stream) V.stream.getTracks().forEach(function (t) { t.stop(); });
+    var was = V.on; V.stream = null; V.on = false; V.mic = false; V.starting = false; stopLevels();
+    if (tell && was && S) send({ t: 'vleave' });
+    paintVoice();
+  }
+  function setMic(on) { V.mic = on; if (V.stream) V.stream.getAudioTracks().forEach(function (t) { t.enabled = on; }); }
+  function sdpOf(pc) { var d = pc.localDescription; return { type: d.type, sdp: d.sdp }; }
+  function mkPeer(id) {
+    var k = vKey(id), pc = new RTCPeerConnection(ICE), P = { id: id, pc: pc, q: [], audio: null, failed: false, restarted: false };
+    V.peers[k] = P;
+    V.stream.getTracks().forEach(function (t) { pc.addTrack(t, V.stream); });
+    pc.onicecandidate = function (e) { if (e.candidate) send({ t: 'vsig', to: id, d: { ice: { candidate: e.candidate.candidate, sdpMid: e.candidate.sdpMid, sdpMLineIndex: e.candidate.sdpMLineIndex } } }); };
+    pc.ontrack = function (e) {
+      var st = (e.streams && e.streams[0]) || new MediaStream([e.track]);
+      if (!P.audio) { P.audio = h('audio', { autoplay: '' }); P.audio.setAttribute('playsinline', ''); P.audio.style.display = 'none'; document.body.appendChild(P.audio); }
+      P.audio.srcObject = st; var pr = P.audio.play && P.audio.play(); if (pr && pr.catch) pr.catch(function () {});
+      watchLevel(k, st);
+    };
+    pc.onconnectionstatechange = function () {
+      var s = pc.connectionState;
+      if (s === 'failed') {
+        if (!P.restarted && offerer(id)) { P.restarted = true; offer(id, true); return; }
+        if (!P.failed) { P.failed = true; toast('Voice can’t reach ' + nameOf(id) + ' (their network blocks it)'); paintVoice(); }
+      } else if (s === 'connected' && P.failed) { P.failed = false; paintVoice(); }
+    };
+    return P;
+  }
+  function offer(id, restart) {
+    var P = V.peers[vKey(id)]; if (!P) return;
+    P.pc.createOffer(restart ? { iceRestart: true } : {}).then(function (o) { return P.pc.setLocalDescription(o); })
+      .then(function () { send({ t: 'vsig', to: id, d: { sdp: sdpOf(P.pc) } }); }).catch(function () {});
+  }
+  function dropPeer(k) {
+    var P = V.peers[k]; if (!P) return;
+    try { P.pc.close(); } catch (e) {}
+    if (P.audio) { P.audio.srcObject = null; if (P.audio.parentNode) P.audio.parentNode.removeChild(P.audio); }
+    delete V.peers[k]; unwatch(k);
+  }
+  function flushIce(P) { var q = P.q; P.q = []; q.forEach(function (c) { P.pc.addIceCandidate(c).catch(function () {}); }); }
+  function voiceSig(m) {
+    if (!V.on || !S || !V.stream) return;
+    var id = m.from, d = m.d || {}, P = V.peers[vKey(id)];
+    if (d.sdp && d.sdp.type === 'offer') {
+      if (!P) P = mkPeer(id);
+      P.pc.setRemoteDescription(d.sdp).then(function () { flushIce(P); return P.pc.createAnswer(); })
+        .then(function (a) { return P.pc.setLocalDescription(a); })
+        .then(function () { send({ t: 'vsig', to: id, d: { sdp: sdpOf(P.pc) } }); }).catch(function () {});
+    } else if (d.sdp && d.sdp.type === 'answer' && P) {
+      P.pc.setRemoteDescription(d.sdp).then(function () { flushIce(P); }).catch(function () {});
+    } else if (d.ice) {
+      if (!P) { if (offerer(id)) return; P = mkPeer(id); }
+      if (P.pc.remoteDescription) P.pc.addIceCandidate(d.ice).catch(function () {}); else P.q.push(d.ice);
+    }
+  }
+  /* who is talking: a tiny loudness meter on each voice (nothing is played through it) */
+  function watchLevel(k, stream) {
+    try { if (!V.ctx) return; unwatch(k); var src = V.ctx.createMediaStreamSource(stream), an = V.ctx.createAnalyser(); an.fftSize = 512; src.connect(an); V.meter[k] = { src: src, an: an, buf: new Uint8Array(512), last: 0 }; } catch (e) {}
+  }
+  function unwatch(k) { var m = V.meter[k]; if (m) { try { m.src.disconnect(); } catch (e) {} delete V.meter[k]; } delete V.speaking[k]; }
+  function stopLevels() { Object.keys(V.meter).forEach(unwatch); V.speaking = {}; }
+  setInterval(function () {
+    if (!V.on) return;
+    var now = Date.now(), ch = false;
+    Object.keys(V.meter).forEach(function (k) {
+      var m = V.meter[k]; m.an.getByteTimeDomainData(m.buf);
+      var s = 0; for (var i = 0; i < m.buf.length; i += 2) { var v = m.buf[i] - 128; s += v * v; }
+      if (Math.sqrt(s / (m.buf.length / 2)) > 5 && (k !== 'me' || V.mic)) m.last = now;
+      var on = now - m.last < 450;
+      if (!!V.speaking[k] !== on) { V.speaking[k] = on; ch = true; }
+    });
+    if (ch) paintVoice();
+  }, 120);
+  function syncVoice() {
+    if (!S) { if (V.on || V.starting) voiceStop(false); if (vBox.parentNode) vBox.parentNode.removeChild(vBox); vSig = ''; return; }
+    var ids = S.voice || [], me = S.me.id, inV = ids.indexOf(me) >= 0;
+    if (V.on && !inV && Date.now() - V.joinAt > 3000) { V.joinAt = Date.now(); send({ t: 'vjoin' }); } // came back after a dropped connection
+    if (V.on && inV) ids.forEach(function (id) { if (id !== me && !V.peers[vKey(id)] && offerer(id)) { mkPeer(id); offer(id); } });
+    var keep = {}; ids.forEach(function (id) { keep[vKey(id)] = 1; });
+    Object.keys(V.peers).forEach(function (k) { if (!keep[k]) dropPeer(k); });
+    if (vBox.parentNode !== document.body) document.body.appendChild(vBox);
+    paintVoice();
+  }
+  function paintVoice() {
+    if (!S) return;
+    var ids = S.voice || [], me = S.me.id;
+    var talking = ids.filter(function (id) { return V.speaking[id === me ? 'me' : vKey(id)]; });
+    var bad = Object.keys(V.peers).filter(function (k) { return V.peers[k].failed; });
+    var sig = [V.on, V.mic, V.starting, ids.join(','), talking.join(','), bad.join(','), S.players.length].join('|');
+    if (sig === vSig) return; vSig = sig;
+    fill(vBox,
+      V.on ? h('button', { class: 'vb vmic' + (V.mic ? ' live' : ''), type: 'button', 'aria-label': V.mic ? 'Mute microphone' : 'Talk',
+        onclick: function () { setMic(!V.mic); buzz(20); vSig = ''; paintVoice(); } }, V.mic ? '🎤' : '🔇') : null,
+      h('button', { class: 'vb' + (V.on ? ' on' : ''), type: 'button', 'aria-label': V.on ? 'Leave voice' : 'Join voice',
+        onclick: function () { if (V.on) voiceStop(true); else voiceStart(); } }, V.starting ? '…' : V.on ? '📴' : '🎧', ids.length && !V.on ? h('em', null, ids.length) : null),
+      bad.length ? h('span', { class: 'vwarn', title: 'Some voices can’t connect' }, '⚠️') : null,
+      talking.length ? h('div', { class: 'vtalk' }, talking.map(function (id) { return h('span', { class: 'vt' }, avatar(nameOf(id), pidx(id), 'sm'), h('b', null, nameOf(id))); })) : null);
   }
 
   /* ---------- one-phone (pass-and-play) mode ---------- */
@@ -4305,6 +4441,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
     var keys = { l: false, r: false, b: false }, running = false, lastT = 0, acc = 0, myRaceKey = '';
     var driver = h('div', { class: 'rdriver' });
     var hud = { lap: h('b'), pos: h('b'), time: h('b'), spd: h('b'), shield: h('span', { class: 'rshield' }, '🛡️'), boost: h('span', { class: 'rboost' }, '⚡ TURBO') };
+    var dbgEl = h('div', { class: 'rdbg' }), fpsN = 0, fpsT = 0;
     var mapCv = h('canvas', { class: 'rmap', width: 180, height: 180 }), mctx = mapCv.getContext('2d'), mapBase = null;
     var board = h('div', { class: 'rboard' }), count = h('div', { class: 'rcount' }), finBox = h('div', { class: 'rfinbox' }), toastBox = h('div', { class: 'rtoast' });
     function btn(cls, label, k) {
@@ -4320,7 +4457,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
     } }, '✕');
     var stage = h('div', { class: 'rstage' }, cv, driver,
       h('div', { class: 'rhud' }, h('div', { class: 'rh' }, h('small', null, 'LAP'), hud.lap), h('div', { class: 'rh' }, h('small', null, 'POS'), hud.pos), h('div', { class: 'rh' }, h('small', null, 'TIME'), hud.time), exitBtn),
-      h('div', { class: 'rhud2' }, h('div', { class: 'rspd' }, hud.spd, h('small', null, 'km/h')), hud.shield, hud.boost),
+      h('div', { class: 'rhud2' }, h('div', { class: 'rspd' }, hud.spd, h('small', null, 'km/h')), hud.shield, hud.boost, dbgEl),
       board, mapCv, count, finBox, toastBox,
       h('div', { class: 'rctl' }, btn('rl', '◀', 'l'), btn('rbk', 'BRAKE', 'b'), btn('rr', '▶', 'r')));
     var page = h('div', { class: 'rpage' });
@@ -4351,19 +4488,19 @@ html[data-theme=dark] .cbub{border-color:#121212}
     }
     function flagsOf() { return (st.boost > 0 ? 1 : 0) | (st.flame > 0 ? 2 : 0) | (st.drift < 0 ? 4 : 0) | (st.drift > 0 ? 8 : 0) | (st.shield ? 16 : 0) | (st.air ? 32 : 0) | (keys.b ? 64 : 0); }
     function sendPos(t) {
-      if (st.done || S.rc.ids.length < 2 || t - st.lastPos < 45) return;
+      if (st.done || S.rc.ids.length < 2 || t - st.lastPos < 48) return;
       st.lastPos = t;
-      send({ t: 'rpos', d: Math.round(myDist()), x: Math.round(st.x * 1000) / 1000, sp: Math.round(st.speed), f: flagsOf(), h: Math.round(Math.max(0, st.carY - roadYAt(st.pos + PZ))) });
+      send({ t: 'rpos', ts: Math.round(performance.now()), d: Math.round(myDist()), x: Math.round(st.x * 1000) / 1000, sp: Math.round(st.speed), f: flagsOf(), h: Math.round(Math.max(0, st.carY - roadYAt(st.pos + PZ))) });
     }
-    function stepGhosts(dt) { // other buggies: drawn ~150ms in the past, between two real snapshots, so they glide instead of jumping
-      var now = performance.now(), tt = now - 90;
+    function stepGhosts(dt) { // other buggies: shown where they are NOW (guessed ahead along the road from their speed), gliding onto each new report
+      var now = performance.now(), lead = Math.min(100, pingMs || 60), k1 = Math.min(1, dt * 8), k2 = Math.min(1, dt * 12), k3 = Math.min(1, dt * 14);
       Object.keys(ghosts).forEach(function (id) {
         var g = ghosts[id]; if (now - g.t > 3000) { delete ghosts[id]; return; }
-        var B = g.buf || []; if (!B.length) return;
-        var i = B.length - 1; while (i > 0 && B[i].t > tt) i--;
-        var A = B[i], N = B[i + 1];
-        if (N && N.t > A.t) { var a = Math.max(0, Math.min(1, (tt - A.t) / (N.t - A.t))); if (Math.abs(N.d - A.d) > 2500) a = 1; g.dd = A.d + (N.d - A.d) * a; g.dx = A.x + (N.x - A.x) * a; var P = a > 0.5 ? N : A; g.sp = P.sp; g.f = P.f; g.h = A.h + (N.h - A.h) * a; }
-        else { var ex = Math.min(0.3, Math.max(0, (tt - A.t) / 1000)); g.dd = A.d + A.sp * ex; g.dx = A.x; g.sp = A.sp; g.f = A.f; g.h = A.h; }
+        var L = g.L; if (!L) return;
+        var age = Math.max(0, Math.min(300, now - L.tl + lead)) / 1000, pred = L.d + L.sp * age;
+        if (g.dd == null || Math.abs(pred - g.dd) > 3000) { g.dd = pred; g.dx = L.x; g.h = L.h; }
+        else { g.dd += (g.sp || 0) * dt; g.dd += (pred - g.dd) * k1; g.dx += (L.x - g.dx) * k2; g.h += (L.h - g.h) * k3; }
+        g.sp = L.sp; g.f = L.f;
       });
     }
     function buildMap() { // the track seen from above, made once from the curves
@@ -4389,9 +4526,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
     }
     function applyBump(side, k, osp, rel) {
       if (st.shield) k *= 0.35; // a shield makes you heavy
-      st.vx = side * k * 1.6;
-      if (rel < 0 && osp > st.speed) st.speed += (osp - st.speed) * 0.45; // shoved from behind
-      else if (rel > 0 && st.speed > osp) st.speed -= (st.speed - osp) * 0.6; // you rammed them
+      st.vx = side * k * 1.1; // soft bump: a sideways nudge only, speed is never taken away (the other car's spot is always a little old)
       st.bump = 0.3; st.sparkT = 0.35; st.sparkSide = side; buzz([70]); stage.classList.remove('rshake'); void stage.offsetWidth; stage.classList.add('rshake'); st.hitFlash = Math.max(st.hitFlash || 0, 0.25);
       if (performance.now() - (st.bumpMsg || 0) > 1500) { st.bumpMsg = performance.now(); flash('💥 BUMP!'); }
       if (st.drift) { st.drift = 0; st.dcharge = 0; st.steerT = 0; }
@@ -4700,6 +4835,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
       if (cv.width !== Math.round(w * DPR) || cv.height !== Math.round(hh * DPR)) { cv.width = Math.round(w * DPR); cv.height = Math.round(hh * DPR); sandPat = null; }
       W = cv.width; H = cv.height; if (!W || !H) return;
       var nowR = performance.now(), rdt = Math.min(0.1, (nowR - (lastR || nowR)) / 1000); lastR = nowR; st.wave = Math.floor(nowR / 300);
+      fpsN++; if (nowR - fpsT > 1000) { var fps = Math.round(fpsN * 1000 / (nowR - (fpsT || nowR - 1000))); fpsN = 0; fpsT = nowR; var pg = pingMs || 0; dbgEl.textContent = fps + ' fps · ' + (pg ? pg + ' ms' : '· ms'); dbgEl.className = 'rdbg ' + (fps < 40 || pg > 200 ? 'r' : fps < 55 || pg > 110 ? 'o' : 'g'); }
       drawBack();
       var base = seg(st.pos), bp = (st.pos % SEG) / SEG, camY = CAMH + st.carY, maxy = H, x = 0, dx = -(base.curve * bp), n, s, looped;
       for (n = 0; n < DRAW; n++) {
@@ -4803,7 +4939,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
     cars: function (l) {
       if (!iRace()) return;
       var seen = {}, now = performance.now();
-      (l || []).forEach(function (c) { var id = c[0]; if (id === S.me.id) return; seen[id] = 1; var g = ghosts[id] || (ghosts[id] = { buf: [] }); g.t = now; g.buf.push({ t: now, d: c[1], x: c[2], sp: c[3], f: c[4], h: c[5] }); if (g.buf.length > 14) g.buf.shift(); });
+      (l || []).forEach(function (c) { var id = c[0]; if (id === S.me.id) return; seen[id] = 1; var g = ghosts[id] || (ghosts[id] = {}); g.t = now; if (c[7] != null && c[7] === g.sq) return; g.sq = c[7]; var tl = now; if (typeof c[6] === 'number') { var o = now - c[6]; g.off = g.off == null ? o : Math.min(o, g.off + 0.5); tl = c[6] + g.off; } g.L = { tl: tl, d: c[1], x: c[2], sp: c[3], f: c[4], h: c[5] }; });
       Object.keys(ghosts).forEach(function (id) { if (!seen[id]) delete ghosts[id]; });
     },
     bumped: function (m) {
@@ -4856,7 +4992,7 @@ html[data-theme=dark] .cbub{border-color:#121212}
     }
     if (S && S.phase !== 'lobby' && S.phase !== 'over') wakeLock();
     cur.update();
-    syncSupModal(); syncCodeBar(); syncReqModal(); syncHostbar(); syncWatch(); syncWhiteTry(); syncUc(); syncReactBar(); paintChat();
+    syncSupModal(); syncCodeBar(); syncReqModal(); syncVoice(); syncHostbar(); syncWatch(); syncWhiteTry(); syncUc(); syncReactBar(); paintChat();
   }
   setInterval(function () { if (cur && cur.tick) cur.tick(); }, 250);
 
