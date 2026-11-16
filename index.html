@@ -4365,13 +4365,15 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
     function showAim(dx, dy, pw, pull, isLocked) {
       var me = S.fb.pos[S.me.id]; if (!me) return hideAim();
       var d = Math.hypot(dx, dy) || 1, ux = dx / d, uy = dy / d, px2 = -uy, py2 = ux;
-      var s0 = FDR + 4, len = 34 + 150 * pw, e0 = s0 + len;
-      var P = function (x, y) { var v = view(x, y); return v[0].toFixed(1) + ',' + v[1].toFixed(1); };
-      var a = view(me[0] + ux * s0, me[1] + uy * s0), b = view(me[0] + ux * e0, me[1] + uy * e0), c = view(me[0], me[1]), pl = view(me[0] - ux * pull, me[1] - uy * pull);
+      var s0 = FDR + 12, len = 30 + 150 * pw, e0 = s0 + len;
+      aimSvg.setAttribute('viewBox', '0 0 ' + pitch.clientWidth + ' ' + pitch.clientHeight); // pixel space: exactly the same maths as the discs
+      var V = function (x, y) { var v = view(x, y); return [v[0] * sc, (v[1] + FNET) * sc]; };
+      var P = function (x, y) { var v = V(x, y); return v[0].toFixed(1) + ',' + v[1].toFixed(1); };
+      var a = V(me[0] + ux * s0, me[1] + uy * s0), b = V(me[0] + ux * e0, me[1] + uy * e0), c = V(me[0], me[1]), pl = V(me[0] - ux * pull, me[1] - uy * pull);
       gDir.setAttribute('x1', a[0]); gDir.setAttribute('y1', a[1]); gDir.setAttribute('x2', b[0]); gDir.setAttribute('y2', b[1]);
       gHead.setAttribute('points', P(me[0] + ux * (e0 + 13), me[1] + uy * (e0 + 13)) + ' ' + P(me[0] + ux * e0 + px2 * 8, me[1] + uy * e0 + py2 * 8) + ' ' + P(me[0] + ux * e0 - px2 * 8, me[1] + uy * e0 - py2 * 8));
       gPull.setAttribute('x1', c[0]); gPull.setAttribute('y1', c[1]); gPull.setAttribute('x2', pl[0]); gPull.setAttribute('y2', pl[1]);
-      var r = FDR - 1, circ = 2 * Math.PI * r;
+      var r = FDR * sc + 8, circ = 2 * Math.PI * r; // hugs the outside of the disc's white/team ring
       gRing.setAttribute('cx', c[0]); gRing.setAttribute('cy', c[1]); gRing.setAttribute('r', r);
       gRing.setAttribute('stroke-dasharray', (circ * Math.max(0.04, pw)).toFixed(1) + ' ' + circ.toFixed(1));
       gRing.setAttribute('transform', 'rotate(-90 ' + c[0] + ' ' + c[1] + ')');
