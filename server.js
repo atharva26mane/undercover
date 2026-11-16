@@ -487,10 +487,15 @@ function ckDeliver(room, b) { // the bowler let it go (or the timer did)
   const fl = Math.round(spin ? 1300 - 300 * pw : 1060 - 430 * pw);
   c.ballN++;
   c.del = { n: c.ballN, line: Math.round((line + wob) * 100) / 100, len, spin, pw: Math.round(pw * 100) / 100, turn: Math.round(turn * 100) / 100, fl, lead: 1500, by: c.bowler };
+  c.lock = null;
   c.step = 'bat'; c.seg = null; c.ch = null;
   setPhase(room, 'cplay');
-  schedule(room, c.del.lead + fl + (ckLive(room, c.striker) ? 2600 : 300), () => ckShot(room, ckLive(room, c.striker) ? null : ckBotShot()));
+  schedule(room, c.del.lead + fl + (ckLive(room, c.striker) ? 180 : 300), () => ckShot(room, ckLive(room, c.striker) ? ckLockShot(c) : ckBotShot()));
   broadcast(room);
+}
+function ckLockShot(c) { // easy mode: the batter locked a shot earlier; the game times the swing for them
+  const L = c.lock; c.lock = null; if (!L) return null;
+  return { e: Math.random() < 0.15 ? ckRnd(-145, 145) : ckRnd(-75, 75), th: L.th, s: L.s, loft: L.loft, def: L.def };
 }
 function ckBotShot() { return { e: ckRnd(-160, 160), th: ckRnd(-110, 110), s: ckRnd(0.3, 0.9), loft: Math.random() < 0.3, def: Math.random() < 0.2 }; }
 
@@ -675,7 +680,7 @@ function ckResult(room, res, again) {
   const slow = res.k === '6' || res.k === 'W';
   const segLeft = c.seg ? Math.max(0, c.seg.at + c.seg.ms - Date.now()) : 0;
   if (room.phase !== 'cplay') setPhase(room, 'cplay');
-  ckSched(room, segLeft + (slow ? 3600 : 2200), () => (again ? ckBowlPhase(room) : ckNext(room)));
+  ckSched(room, segLeft + (slow ? 3600 : res.k === 'wd' ? 1400 : 2200), () => (again ? ckBowlPhase(room) : ckNext(room)));
   broadcast(room);
 }
 function ckNext(room) { // after each ball: innings over? next batter? next over?
@@ -1639,8 +1644,8 @@ function handle(ws, m) {
     case 'ckbowl': { const c = room.ck; if (room.game !== 'cricket' || room.phase !== 'cbowl' || !c || p.id !== c.bowler) return; return ckDeliver(room, m); }
     case 'ckshot': {
       const c = room.ck; if (room.game !== 'cricket' || !c || c.step !== 'bat' || p.id !== c.striker || !c.del || m.n !== c.del.n) return;
-      const e = Number(m.e);
-      return ckShot(room, { e: Number.isFinite(e) ? e : 999, th: Number(m.th) || 0, s: Number(m.s) || 0, loft: !!m.loft, def: !!m.def });
+      c.lock = { th: Math.max(-140, Math.min(140, Number(m.th) || 0)), s: Math.max(0, Math.min(1, Number(m.s) || 0)), loft: !!m.loft, def: !!m.def };
+      return send(ws, { t: 'cklock', n: c.del.n });
     }
     case 'ckact': { const c = room.ck; if (room.game !== 'cricket' || !c || !c.ch || c.ch.id !== p.id || m.n !== c.ch.n) return; return ckChRes(room, c.ch.n, !!m.ok); }
     case 'vjoin': { // live voice: join (max 6, phones connect to each other directly)
@@ -1817,6 +1822,15 @@ function handle(ws, m) {
       const fleft = room.fb.paused.left; room.fb.paused = null;
       schedule(room, fleft, () => fbFire(room));
       notice(room, '▶️ Match resumed'); return broadcast(room);
+    }
+    case 'kick': {
+      if (!hostOnly()) return;
+      if (room.phase !== 'lobby') return errTo(ws, 'You can only remove people from the lobby');
+      const q = room.players.get(String(m.id));
+      if (!q || q.id === p.id || q.left) return;
+      notice(room, '🚪 ' + q.name + ' was removed by the host');
+      removePlayer(room, q, false);
+      return;
     }
     case 'switchgame': {
       if (!hostOnly()) return;

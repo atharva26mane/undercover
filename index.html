@@ -1057,6 +1057,7 @@ body.unomode .ucatchB{order:8}
 body.unomode .upick{position:absolute}
 body.unomode .ugame.myturn:before{position:absolute;z-index:4}
 /* switch game + football gear */
+.kickx{margin-left:auto;flex:0 0 auto;width:26px;height:26px;border:2px solid var(--ink);border-radius:9px;background:#FFE3E3;color:#C62828;font:800 12px/1 var(--f-mono)}
 .cb-games{margin-top:10px;border-top:2px dashed rgba(0,0,0,.2);padding-top:8px}
 .cb-games>small{font:800 10px var(--f-mono);letter-spacing:.1em;opacity:.7}
 .cb-grow{display:flex;gap:6px;margin-top:7px}
@@ -1653,7 +1654,8 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
       h('span', { class: 'pname' + (p.alive === false && S.phase !== 'lobby' ? ' dead' : '') }, p.name, p.id === S.me.id ? ' (you)' : ''),
       p.host ? h('span', { class: 'tag' }, 'Host') : null,
       p.sup ? h('span', { class: 'tag' }, 'Supervisor') : null,
-      extra);
+      extra,
+      S.me.host && S.phase === 'lobby' && !mine ? h('button', { class: 'kickx', type: 'button', 'aria-label': 'Remove player', onclick: function () { if (confirm('Remove ' + p.name + ' from the room?')) send({ t: 'kick', id: p.id }); } }, '\u2715') : null);
   }
   function toggle(label, hint, onchange) {
     var inp = h('input', { type: 'checkbox', onchange: function () { onchange(inp.checked); } });
@@ -3094,7 +3096,7 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
         if (L.k === '4' || L.k === '6') return ['batx', 3];
         if (L.runs >= 1 && L.k !== 'wd' && L.k !== 'b') return ['batx', 2];
       }
-      if (tvSwing && del && tvSwing.n === del.n) return tvSwing.f;
+      if (tvSwing && del && tvSwing.n === del.n && now > del.t0 + del.fl - 140) return tvSwing.f;
       if (del && now > del.t0 - 250 && now < del.t0 + del.fl + 900) return ['bat_' + side, 1];
       return ['bat_' + side, 0];
     }
@@ -3144,7 +3146,7 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
         var bwp = tvP(0.75, by, 0); if (bwp) tvDraw('bowl_' + fs, fr, bwp.x, bwp.y, Math.min(290, 3.5 * bwp.u));
       }
       // ball in the bowler's hand during the run-up is hidden; umpire at the bowler's end
-      if (L && c.step === 'res' && now - lastEvT < 6000 && (L.k === 'W' || L.k === '4' || L.k === '6' || L.k === 'wd')) {
+      if (L && c.step === 'res' && S.phase === 'cplay' && now - lastEvT < 6000 && (L.k === 'W' || L.k === '4' || L.k === '6' || L.k === 'wd')) {
         var uf = L.k === 'W' ? 1 : L.k === '4' ? 2 : L.k === '6' ? 3 : 4;
         var up = tvP(0, 23.4, 0); tvDraw('ump', uf, up.x, up.y, Math.min(235, 3.3 * up.u));
       }
@@ -3197,8 +3199,6 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
       // swipe guide for the batter
       if (swipe && swipe.cur) { g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = 5; g.lineCap = 'round'; g.beginPath(); g.moveTo(swipe.x0, swipe.y0); g.lineTo(swipe.cur[0], swipe.cur[1]); g.stroke(); }
       if (replay) { g.font = '800 14px system-ui,sans-serif'; g.fillStyle = '#E6003D'; g.textAlign = 'left'; g.textBaseline = 'top'; g.fillText('● REPLAY', 12, 10); }
-      // batter missed the chance to swing: tell the server quickly so the game keeps moving
-      if (c.step === 'bat' && c.striker === me() && del && shotN !== del.n && now > del.t0 + del.fl + 420) { shotN = del.n; send({ t: 'ckshot', n: del.n, e: 999, th: 0, s: 0 }); flash('MISSED!', 'Too late!', '#121212'); }
       tickCh(now);
       if (S.phase === 'cbowl' && c.bowler === me() && bowl.sent !== c.ballN) paintMeter(now);
       requestAnimationFrame(frame);
@@ -3212,7 +3212,7 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
       splashT = setTimeout(function () { splash.className = 'ck-splash'; }, 1900);
     }
     /* ---------- batter: swipe to play ---------- */
-    function canBat() { var c = S.ck; return c && c.step === 'bat' && c.striker === me() && del && shotN !== del.n; }
+    function canBat() { var c = S.ck; return c && c.step === 'bat' && c.striker === me() && del && performance.now() < del.t0 + del.fl - 60; }
     function canDrag() { return S.phase === 'cfield' && S.ck && (S.ck.field[me()] || S.ck.bowler === me()); }
     wrap.addEventListener('pointerdown', function (e) {
       var r = wrap.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top;
@@ -3237,15 +3237,13 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
         var s = swipe; swipe = null;
         if (!canBat()) return;
         var r = wrap.getBoundingClientRect(), px = (e.clientX || s.x0) - r.left, py = (e.clientY || s.y0) - r.top;
-        var dx = px - s.x0, dy = py - s.y0, len = Math.hypot(dx, dy), now = performance.now();
-        var hitT = s.hit || now, arr = del.t0 + del.fl, err = Math.round(hitT - arr);
+        var dx = px - s.x0, dy = py - s.y0, len = Math.hypot(dx, dy);
+        if (len < 10) return; // a stray tap: keep the last locked shot
         var th = Math.atan2(dx, -dy) * 180 / Math.PI, def = len < 22, loft = len >= 95, pow = Math.min(1, len / (Math.min(W, H) * 0.55));
-        shotN = del.n; shot = { t: now, th: def ? 0 : th }; tvSwing = { n: del.n, f: swingFrame((S.ck.inns[S.ck.inn] || {}).team === 1 ? 'b' : 'r', th, def, loft, Math.abs(err) > 150) };
-        send({ t: 'ckshot', n: del.n, e: err, th: Math.round(th), s: Math.round(pow * 100) / 100, loft: loft, def: def });
-        var a = Math.abs(err);
-        if (a > 150) flash('MISSED!', err < 0 ? 'Too early' : 'Too late', '#121212');
-        else flash(a < 40 ? 'PERFECT!' : a < 90 ? 'GOOD' : 'EDGE!', def ? 'Blocked' : a < 40 ? '' : err < 0 ? 'A bit early' : 'A bit late', a < 40 ? '#00C853' : a < 90 ? '#FFD600' : '#FF7A2F');
-        buzz(a < 40 ? [20, 30, 40] : 25);
+        shotN = del.n; tvSwing = { n: del.n, f: swingFrame((S.ck.inns[S.ck.inn] || {}).team === 1 ? 'b' : 'r', th, def, loft, false) };
+        send({ t: 'ckshot', n: del.n, th: Math.round(th), s: Math.round(pow * 100) / 100, loft: loft, def: def });
+        flash('LOCKED 🔒', def ? 'Defend it' : loft ? 'Big hit, in the air!' : 'Along the ground', '#00C853');
+        buzz([20, 30, 40]);
         return;
       }
       if (drag) { send({ t: 'ckpos', id: drag.id, x: drag.x, y: drag.y }); var d0 = drag; setTimeout(function () { if (drag === d0) drag = null; }, 400); }
@@ -3286,7 +3284,7 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
         else body = h('div', { class: 'ck-msg' }, h('p', null, 'The fielders are setting the field…'));
       } else if (ph === 'cbowl') {
         if (isBowl && bowl.sent !== c.ballN) body = bowlPanel();
-        else if (isBat) body = h('div', { class: 'ck-msg' }, h('p', null, h('b', null, 'Get ready! '), 'Swipe on the pitch when the ball reaches you.'), h('p', { class: 'mute small' }, '↑ straight · → off side · ← leg side · long swipe = in the air · tap = block'));
+        else if (isBat) body = h('div', { class: 'ck-msg' }, h('p', null, h('b', null, 'Easy mode! '), 'Drag on the pitch and let go \u2014 any time before the ball lands. The game times the swing for you.'), h('p', { class: 'mute small' }, '\u2191 straight \u00b7 \u2192 off side \u00b7 \u2190 leg side \u00b7 long drag = in the air \u00b7 tiny drag = block \u00b7 drag again to change'));
         else body = h('div', { class: 'ck-msg' }, h('p', null, '🎯 ' + nameOf(c.bowler) + ' is getting ready to bowl…'));
       } else if (ph === 'cplay' && c.step === 'bat') {
         body = h('div', { class: 'ck-msg' }, h('p', null, isBat ? (shotN === (c.del && c.del.n) ? 'Shot played!' : '🏏 SWIPE when the ball reaches you!') : 'Here it comes…'));
@@ -3385,7 +3383,7 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
       if (c.del && c.del.n !== lastDel) { lastDel = c.del.n; del = { n: c.del.n, t0: now + c.del.lead, fl: c.del.fl, line: c.del.line, len: c.del.len, turn: c.del.turn || 0, spin: c.del.spin, lead: c.del.lead }; segA = null; segHist = []; replay = null; shot = null; }
       if (!c.del && S.phase !== 'cplay') del = null;
       if (c.seg && c.seg.i !== lastSeg) { lastSeg = c.seg.i; segA = { a: c.seg.a, b: c.seg.b, air: c.seg.air, ms: c.seg.ms, k: c.seg.k, t0: now }; segHist.push(segA); if (segHist.length === 1 && del) { var th2 = Math.atan2(c.seg.b[0], c.seg.b[1]) * 180 / Math.PI; tvSwing = { n: del.n, f: swingFrame((c.inns[c.inn] || {}).team === 1 ? 'b' : 'r', th2, false, !!c.seg.air && Math.hypot(c.seg.b[0], c.seg.b[1]) > 25, false) }; }
-      if (c.striker !== me() && !shot && segHist.length === 1) shot = { t: now - 80, th: Math.atan2(c.seg.b[0], c.seg.b[1]) * 180 / Math.PI }; }
+      if (!shot && segHist.length === 1) shot = { t: now - 80, th: Math.atan2(c.seg.b[0], c.seg.b[1]) * 180 / Math.PI }; }
       if (!c.seg && S.phase === 'cbowl') { segA = null; }
       if (c.last && c.last.i !== lastEv) {
         var first = lastEv === -1; lastEv = c.last.i; lastEvT = performance.now();
@@ -4370,7 +4368,7 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
       gDir.setAttribute('x1', a[0]); gDir.setAttribute('y1', a[1]); gDir.setAttribute('x2', b[0]); gDir.setAttribute('y2', b[1]);
       gHead.setAttribute('points', P(me[0] + ux * (e0 + 13), me[1] + uy * (e0 + 13)) + ' ' + P(me[0] + ux * e0 + px2 * 8, me[1] + uy * e0 + py2 * 8) + ' ' + P(me[0] + ux * e0 - px2 * 8, me[1] + uy * e0 - py2 * 8));
       gPull.setAttribute('x1', c[0]); gPull.setAttribute('y1', c[1]); gPull.setAttribute('x2', pl[0]); gPull.setAttribute('y2', pl[1]);
-      var r = FDR + 8, circ = 2 * Math.PI * r;
+      var r = FDR - 1, circ = 2 * Math.PI * r;
       gRing.setAttribute('cx', c[0]); gRing.setAttribute('cy', c[1]); gRing.setAttribute('r', r);
       gRing.setAttribute('stroke-dasharray', (circ * Math.max(0.04, pw)).toFixed(1) + ' ' + circ.toFixed(1));
       gRing.setAttribute('transform', 'rotate(-90 ' + c[0] + ' ' + c[1] + ')');
@@ -4390,10 +4388,10 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
     }
     pitch.addEventListener('pointerdown', function (e) {
       if (!canAim()) return;
-      var me = S.fb.pos[S.me.id], p = ptr(e);
-      if (!me || Math.hypot(p[0] - me[0], p[1] - me[1]) > FDR * 2.6) return;
+      var me = S.fb.pos[S.me.id];
+      if (!me) return;
       drag = e.pointerId; try { pitch.setPointerCapture(e.pointerId); } catch (x) {}
-      var r0 = pitch.getBoundingClientRect(), vv = view(me[0], me[1]); d0 = { x: r0.left + vv[0] * sc, y: r0.top + (vv[1] + FNET) * sc, ox: vv[0] * sc, oy: (vv[1] + FNET) * sc };
+      d0 = { x: e.clientX, y: e.clientY }; // start anywhere on the pitch: the pull is your finger's travel
       e.preventDefault(); buzz(12);
     });
     pitch.addEventListener('pointermove', function (e) {
@@ -4423,7 +4421,7 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
       else if (S.phase === 'faim') {
         if (!iPlay) fill(status, '👀 You are watching this match. You play in the next one. ', secEl);
         else if (isLocked) fill(status, '✅ Locked in! Re-drag to change it · ', secEl);
-        else fill(status, '🎯 Drag back from YOUR disc (white ring) · ', secEl);
+        else fill(status, '\ud83c\udfaf Drag back anywhere on the pitch \u00b7 ', secEl);
         if (fb.sudden) status.appendChild(h('div', { class: 'fsud' }, '⚡ SUDDEN DEATH · wider goals · next goal wins'));
       } else if (S.phase === 'fplay') fill(status, '💥 Shots fired…');
       else fill(status, '🏁 Full time!');
