@@ -495,7 +495,7 @@ function ckDeliver(room, b) { // the bowler let it go (or the timer did)
 }
 function ckLockShot(c) { // easy mode: the batter locked a shot earlier; the game times the swing for them
   const L = c.lock; c.lock = null; if (!L) return null;
-  return { e: Math.random() < 0.15 ? ckRnd(-145, 145) : ckRnd(-75, 75), th: L.th, s: L.s, loft: L.loft, def: L.def };
+  return { e: Math.random() < 0.3 ? ckRnd(-148, 148) : ckRnd(-105, 105), th: L.th, s: L.s, loft: L.loft, def: L.def };
 }
 function ckBotShot() { return { e: ckRnd(-160, 160), th: ckRnd(-110, 110), s: ckRnd(0.3, 0.9), loft: Math.random() < 0.3, def: Math.random() < 0.2 }; }
 
@@ -551,7 +551,7 @@ function ckShot(room, sh) { // the batter swung (sh) or didn't (null)
   if (d.len === 0 && sh.loft) qq *= 0.6; // hard to loft a yorker
   if (d.len === 3 && th < -30 && th > -130) qq = Math.min(1, qq * 1.15); // short ball: pull it!
   const pace = d.spin ? 1 : 1 + 0.15 * d.pw;
-  if (sh.loft) return ckAir(room, th, (24 + 66 * s) * (0.35 + 0.65 * qq) * pace, qWord);
+  if (sh.loft) return ckAir(room, th, (22 + 57 * s) * (0.32 + 0.68 * qq) * pace, qWord);
   return ckGround(room, th, 0, (18 + 58 * s) * (0.4 + 0.6 * qq) * pace, qWord);
 }
 
@@ -879,6 +879,8 @@ function view(room, p) {
   if (room.game === 'race' && room.rc) {
     const r = room.rc;
     v.rc = { ids: r.ids, startAt: r.startAt, laps: RACE_LAPS, fin: r.fin, results: r.results, rank: raceRank(room) };
+  }
+  if (room.game === 'race') { v.rcSet = room.rcSet || { map: 'beach' };
   }
   if (room.typingId && Date.now() < room.typingUntil) v.typing = room.typingId;
   if (p.id === room.hostId && room.supReq && room.players.get(room.supReq)) v.supReq = { id: room.supReq, name: room.players.get(room.supReq).name };
@@ -1903,6 +1905,11 @@ function handle(ws, m) {
     case 'upass': if (room.game === 'uno' && !(room.un && room.un.paused)) unPass(room, p); return;
     case 'uuno': if (room.game === 'uno' && !(room.un && room.un.paused)) unUno(room, p); return;
     case 'ucatch': if (room.game === 'uno' && !(room.un && room.un.paused)) unCatch(room, p); return;
+    case 'rset': {
+      if (!hostOnly() || room.game !== 'race' || room.phase !== 'lobby') return;
+      room.rcSet = { map: m.map === 'f1' ? 'f1' : 'beach' };
+      return broadcast(room);
+    }
     case 'rstart': {
       if (!hostOnly() || room.game !== 'race' || !['lobby', 'rover'].includes(room.phase)) return;
       const err = raceStart(room);
