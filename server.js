@@ -1581,7 +1581,7 @@ function handle(ws, m) {
     if (room.phase !== 'lobby' && room.phase !== 'over' && room.phase !== 'fover' && room.phase !== 'rover' && room.phase !== 'uover' && room.phase !== 'cover') { np.watch = true; notice(room, '👀 ' + name + ' joined. Watching until the next game'); }
     return attach(ws, room, np);
   }
-  if (m.t === 'rooms') { if (Date.now() - (ws.roomsAt || 0) < 700) return; ws.roomsAt = Date.now(); return send(ws, { t: 'rooms', list: openList() }); }
+  if (m.t === 'rooms') { if (Date.now() - (ws.roomsAt || 0) < 700) return; ws.roomsAt = Date.now(); return send(ws, { t: 'rooms', list: openList(), online: wss.clients.size }); }
   if (m.t === 'req') { // ask the host to let me in
     if (ws.ctx) return;
     const name = clean(m.name, 14), cid = clean(m.cid, 24) || 'x';
