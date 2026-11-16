@@ -25,8 +25,10 @@ const MAX_STEPS = 60 * 7;
 const rd3 = (v) => Math.round(v * 1000) / 1000;
 
 // Pitch grows with the number of players. gw = goal mouth, gws = wider goal for sudden death.
-function size(n) {
-  const [W, H] = n <= 4 ? [300, 480] : n <= 8 ? [340, 560] : [380, 640];
+function size(n, ar) {
+  const [W, H0] = n <= 4 ? [300, 480] : n <= 8 ? [340, 560] : [380, 640];
+  let H = H0; // a long pitch: fill the host's phone screen (ar = screen width / height), within sane limits
+  if (ar > 0.3 && ar < 1) H = Math.max(H0, Math.min(Math.round(H0 * 1.45), 2 * Math.round((W / ar - 2 * NET) / 2)));
   return { W, H, gw: Math.round(100 * W / 300), gws: Math.round(170 * W / 300) };
 }
 
@@ -1101,7 +1103,7 @@ function undoKick(room) { // host: put the last voted-out player back and vote a
 const FB_MAX = 12, FB_TURNS = 20;
 const fbPlayers = (room) => (room.fb ? room.fb.ids.map((id) => room.players.get(id)).filter((p) => p && !p.left) : []);
 function fbSend(room, obj) { for (const q of room.players.values()) if (q.ws && q.connected) send(q.ws, obj); }
-function fbStart(room) {
+function fbStart(room, ar) {
   const cands = [...room.players.values()].filter((p) => !p.left);
   if (cands.length < 1) return 'Need at least 1 player';
   const sel = shuffle(cands.filter((p) => p.connected)).slice(0, FB_MAX);
@@ -1110,7 +1112,7 @@ function fbStart(room) {
   const ids = sel.map((p) => p.id), team = {};
   ids.forEach((id, i) => { team[id] = i % 2; });
   for (const p of cands) if (!ids.includes(p.id)) p.watch = true;
-  const sz = FB.size(ids.length);
+  const sz = FB.size(ids.length, Number(ar) || 0);
   room.pkPick = null;
   room.fb = { ids, team, W: sz.W, H: sz.H, gw: sz.gw, gws: sz.gws, pos: FB.layout(ids, team, sz.W, sz.H), ball: [sz.W / 2, sz.H / 2], score: [0, 0], turn: 0, sudden: false, aims: {}, goals: [], winner: null, last: null, lastTurn: -1, sim: null, pk: null };
   if (room.fbSet.mode === 'pens') pkStart(room, 'fun'); else fbAim(room);
@@ -1808,7 +1810,7 @@ function handle(ws, m) {
     }
     case 'fstart': {
       if (!hostOnly() || room.game !== 'football' || !['lobby', 'fover'].includes(room.phase)) return;
-      const err = fbStart(room);
+      const err = fbStart(room, m.ar);
       return err ? errTo(ws, err) : undefined;
     }
     case 'flobby':

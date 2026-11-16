@@ -1245,6 +1245,28 @@ html[data-theme=dark] body .codebar{background:#262016;color:#F4EAD0;border-colo
 .hx-pk:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--hx-ink)}
 html[data-theme=dark] .hx-pk{background:#262016;border-color:#F3E6C4}
 .hx-pick{margin:10px 0 0}
+
+/* draggable voice */
+.vbox .vb{touch-action:none}.vbox.dragging .vb{transform:scale(1.08)}
+/* football: one full-screen pitch, everything else floats or lives in settings */
+body.fbmode #app{padding:0!important;max-width:none!important}
+body.fbmode .fgame.ffs{position:fixed;inset:0;height:100dvh;margin:0;padding:0;display:block;background:#15161f;overflow:hidden;z-index:30}
+.fgame.ffs .fpitch{position:absolute!important;left:50%;top:50%;transform:translate(-50%,-50%);margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+.fgame.ffs .fbar{position:absolute;top:0;left:0;right:0;height:5px;border:0;border-radius:0;margin:0;background:rgba(255,255,255,.2);z-index:12;pointer-events:none}
+.fgame.ffs .fscore{position:absolute;top:calc(10px + env(safe-area-inset-top));left:8px;z-index:12;margin:0;gap:4px;flex-direction:column;align-items:flex-start;pointer-events:none;width:auto}.fgame.ffs .fscore .fmid{order:3;align-items:flex-start}.fgame.ffs .fscore .fsc.them{flex-direction:row-reverse;order:2}
+.fgame.ffs .fsc{flex:none;padding:2px 10px;border-radius:999px;border-width:2px;box-shadow:2px 2px 0 #121212;outline:0;gap:4px}
+.fgame.ffs .fsc b{display:none}.fgame.ffs .fsc .fnum{font-size:22px}.fgame.ffs .fsc .fte{font-size:13px}
+.fgame.ffs .fsc.us{box-shadow:0 0 0 2px #FFD600,2px 2px 0 2px #121212}
+.fgame.ffs .fmid{color:#fff;text-shadow:0 1px 0 #000,1px 0 0 #000,-1px 0 0 #000;font-size:10px;min-width:54px}.fgame.ffs .fmid small{font-size:8px;opacity:.85}
+.fgame.ffs .fstat{position:absolute;left:8px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:12;margin:0;padding:4px 10px;font-size:10.5px;line-height:1.25;border-width:2px;border-radius:12px;box-shadow:2px 2px 0 #121212;text-align:left;max-width:128px;pointer-events:none}
+.fgame.ffs .fstat .fsec{font-size:13px}.fgame.ffs .fsud{display:none}
+.fgame.ffs .ftop2{position:absolute;top:calc(8px + env(safe-area-inset-top));right:8px;z-index:14}
+.fgame.ffs .fgear2{width:38px;height:38px;border-radius:50%;border:2px solid #121212;background:#fff;box-shadow:2px 2px 0 #121212;font-size:19px;line-height:1;padding:0}
+.fgame.ffs .uset-pop{position:absolute;right:8px;top:calc(54px + env(safe-area-inset-top));z-index:40;color:#121212;max-height:calc(100dvh - 80px);overflow:auto}
+.fgame.ffs .fteams{margin:6px 0 0;display:flex;flex-wrap:wrap;gap:4px}
+.fgame.ffs .fteams .vs{font:800 11px var(--f-mono);padding:2px 7px 2px 3px;gap:4px;display:inline-flex;align-items:center;white-space:nowrap}.fgame.ffs .fteams .vs b{font-size:11px}.fgame.ffs .fwait{font-size:11px;margin:4px 0}
+.fgame.ffs .fovr{position:absolute;inset:0;z-index:30;display:none;flex-direction:column;justify-content:center;gap:8px;padding:16px 14px;background:rgba(10,10,10,.78);overflow:auto;-webkit-overflow-scrolling:touch}
+body.fbmode .fball{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23fff' stroke='%23121212' stroke-width='7'/%3E%3Cpolygon points='50,30 69,44 62,66 38,66 31,44' fill='%23121212'/%3E%3Cg stroke='%23121212' stroke-width='5' stroke-linecap='round'%3E%3Cline x1='50' y1='30' x2='50' y2='9'/%3E%3Cline x1='69' y1='44' x2='90' y2='37'/%3E%3Cline x1='62' y1='66' x2='75' y2='84'/%3E%3Cline x1='38' y1='66' x2='25' y2='84'/%3E%3Cline x1='31' y1='44' x2='10' y2='37'/%3E%3C/g%3E%3C/svg%3E") center/100% 100% no-repeat;filter:drop-shadow(0 2px 0 rgba(0,0,0,.4))}
 .kickx{margin-left:auto;flex:0 0 auto;width:26px;height:26px;border:2px solid var(--ink);border-radius:9px;background:#FFE3E3;color:#C62828;font:800 12px/1 var(--f-mono)}
 .cb-games{margin-top:10px;border-top:2px dashed rgba(0,0,0,.2);padding-top:8px}
 .cb-games>small{font:800 10px var(--f-mono);letter-spacing:.1em;opacity:.7}
@@ -2999,6 +3021,41 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
   /* ================= Live voice: phones talk straight to each other (WebRTC); the server only introduces them ================= */
   var V = { on: false, mic: false, starting: false, stream: null, peers: {}, ctx: null, meter: {}, speaking: {}, joinAt: 0 };
   var vBox = h('div', { class: 'vbox' }), vSig = '';
+  /* the floating voice buttons can be dragged anywhere (position is remembered per game screen) */
+  (function () {
+    var KEY = 'uc.vpos', st = null, moved = false, lastMode = '';
+    function mode() { var c = document.body.classList; return ['fbmode', 'unomode', 'ckmode', 'racing'].filter(function (k) { return c.contains(k); })[0] || 'std'; }
+    function load() { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } }
+    function save(m, p) { try { var o = load(); o[m] = p; localStorage.setItem(KEY, JSON.stringify(o)); } catch (e) {} }
+    function put(x, y) {
+      var r = vBox.getBoundingClientRect(), w = r.width || 44, hh = r.height || 44;
+      x = Math.max(4, Math.min(innerWidth - w - 4, x)); y = Math.max(4, Math.min(innerHeight - hh - 4, y));
+      vBox.style.left = x + 'px'; vBox.style.top = y + 'px'; vBox.style.right = 'auto'; vBox.style.bottom = 'auto'; return [x, y];
+    }
+    function apply() {
+      var m = mode(); lastMode = m; var p = load()[m];
+      if (p) put(p[0], p[1]); else { vBox.style.left = vBox.style.top = vBox.style.right = vBox.style.bottom = ''; }
+    }
+    vBox.classList.add('vdrag');
+    vBox.addEventListener('pointerdown', function (e) { var r = vBox.getBoundingClientRect(); st = { id: e.pointerId, x: e.clientX, y: e.clientY, l: r.left, t: r.top, on: false }; });
+    vBox.addEventListener('pointermove', function (e) {
+      if (!st || st.id !== e.pointerId) return;
+      var dx = e.clientX - st.x, dy = e.clientY - st.y;
+      if (!st.on && Math.hypot(dx, dy) < 9) return;
+      if (!st.on) { st.on = true; try { vBox.setPointerCapture(e.pointerId); } catch (x) {} vBox.classList.add('dragging'); }
+      put(st.l + dx, st.t + dy); e.preventDefault();
+    });
+    function end(e) {
+      if (!st || st.id !== e.pointerId) return;
+      if (st.on) { moved = true; setTimeout(function () { moved = false; }, 350); var r = vBox.getBoundingClientRect(); save(mode(), [r.left, r.top]); vBox.classList.remove('dragging'); }
+      st = null;
+    }
+    vBox.addEventListener('pointerup', end); vBox.addEventListener('pointercancel', end);
+    vBox.addEventListener('click', function (e) { if (moved) { e.stopPropagation(); e.preventDefault(); } }, true);
+    setInterval(function () { if (mode() !== lastMode) apply(); }, 700);
+    window.addEventListener('resize', function () { apply(); });
+    apply();
+  })();
   var ICE = { iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302', 'stun:stun.cloudflare.com:3478'] }] };
   function voiceOK() { return !!(window.RTCPeerConnection && navigator.mediaDevices && navigator.mediaDevices.getUserMedia); }
   function vKey(id) { return String(id); }
@@ -4294,6 +4351,7 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
   var app = document.getElementById('app'), cur = null, curKey = null;
   /* ================= Gully Football ================= */
   var wantGame = null;
+  function scrAr() { return Math.round(Math.min(innerWidth, innerHeight) / Math.max(innerWidth, innerHeight) * 1000) / 1000; }
   var FW = 300, FH = 480, FDR = 20, FBR = 11, FNET = 26, FPULL = 120;
   var FBS = (function () {
   // Gully Football physics. The server decides each turn, but phones run this SAME code on the same numbers,
@@ -4459,17 +4517,17 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
         pens ? null : h('div', { class: 'set' }, h('div', { class: 'lbl' }, '⏱ Aim time'), seg([[4, '4s'], [6, '6s'], [8, '8s'], [12, '12s']], fs.secs, function (v) { send({ t: 'fset', secs: v }); })),
         pens ? null : h('div', { class: 'set' }, h('div', { class: 'lbl' }, '🤝 If level after 20 turns'), seg([['pens', '🥅 Penalties'], ['sudden', '⚡ Sudden death']], fs.tie || 'pens', function (v) { send({ t: 'fset', tie: v }); }))]
         : h('p', { class: 'mute', style: 'margin:0' }, pens ? '🥅 Penalty shootout · 5 kicks each' : '🥅 First to ' + fs.goals + ' goals · ⏱ ' + fs.secs + 's to aim · level = ' + (fs.tie === 'sudden' ? 'sudden death' : 'penalties'))));
-      fill(act, S.me.host ? h('button', { class: 'btn primary', type: 'button', onclick: function () { send({ t: 'fstart' }); } }, ps.length < 2 ? '⚽ Kick off (practice solo)' : '⚽ Kick off!')
+      fill(act, S.me.host ? h('button', { class: 'btn primary', type: 'button', onclick: function () { send({ t: 'fstart', ar: scrAr() }); } }, ps.length < 2 ? '⚽ Kick off (practice solo)' : '⚽ Kick off!')
         : h('p', { class: 'mute center' }, 'Waiting for the host to kick off…'));
     } };
   };
 
   screens.fgame = function () {
-    var sc = 1, built = '', fieldKey = '', running = false, lastKey = '', locked = null, drag = null, cardKey = '', cardT = 0;
+    var fitK = 0, sc = 1, built = '', fieldKey = '', running = false, lastKey = '', locked = null, drag = null, cardKey = '', cardT = 0;
     var field = sv('svg', { class: 'fsvg', viewBox: '0 0 300 532', preserveAspectRatio: 'none' });
     var aimSvg = sv('svg', { class: 'faimsvg', viewBox: '0 0 300 532', preserveAspectRatio: 'none' });
     var layer = h('div', { class: 'flayer' });
-    var ball = h('div', { class: 'fball' }, '⚽');
+    var ball = h('div', { class: 'fball' });
     var card = h('div', { class: 'fcard' });
     var zoomer = h('div', { class: 'fzoom' }, field, layer, ball, aimSvg);
     var pitch = h('div', { class: 'fpitch' }, zoomer, card);
@@ -4487,31 +4545,30 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
     function fPaintSet() {
       var pz = S && S.fb && S.fb.paused, can = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
       function item(ic, tx, fn, cls) { return h('button', { class: 'uset-b' + (cls ? ' ' + cls : ''), type: 'button', onclick: function () { fSetPop.classList.remove('open'); fn(); } }, h('span', null, ic), h('b', null, tx)); }
-      fill(fSetPop, h('div', { class: 'uset-h' }, 'Settings'),
+      fill(fSetPop, h('div', { class: 'uset-h' }, 'Settings ', pingEl),
         S.me.host && S.phase === 'faim' ? item(pz ? '▶️' : '⏸', pz ? 'Resume match' : 'Pause match', function () { send({ t: pz ? 'fresume' : 'fpause' }); }) : null,
         S.me.host && S.fbSet ? h('div', { class: 'uset-b', style: 'display:block' }, h('b', null, '⏱ Aim time'), seg([[5, '5s'], [8, '8s'], [12, '12s']], S.fbSet.secs, function (v) { send({ t: 'fset', secs: v }); fSetPop.classList.remove('open'); })) : null,
         S.me.host && S.fbSet ? h('div', { class: 'uset-b', style: 'display:block' }, h('b', null, '🥅 First to'), seg([[1, '1'], [3, '3'], [5, '5']], S.fbSet.goals, function (v) { send({ t: 'fset', goals: v }); fSetPop.classList.remove('open'); })) : null,
+        S.fb && S.phase === 'faim' ? h('div', { class: 'uset-b', style: 'display:block' }, h('b', null, '👥 Who has aimed'), teamsBox) : null,
         item('🚪', 'Leave game', function () { if (confirm('Leave this game?')) send({ t: 'leave' }); }),
         S.me.host ? item('⏹', 'End match (back to lobby)', function () { if (confirm('End the match and go back to the lobby?')) send({ t: 'flobby' }); }, 'danger') : null);
     }
-    var root = h('div', { class: 'fgame' }, topBar, scoreBar, status, bar, pitch, teamsBox, over, hostRow, fSetPop);
+    var gear = h('button', { class: 'fgear2', type: 'button', 'aria-label': 'Settings', onclick: function (e) { e.stopPropagation(); fSetPop.classList.toggle('open'); fPaintSet(); } }, '⚙');
+    topBar = h('div', { class: 'ftop2 fui' }, gear); fSetPop.classList.add('fui');
+    var overBox = h('div', { class: 'fovr fui' }, over, hostRow);
+    var root = h('div', { class: 'fgame ffs' }, pitch, bar, scoreBar, status, topBar, overBox, fSetPop);
     pitch.appendChild(fPaused);
     function setZoom(z) { zoomNow = z; zoomer.style.transform = z > 1.001 ? 'scale(' + z.toFixed(3) + ')' : ''; }
     function paintPing() {
       var png = typeof pingMs === 'number' && pingMs > 0 ? pingMs : null;
       pingEl.textContent = png ? png + ' ms' : '· ms'; pingEl.className = 'fping ' + (png == null ? '' : png < 90 ? 'g' : png < 200 ? 'o' : 'r');
     }
-    function paintTop() {
-      paintPing();
-      if (topBar.dataset.k !== String(S.me.host) + S.phase) { topBar.dataset.k = String(S.me.host) + S.phase;
-        fill(topBar, h('button', { class: 'link', type: 'button', onclick: function () { if (confirm('Leave this game?')) send({ t: 'leave' }); } }, '← Leave'), pingEl,
-          h('button', { class: 'ubtn-s ugear fgear', type: 'button', 'aria-label': 'Settings', onclick: function (e) { e.stopPropagation(); fSetPop.classList.toggle('open'); fPaintSet(); } }, '⚙')); }
-    }
+    function paintTop() { paintPing(); }
 
     function myTeam() { return myFTeam(); }
     function flipV() { return myTeam() === 1; }
     function view(x, y) { return flipV() ? [FW - x, FH - y] : [x, y]; }
-    function place(el, x, y, r) { var v = view(x, y); el.style.transform = 'translate3d(' + ((v[0] - r) * sc).toFixed(1) + 'px,' + ((v[1] + FNET - r) * sc).toFixed(1) + 'px,0)'; }
+    function place(el, x, y, r) { x = Math.max(r, Math.min(FW - r, x)); y = Math.max(el === ball ? r - FNET : r, Math.min(el === ball ? FH + FNET - r : FH - r, y)); var v = view(x, y); el.style.transform = 'translate3d(' + ((v[0] - r) * sc).toFixed(1) + 'px,' + ((v[1] + FNET - r) * sc).toFixed(1) + 'px,0)'; }
     function canAim() { return S && S.phase === 'faim' && S.fb && S.fb.ids.indexOf(S.me.id) >= 0 && secsLeft() > 0; }
 
     function drawField(gw) {
@@ -4558,7 +4615,9 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
       place(ball, fb.ball[0], fb.ball[1], FBR);
     }
     function frame() {
-      sc = pitch.clientWidth / FW || 1;
+      var rw = root.clientWidth || innerWidth, rh = root.clientHeight || innerHeight, kk = Math.min(rw / FW, rh / (FH + 2 * FNET));
+      if (Math.abs(kk - fitK) > 0.0005) { fitK = kk; pitch.style.setProperty('width', (FW * kk).toFixed(1) + 'px', 'important'); pitch.style.setProperty('height', ((FH + 2 * FNET) * kk).toFixed(1) + 'px', 'important'); }
+      sc = kk || 1;
       ball.style.fontSize = (sc * FBR * 1.75).toFixed(1) + 'px';
       if (!S || !S.fb) return;
       if (S.phase === 'fplay' && fsim && fsim.turn === S.fb.turn) {
@@ -4617,15 +4676,16 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
       var dx = d0 ? sg * (d0.x - e.clientX) / sc * K : 0, dy = d0 ? sg * (d0.y - e.clientY) / sc * K : 0, len = Math.hypot(dx, dy);
       return { dx: dx, dy: dy, len: len, pw: Math.min(1, len / FPULL), pull: Math.min(len, FPULL) };
     }
-    pitch.addEventListener('pointerdown', function (e) {
+    root.addEventListener('pointerdown', function (e) {
+      if (e.target.closest && e.target.closest('.fui')) return;
       if (!canAim()) return;
       var me = S.fb.pos[S.me.id];
       if (!me) return;
-      drag = e.pointerId; try { pitch.setPointerCapture(e.pointerId); } catch (x) {}
+      drag = e.pointerId; try { root.setPointerCapture(e.pointerId); } catch (x) {}
       d0 = { x: e.clientX, y: e.clientY }; // start anywhere on the pitch: the pull is your finger's travel
       e.preventDefault(); buzz(12);
     });
-    pitch.addEventListener('pointermove', function (e) {
+    root.addEventListener('pointermove', function (e) {
       if (drag !== e.pointerId) return;
       var c = calc(e); if (c.len < 8) return hideAim();
       showAim(c.dx, c.dy, c.pw, c.pull, false);
@@ -4640,9 +4700,9 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
       } else if (locked && locked.turn === S.fb.turn) showAim(locked.dx, locked.dy, locked.pw, 0, true);
       else hideAim();
     }
-    pitch.addEventListener('pointerup', function (e) { endDrag(e, false); });
-    pitch.addEventListener('pointercancel', function (e) { endDrag(e, true); });
-    pitch.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+    root.addEventListener('pointerup', function (e) { endDrag(e, false); });
+    root.addEventListener('pointercancel', function (e) { endDrag(e, true); });
+    root.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 
     function paintStatus() {
       var fb = S.fb, iPlay = fb.ids.indexOf(S.me.id) >= 0, t = myTeam();
@@ -4651,8 +4711,8 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
       if (S.phase === 'faim' && fb.paused) fill(status, '⏸ Paused by the host');
       else if (S.phase === 'faim') {
         if (!iPlay) fill(status, '👀 You are watching this match. You play in the next one. ', secEl);
-        else if (isLocked) fill(status, '✅ Locked in! Re-drag to change it · ', secEl);
-        else fill(status, '\ud83c\udfaf Drag back anywhere on the pitch \u00b7 ', secEl);
+        else if (isLocked) fill(status, '✅ Locked in · re-drag to change · ', secEl);
+        else fill(status, '\ud83c\udfaf Drag back to shoot \u00b7 ', secEl);
         if (fb.sudden) status.appendChild(h('div', { class: 'fsud' }, '⚡ SUDDEN DEATH · wider goals · next goal wins'));
       } else if (S.phase === 'fplay') fill(status, '💥 Shots fired…');
       else fill(status, '🏁 Full time!');
@@ -4726,8 +4786,9 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
       if (fpz) fill(fPaused, h('div', { class: 'upaused-in' }, h('div', { class: 'upz' }, '⏸'), h('b', null, 'MATCH PAUSED'), S.me.host ? h('button', { class: 'btn primary', type: 'button', onclick: function () { send({ t: 'fresume' }); } }, '▶ Resume') : h('span', null, 'Waiting for the host to resume…')));
       if (fSetPop.classList.contains('open')) fPaintSet();
       paintScore(); paintStatus(); paintTeams(); paintCard(); paintOver(); this.tick();
+      overBox.style.display = S.phase === 'fover' ? 'flex' : 'none';
       if (penOnly) { scoreBar.style.display = 'none'; status.style.display = 'none'; } else { scoreBar.style.display = ''; status.style.display = ''; }
-      fill(hostRow, S.me.host ? (S.phase === 'fover' ? [hostBtn('🔁 Play again (new teams)', { t: 'fstart' }, 'primary'), hostBtn('Back to lobby', { t: 'flobby' }, 'yellow')]
+      fill(hostRow, S.me.host ? (S.phase === 'fover' ? [hostBtn('🔁 Play again (new teams)', { t: 'fstart', ar: scrAr() }, 'primary'), hostBtn('Back to lobby', { t: 'flobby' }, 'yellow')]
         : null) : (S.phase === 'fover' ? h('p', { class: 'mute center' }, 'Waiting for the host…') : null), S.phase === 'fover' ? leaveLink() : null);
       paintTop();
       if (!running) { running = true; requestAnimationFrame(loop); }
