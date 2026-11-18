@@ -1666,6 +1666,19 @@ body.dwmode #wrap{max-width:none!important;padding:0!important;margin:0!importan
 .dfm{align-self:flex-start;max-width:85%;font:800 13px var(--f-body);background:rgba(18,18,18,.82);color:#fff;border-radius:14px;padding:5px 11px;animation:dfIn .25s ease-out;transition:opacity .5s,transform .5s}
 .dfm.ok{background:#16a34a}.dfm.close{background:#d97706}.dfm.sys{background:rgba(80,80,80,.8);font-weight:600}.dfm.pm{background:#0f766e}.dfm.out{opacity:0;transform:translateY(-14px)}
 @keyframes dfIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+html[data-theme=dark] .dgame{color:#F4EFE3}
+html[data-theme=dark] .dgame .dgear,html[data-theme=dark] .dgame .dtb,html[data-theme=dark] .dgame .dsh,html[data-theme=dark] .dgame .dzoom,html[data-theme=dark] .dgame .ddot{background:var(--card);color:#F4EFE3;border-color:#F4EFE3}
+html[data-theme=dark] .dgame .dtb.on,html[data-theme=dark] .dgame .dsh.on{background:#FFD600;color:#121212}
+html[data-theme=dark] .dgame .dinput{background:var(--card);color:#F4EFE3;border-color:#F4EFE3}
+html[data-theme=dark] .dgame .dcanvas{border-color:#F4EFE3}
+html[data-theme=dark] .dgame .dround{background:#F4EFE3;color:#121212}
+html[data-theme=dark] .dgame .dov{background:rgba(23,20,31,.94);color:#F4EFE3}html[data-theme=dark] .dgame .dov .dwait,html[data-theme=dark] .dgame .dpickbox{color:#F4EFE3}html[data-theme=dark] .dgame .dov small{color:#B4ACC8}
+html[data-theme=dark] .dgame .dpc{border-color:#5A5274;background:rgba(255,255,255,.06)}html[data-theme=dark] .dgame .dpc.dr{border-color:#FFD600;background:rgba(255,214,0,.2)}html[data-theme=dark] .dgame .dpc.ok{border-color:#22c55e;background:rgba(34,197,94,.2)}
+html[data-theme=dark] .dgame .dresin,html[data-theme=dark] .dgame .dovin{background:var(--card);color:#F4EFE3;border-color:#F4EFE3;box-shadow:0 6px 0 #000}
+html[data-theme=dark] .dgame .dgain li{background:rgba(255,255,255,.08)}html[data-theme=dark] .dgame .dgain li.win{background:#FFD600;color:#121212}html[data-theme=dark] .dgame .dgain li b{color:#4ade80}html[data-theme=dark] .dgame .dgain.big li b{color:inherit}
+html[data-theme=dark] .dgame .dwd{color:#ff5c7c}html[data-theme=dark] .dgame .dm.ok,html[data-theme=dark] .dgame .dword b.okc{color:#4ade80}html[data-theme=dark] .dgame .dm.close{color:#fbbf24}html[data-theme=dark] .dgame .dm.pm{color:#4ade80;background:rgba(74,222,128,.12)}
+html[data-theme=dark] .dgame .dtimerow{color:#F4EFE3}html[data-theme=dark] .dgame .dtimerow button{color:#121212}
+html[data-theme=dark] .dgame .dtime{border-color:#F4EFE3}
 </style>
 </head>
 <body>
@@ -1817,8 +1830,8 @@ body.dwmode #wrap{max-width:none!important;padding:0!important;margin:0!importan
     else if (m.t === 'err') { toast(m.msg); if (/^Voice is full/.test(m.msg)) voiceStop(false); if (m.msg === 'No lobby with that code' && load('uc.last')) { store('uc.last', null); if (!S && mode === 'hub') { curKey = null; render(); } } if (S && S.game === 'uno' && cur && cur.update) cur.update(); }
     else if (m.t === 'dops') { dwOnOps(m.ops || []); }
     else if (m.t === 'dsync') { dwReset(m.ops, m.log); if (cur && cur.dsync) cur.dsync(); }
-    else if (m.t === 'dmsg') { dwLogPush(m.m); if (cur && cur.dmsg) cur.dmsg(); }
-    else if (m.t === 'dgot') { buzz([30, 40, 30]); }
+    else if (m.t === 'dmsg') { dwLogPush(m.m); if (m.m && m.m.k === 'ok') buzz([70, 50, 70]); if (cur && cur.dmsg) cur.dmsg(); }
+    else if (m.t === 'dgot') { buzz([40, 40, 40, 40, 120]); }
     else if (m.t === 'notice') toast(m.msg);
     else if (m.t === 'react') floatReact(m.e, m.from);
     else if (m.t === 'wguess') showWhiteGuess(m);
@@ -6080,9 +6093,9 @@ body.dwmode #wrap{max-width:none!important;padding:0!important;margin:0!importan
   var DW = { ops: [], redo: [], byId: {}, log: [] };
   var DW_COLORS = ['#000000', '#4B4B4B', '#9A9A9A', '#FFFFFF', '#E6003D', '#FF6B6B', '#FF8A00', '#FFC23C', '#FFE600', '#B7E04A', '#2EB84B', '#0B7A3E', '#00B8A9', '#38C8F5', '#1E6BFF', '#0B2A8C', '#6B4EFF', '#A64DFF', '#FF4FA3', '#F5B5C8', '#8A5A2B', '#5A3417', '#F2C7A0', '#C98B5A'];
   var DW_SHAPE_LIST = [['line', '╱'], ['arrow', '➜'], ['rect', '▭'], ['square', '□'], ['ellipse', '⬭'], ['circle', '○'], ['tri', '△'], ['diamond', '◇'], ['star', '☆'], ['heart', '♡']];
-  var BK = document.createElement('canvas'); BK.width = BK.height = 800;
+  var BH = 1400, BK = document.createElement('canvas'); BK.width = 800; BK.height = BH;
   var bx = BK.getContext('2d', { willReadFrequently: true });
-  function bkClear() { bx.setTransform(1, 0, 0, 1, 0, 0); bx.fillStyle = '#ffffff'; bx.fillRect(0, 0, 800, 800); }
+  function bkClear() { bx.setTransform(1, 0, 0, 1, 0, 0); bx.fillStyle = '#ffffff'; bx.fillRect(0, 0, 800, BH); }
   bkClear();
   function dwStroke(c, st) { // curve through the points (midpoint smoothing); can continue where it stopped (st._k)
     var P = st.p, n = P.length >> 1, jc = st._k || 0;
@@ -6125,12 +6138,12 @@ body.dwmode #wrap{max-width:none!important;padding:0!important;margin:0!importan
     if (op.z) c.closePath(); if (op.f && op.z) c.fill(); c.stroke();
   }
   function dwFill(x, y, hex) {
-    x = Math.round(x); y = Math.round(y); if (x < 0 || y < 0 || x > 799 || y > 799) return;
-    var img = bx.getImageData(0, 0, 800, 800), d = img.data, r = parseInt(hex.substr(1, 2), 16), g = parseInt(hex.substr(3, 2), 16), b = parseInt(hex.substr(5, 2), 16);
+    x = Math.round(x); y = Math.round(y); if (x < 0 || y < 0 || x > 799 || y > BH - 1) return;
+    var img = bx.getImageData(0, 0, 800, BH), d = img.data, r = parseInt(hex.substr(1, 2), 16), g = parseInt(hex.substr(3, 2), 16), b = parseInt(hex.substr(5, 2), 16);
     var i0 = (y * 800 + x) * 4, tr = d[i0], tg = d[i0 + 1], tb = d[i0 + 2];
     if (Math.abs(tr - r) + Math.abs(tg - g) + Math.abs(tb - b) < 14) return;
     function match(i) { return Math.abs(d[i] - tr) + Math.abs(d[i + 1] - tg) + Math.abs(d[i + 2] - tb) <= 110; }
-    var seen = new Uint8Array(640000), stack = [x, y];
+    var seen = new Uint8Array(800 * BH), stack = [x, y];
     while (stack.length) {
       var py = stack.pop(), px = stack.pop(), idx = py * 800 + px;
       if (seen[idx] || !match(idx * 4)) continue;
@@ -6139,7 +6152,7 @@ body.dwmode #wrap{max-width:none!important;padding:0!important;margin:0!importan
       while (rx < 799 && !seen[py * 800 + rx + 1] && match((py * 800 + rx + 1) * 4)) rx++;
       for (var k = lx; k <= rx; k++) { seen[py * 800 + k] = 1; var o = (py * 800 + k) * 4; d[o] = r; d[o + 1] = g; d[o + 2] = b; d[o + 3] = 255; }
       for (var dy = -1; dy <= 1; dy += 2) {
-        var ny = py + dy; if (ny < 0 || ny > 799) continue; var run = false;
+        var ny = py + dy; if (ny < 0 || ny > BH - 1) continue; var run = false;
         for (k = lx; k <= rx; k++) { var ok = !seen[ny * 800 + k] && match((ny * 800 + k) * 4); if (ok && !run) { stack.push(k, ny); run = true; } else if (!ok) run = false; }
       }
     }
@@ -6245,7 +6258,8 @@ body.dwmode #wrap{max-width:none!important;padding:0!important;margin:0!importan
     var gear = h('button', { class: 'dgear', type: 'button', 'aria-label': 'Settings', onclick: function (e) { e.stopPropagation(); pop.classList.toggle('open'); paintPop(); } }, '⚙');
     var fsBtn = h('button', { class: 'dgear dfsb', type: 'button', 'aria-label': 'Fullscreen', onclick: function (e) { e.stopPropagation(); setFs(!fs); } }, '⛶');
     var floats = h('div', { class: 'dfloat' });
-    var top = h('div', { class: 'dtop' }, roundEl, wordEl, timeEl, fsBtn, gear), bar = h('div', { class: 'dbar' }, h('i'));
+    var pauseBtn = h('button', { class: 'dgear', type: 'button', 'aria-label': 'Pause', onclick: function (e) { e.stopPropagation(); send({ t: 'dpause' }); } }, '⏸');
+    var top = h('div', { class: 'dtop' }, roundEl, wordEl, timeEl, pauseBtn, fsBtn, gear), bar = h('div', { class: 'dbar' }, h('i'));
     var pl = h('div', { class: 'dpl' });
     var cv = h('canvas'), cvx = cv.getContext('2d');
     var ovBox = h('div', { class: 'dov' }), banner = h('div', { class: 'dbn' }), zoomBtn = h('button', { class: 'dzoom', type: 'button', onclick: function () { V = { z: 1, tx: 0, ty: 0 }; markDirty(); paintZoom(); } }, '🔍 1×');
@@ -6281,6 +6295,7 @@ body.dwmode #wrap{max-width:none!important;padding:0!important;margin:0!importan
         host && live ? h('div', { class: 'dtimerow' }, h('small', null, '⏱ Add time to this drawing'), h('div', null, [10, 20, 30].map(function (s) { return h('button', { type: 'button', onclick: function () { send({ t: 'dtime', add: s }); pop.classList.remove('open'); buzz(15); } }, '+' + s + 's'); }))) : null,
         !host && live && !d.mymore ? item('⏱', 'Ask host for more time', function () { send({ t: 'dmore' }); toast('Asked the host for more time'); }) : null,
         live && !amDrawer() ? item('🗳️', d.myskip ? 'Take back my skip vote' : 'Vote to skip this drawing (' + d.skip + '/' + d.need + ')', function () { send({ t: 'dskip' }); }) : null,
+        host && (live || S.phase === 'dpick') ? item(d.hold ? '▶' : '⏸', d.hold ? 'Resume game' : 'Pause game', function () { send({ t: 'dpause' }); }) : null,
         host && (live || S.phase === 'dpick') ? item('⏭', 'Skip this turn', function () { send({ t: 'dforce' }); }) : null,
         V.z !== 1 ? item('🔍', 'Reset zoom', function () { V = { z: 1, tx: 0, ty: 0 }; markDirty(); paintZoom(); }) : null,
         item('🚪', 'Leave game', function () { if (confirm('Leave this game?')) send({ t: 'leave' }); }),
@@ -6288,7 +6303,7 @@ body.dwmode #wrap{max-width:none!important;padding:0!important;margin:0!importan
     }
     /* ---------- drawing surface ---------- */
     function markDirty() { dirty = true; if (!raf) raf = requestAnimationFrame(paintCv); }
-    function clampV() { var s = size; V.z = Math.max(1, Math.min(4, V.z)); V.tx = Math.min(0, Math.max(s - s * V.z, V.tx)); V.ty = Math.min(0, Math.max(s - s * V.z, V.ty)); }
+    function clampV() { var s = size, hs = size * BH / 800; V.z = Math.max(1, Math.min(4, V.z)); V.tx = Math.min(0, Math.max(s - s * V.z, V.tx)); V.ty = Math.min(0, Math.max(hs - hs * V.z, V.ty)); }
     function paintCv() {
       raf = 0; if (!dirty) return; dirty = false;
       cvx.setTransform(1, 0, 0, 1, 0, 0); cvx.fillStyle = '#ffffff'; cvx.fillRect(0, 0, cv.width, cv.height);
@@ -6300,7 +6315,7 @@ body.dwmode #wrap{max-width:none!important;padding:0!important;margin:0!importan
     function sizeCv(px) {
       px = Math.round(px); if (px === size && cv.width) return;
       size = px; dpr = Math.min(2, window.devicePixelRatio || 1); K = size / 800;
-      wrap.style.width = wrap.style.height = (size + 6) + 'px'; cv.width = cv.height = Math.round(size * dpr); cv.style.width = cv.style.height = size + 'px';
+      var hp = Math.round(size * BH / 800); wrap.style.width = (size + 6) + 'px'; wrap.style.height = (hp + 6) + 'px'; cv.width = Math.round(size * dpr); cv.height = Math.round(hp * dpr); cv.style.width = size + 'px'; cv.style.height = hp + 'px';
       clampV(); markDirty();
     }
     function toUnit(e) { var r = cv.getBoundingClientRect(); return [(e.clientX - r.left - V.tx) / (V.z * K), (e.clientY - r.top - V.ty) / (V.z * K)]; }
@@ -6358,7 +6373,7 @@ body.dwmode #wrap{max-width:none!important;padding:0!important;margin:0!importan
       if (a.kind === 'drop') { paintTools(true); }
     }
     function pickColor(u) {
-      var x = Math.max(0, Math.min(799, Math.round(u[0]))), y = Math.max(0, Math.min(799, Math.round(u[1]))), d = bx.getImageData(x, y, 1, 1).data;
+      var x = Math.max(0, Math.min(799, Math.round(u[0]))), y = Math.max(0, Math.min(BH - 1, Math.round(u[1]))), d = bx.getImageData(x, y, 1, 1).data;
       color = '#' + [d[0], d[1], d[2]].map(function (v) { return ('0' + v.toString(16)).slice(-2); }).join('');
       paintTools(true);
     }
@@ -6442,7 +6457,7 @@ body.dwmode #wrap{max-width:none!important;padding:0!important;margin:0!importan
       var kb = hh < innerHeight - 120, w = root.clientWidth;
       pl.style.display = kb ? 'none' : '';
       var used = top.offsetHeight + bar.offsetHeight + (kb || fs ? 0 : pl.offsetHeight) + (tools.style.display === 'none' ? 0 : tools.offsetHeight) + (fs ? 62 : kb ? 96 : 150) + 14;
-      sizeCv(Math.max(150, Math.min(w - (fs ? 10 : 22), hh - used)));
+      sizeCv(Math.max(120, Math.min(w - (fs ? 10 : 22), (hh - used) * 800 / BH)));
     }
     function layoutSoon() { requestAnimationFrame(fit); }
     window.addEventListener('resize', layoutSoon); if (window.visualViewport) { window.visualViewport.addEventListener('resize', layoutSoon); window.visualViewport.addEventListener('scroll', function () { window.scrollTo(0, 0); layoutSoon(); }); }
@@ -6470,7 +6485,11 @@ body.dwmode #wrap{max-width:none!important;padding:0!important;margin:0!importan
     }
     function paintOv() {
       var d = D(), ph = S.phase, drw = amDrawer();
-      if (ph === 'dpick') {
+      if (d.hold && (ph === 'ddraw' || ph === 'dpick')) {
+        fill(ovBox, h('div', { class: 'dwait' }, h('b', { style: 'font-size:22px' }, '⏸ Game paused'), h('small', null, 'The host paused the game. Timer is frozen.'),
+          S.me.host ? h('button', { class: 'btn small primary', type: 'button', onclick: function () { send({ t: 'dpause' }); } }, '▶ Resume') : null));
+        ovBox.style.display = 'flex';
+      } else if (ph === 'dpick') {
         if (drw && d.choices) {
           fill(ovBox, h('div', { class: 'dpickbox' }, h('h3', null, 'Pick a word to draw'), d.choices.map(function (w, i) { return h('button', { class: 'dpw', type: 'button', onclick: function () { send({ t: 'dpick', i: i }); buzz(15); } }, w); }), h('small', null, 'Auto-picks when the time runs out')));
         } else fill(ovBox, h('div', { class: 'dwait' }, avatar(nm(d.drawer), pidx(d.drawer), 'lg'), h('b', null, nm(d.drawer) + ' is choosing a word…')));
@@ -6518,6 +6537,7 @@ body.dwmode #wrap{max-width:none!important;padding:0!important;margin:0!importan
       root: root,
       update: function () {
         var tk = turnKey(); if (tk !== lastTurnKey && (S.phase === 'dpick')) { V = { z: 1, tx: 0, ty: 0 }; paintZoom(); } lastTurnKey = tk;
+        pauseBtn.style.display = S.me.host && (S.phase === 'ddraw' || S.phase === 'dpick') ? '' : 'none'; pauseBtn.textContent = D().hold ? '▶' : '⏸';
         paintTop(); paintPlayers(); paintOv(); paintBanner(); paintRes(); paintOver(); paintTools(); if (pop.classList.contains('open')) paintPop();
         if (S.phase === 'ddraw' || S.phase === 'dpick') { chat.style.display = ''; inp.placeholder = amDrawer() ? 'Chat with people who guessed…' : (D().got || []).indexOf(me()) >= 0 ? 'Chat with the other guessers…' : 'Type your guess…'; }
         paintMsgs(false); fit(); markDirty();

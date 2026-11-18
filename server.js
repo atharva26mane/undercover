@@ -1694,7 +1694,7 @@ function dwDisc(room, p) { // drawer lost connection: freeze the clock; host cho
 function dwBack(room, p) {
   const d = room.dw; if (!d) return;
   dwSync(room, p);
-  if (p.id === d.drawer && d.paused) { d.endAt = Date.now() + d.paused.left; d.paused = null; dwSys(room, '▶️ ' + p.name + ' is back!'); dwTimer(room); }
+  if (p.id === d.drawer && d.paused && !d.paused.hold) { d.endAt = Date.now() + d.paused.left; d.paused = null; dwSys(room, '▶️ ' + p.name + ' is back!'); dwTimer(room); }
   if (!(d.score[p.id] >= 0)) d.score[p.id] = 0;
 }
 function dwJoined(room, p) {
@@ -1708,14 +1708,14 @@ function dwView(room, p) {
   return {
     round: d.round, rounds: d.rounds, drawer: d.drawer, idx: d.idx, n: d.order.length, score: d.score, got: Object.keys(d.got),
     word: know ? d.word : null, hint: room.phase === 'ddraw' && d.word ? dwHintArr(d) : null, len: d.word ? d.word.length : 0,
-    choices: isD && room.phase === 'dpick' ? d.choices : null, endAt: d.endAt, pleft: d.paused ? d.paused.left : 0, paused: d.paused ? 1 : 0,
+    choices: isD && room.phase === 'dpick' ? d.choices : null, endAt: d.endAt, pleft: d.paused ? d.paused.left : 0, paused: d.paused ? 1 : 0, hold: d.paused && d.paused.hold ? 1 : 0,
     secs: room.phase === 'dpick' ? 15 : d.secs + d.extra, skip: Object.keys(d.skip).length, myskip: !!d.skip[p.id], need: Math.floor(el.length / 2) + 1,
     more: p.id === room.hostId ? Object.values(d.more) : [], mymore: !!d.more[p.id], last: d.last, likes: d.likes, liked: !!d.liked[p.id], best: d.best || null,
   };
 }
 function dwClean(op) {
   if (!op || typeof op !== 'object') return null;
-  const num = (x) => { x = Number(x); return Number.isFinite(x) ? Math.max(-20, Math.min(820, Math.round(x * 10) / 10)) : 0; };
+  const num = (x) => { x = Number(x); return Number.isFinite(x) ? Math.max(-20, Math.min(1420, Math.round(x * 10) / 10)) : 0; };
   const col = DW_COL.test(op.c) ? op.c : '#000000';
   const w = Math.max(1, Math.min(60, Math.round(Number(op.w) || 4)));
   if (op.k === 'p') {
@@ -2122,6 +2122,12 @@ function handle(ws, m) {
       for (const raw of m.ops.slice(0, 40)) { const c = dwClean(raw); if (c && dwApply(d, c)) out.push(c); }
       if (out.length) for (const q of room.players.values()) if (q.id !== p.id && q.ws && q.connected) send(q.ws, { t: 'dops', ops: out });
       return;
+    }
+    case 'dpause': {
+      const d = room.dw; if (!hostOnly() || room.game !== 'draw' || !d || !['dpick', 'ddraw'].includes(room.phase)) return;
+      if (d.paused && d.paused.hold) { d.endAt = Date.now() + d.paused.left; d.paused = null; dwSys(room, '▶️ Host resumed the game'); dwTimer(room); return broadcast(room); }
+      if (d.paused) return;
+      d.paused = { left: Math.max(1500, d.endAt - Date.now()), hold: 1 }; clearTimeout(d.tm); dwSys(room, '⏸ Host paused the game'); return broadcast(room);
     }
     case 'dguess': { if (room.game !== 'draw' || !room.dw) return; return dwGuess(room, p, m.text); }
     case 'dtime': {
