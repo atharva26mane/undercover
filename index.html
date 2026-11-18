@@ -1604,6 +1604,68 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
 @keyframes hbSix{0%,55%{transform:scale(0)}65%{transform:scale(1.3) rotate(-8deg)}75%,92%{transform:scale(1) rotate(-8deg)}100%{transform:scale(0)}}
 .hb-grid .t-ck{grid-column:span 2}.hb-grid .t-ck .hb-art{height:118px}
 .hb-new{position:absolute;top:8px;left:8px;z-index:2;background:#E6003D;color:#fff;font:800 10px var(--f-mono);padding:2px 8px;border-radius:999px;border:2px solid #121212}
+.hx-art.k-dw{aspect-ratio:464/144}
+.hx-i-dw{background:linear-gradient(135deg,#fff7d6,#ffd9ec 55%,#cfe8ff);background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 464 144'><rect width='464' height='144' fill='%23fff8e1'/><path d='M40 100 C80 20 130 130 170 50 S250 110 290 40' fill='none' stroke='%23E6003D' stroke-width='9' stroke-linecap='round'/><circle cx='330' cy='70' r='32' fill='none' stroke='%231E6BFF' stroke-width='9'/><path d='M390 100 L420 40 L450 100 Z' fill='%23FFC23C' stroke='%23121212' stroke-width='6' stroke-linejoin='round'/><text x='60' y='132' font-size='34' font-family='sans-serif' font-weight='900' fill='%23121212'>DRAW &amp; GUESS</text></svg>");background-size:cover;background-position:center;animation:iCk 3s ease-in-out infinite}
+body.dwmode #hdr,body.dwmode .hostline,body.dwmode .vibbar,body.dwmode .reactbar{display:none!important}
+body.dwmode{overflow:hidden!important;overscroll-behavior:none}
+body.dwmode .chatbtn{display:none!important}
+body.dwmode .vbox{bottom:auto;top:calc(104px + env(safe-area-inset-top));left:auto;right:6px;flex-direction:column;align-items:flex-end;z-index:30}body.dwmode .vbox .vb{width:38px;height:38px;font-size:17px}
+body.dwmode #wrap{max-width:none!important;padding:0!important;margin:0!important}body.dwmode #app{padding:0!important}
+.dgame{position:fixed;left:0;right:0;top:0;height:100dvh;display:flex;flex-direction:column;align-items:center;background:var(--bg,#fff);color:var(--ink,#121212);z-index:5;overflow:hidden;touch-action:manipulation}
+.dtop{width:100%;display:flex;align-items:center;gap:8px;padding:calc(6px + env(safe-area-inset-top)) 10px 6px}
+.dround{font:800 12px var(--f-mono);background:#121212;color:#fff;border-radius:999px;padding:5px 9px;flex:none}
+.dword{flex:1;text-align:center;min-width:0}.dword small{display:block;font:800 9px var(--f-mono);opacity:.6;letter-spacing:.08em}
+.dword b{display:block;font:900 20px var(--f-disp);letter-spacing:.14em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dword b.okc{color:#16a34a}
+.dtime{flex:none;min-width:40px;text-align:center;font:900 18px var(--f-mono);background:#FFD600;color:#121212;border-radius:12px;border:2px solid #121212;padding:2px 6px}.dtime.low{background:#E6003D;color:#fff;animation:uHint .6s infinite}
+.dgear{flex:none;width:34px;height:34px;border-radius:50%;border:2px solid #121212;background:#fff;color:#121212;font-size:17px}
+.dbar{width:100%;height:5px;background:rgba(128,128,128,.25)}.dbar i{display:block;height:100%;width:100%;background:#16a34a;transition:width .3s linear}.dbar.low i{background:#E6003D}
+.dpl{width:100%;display:flex;gap:6px;overflow-x:auto;padding:6px 8px;scrollbar-width:none;flex:none}.dpl::-webkit-scrollbar{display:none}
+.dpc{flex:none;display:flex;align-items:center;gap:5px;border:2px solid rgba(128,128,128,.4);border-radius:999px;padding:2px 9px 2px 3px;font:700 11px var(--f-body);background:rgba(128,128,128,.08)}
+.dpc.dr{border-color:#FFD600;background:rgba(255,214,0,.25)}.dpc.ok{border-color:#16a34a;background:rgba(22,163,74,.18)}.dpc.off{opacity:.45}
+.dpc .av{width:22px;height:22px}.dpn{max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dpc b{font:900 12px var(--f-mono)}
+.dcanvas{position:relative;flex:none;border:3px solid #121212;border-radius:10px;background:#fff;overflow:hidden;touch-action:none;margin:2px 0}
+.dcanvas canvas{display:block;touch-action:none;cursor:crosshair;border-radius:6px}
+.dov{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(255,255,255,.93);z-index:3;text-align:center;padding:12px}
+.dov .dwait{display:flex;flex-direction:column;gap:8px;align-items:center;color:#121212}.dov small{color:#555}
+.dpickbox{display:flex;flex-direction:column;gap:9px;width:90%;color:#121212}.dpickbox h3{margin:0;font:900 18px var(--f-disp)}
+.dpw{font:900 20px var(--f-disp);text-transform:uppercase;letter-spacing:.06em;padding:12px;border:3px solid #121212;border-radius:14px;background:#FFD600;color:#121212;box-shadow:0 4px 0 #121212}.dpw:active{transform:translateY(3px);box-shadow:0 1px 0 #121212}
+.dbn{position:absolute;left:4px;right:4px;top:4px;z-index:4;display:flex;flex-direction:column;gap:4px}
+.dbr{display:flex;gap:5px;align-items:center;background:#121212;color:#fff;border-radius:10px;padding:5px 8px;font:700 11px var(--f-body)}.dbr span{flex:1}
+.dbr button{border:0;border-radius:8px;background:#FFD600;color:#121212;font:800 11px var(--f-body);padding:5px 8px}.dbr button.red{background:#E6003D;color:#fff}
+.dzoom{position:absolute;right:6px;bottom:6px;z-index:4;border:2px solid #121212;background:#fff;color:#121212;border-radius:999px;font:800 11px var(--f-body);padding:4px 10px;display:none}
+.dtools{width:100%;flex:none;padding:4px 8px;display:flex;flex-direction:column;gap:5px}
+.dt1,.dt2{display:flex;gap:5px;align-items:center;overflow-x:auto;scrollbar-width:none}.dt1::-webkit-scrollbar,.dt2::-webkit-scrollbar{display:none}
+.dsp{flex:1}
+.dtb,.dsh{flex:none;min-width:38px;height:38px;border-radius:11px;border:2px solid #121212;background:#fff;color:#121212;font-size:18px;padding:0 6px}
+.dtb.on,.dsh.on{background:#FFD600;box-shadow:0 2px 0 #121212}.dtb.dim{opacity:.35}.dsh{font-size:19px}.dsh.dfl{font:800 12px var(--f-body);padding:0 10px}
+.dt3{display:flex;gap:8px;align-items:center}
+.dcols{flex:1;display:grid;grid-template-columns:repeat(12,1fr);gap:3px}
+.dcol{aspect-ratio:1;border-radius:6px;border:2px solid rgba(0,0,0,.45);padding:0;min-width:0}.dcol.on{border-color:#121212;outline:3px solid #FFD600;z-index:1}
+.dsize{flex:none;display:flex;align-items:center;gap:6px;width:36%}.dsl{flex:1;min-width:0}
+.ddot{flex:none;width:32px;height:32px;border:2px solid #121212;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center}.ddot i{display:block;border-radius:50%}
+.dchat{width:100%;flex:1;min-height:70px;display:flex;flex-direction:column;padding:2px 8px 6px;overflow:hidden}
+.dmsgs{flex:1;overflow-y:auto;font:600 13px var(--f-body);display:flex;flex-direction:column;gap:2px;min-height:0;padding:2px}
+.dm{word-break:break-word}.dm.sys{opacity:.6;font-style:italic;font-size:12px}.dm.ok{color:#16a34a;font-weight:800}.dm.close{color:#d97706;font-weight:800}.dm.pm{color:#16a34a;background:rgba(22,163,74,.1);border-radius:6px;padding:1px 5px}.dm em{font-style:normal}
+.dinp{display:flex;gap:6px;margin-top:4px}.dinput{flex:1;min-width:0;font:700 16px var(--f-body);border:2px solid #121212;border-radius:12px;padding:9px 12px;background:#fff;color:#121212}
+.dsend{flex:none;width:46px;border:2px solid #121212;border-radius:12px;background:#FFD600;color:#121212;font-size:18px}
+.dres,.dover{position:absolute;inset:0;z-index:8;background:rgba(18,18,18,.6);display:none;align-items:center;justify-content:center;padding:14px}
+.dresin,.dovin{width:100%;max-width:380px;background:#fff;color:#121212;border:3px solid #121212;border-radius:18px;padding:16px;box-shadow:0 6px 0 #121212;max-height:90%;overflow:auto;text-align:center}
+.dresin h3,.dovin h2{margin:0 0 4px;font:900 22px var(--f-disp)}.dwd{font:900 24px var(--f-disp);letter-spacing:.1em;color:#E6003D}
+.dgain{list-style:none;margin:8px 0;padding:0;display:flex;flex-direction:column;gap:5px;text-align:left}.dgain li{display:flex;align-items:center;gap:8px;font:700 14px var(--f-body);background:rgba(0,0,0,.05);border-radius:10px;padding:5px 8px}.dgain li span{flex:1}.dgain .av,.dpc .av{flex:none}.dgain .av{width:26px;height:26px}.dgain li b{font:900 14px var(--f-mono);color:#16a34a}.dgain li.win{background:#FFD600}.dgain.big li b{color:#121212}.dmed{width:22px;text-align:center}
+.dresb{display:flex;gap:8px;justify-content:center;margin-top:8px}.dbest{font:700 14px var(--f-body)}.dnext{display:block;margin-top:6px}
+.dpop{right:8px;top:calc(46px + env(safe-area-inset-top));z-index:20}.dtimerow{padding:6px 10px}.dtimerow div{display:flex;gap:6px;margin-top:4px}.dtimerow button{flex:1;border:2px solid #121212;border-radius:9px;background:#FFD600;font:800 13px var(--f-body);padding:6px}
+.dfsb{margin-right:-2px}
+.dfloat{display:none}
+.dgame.fs .dpl,.dgame.fs .dmsgs,.dgame.fs .dbar{display:none!important}
+.dgame.fs .dtop{order:0;padding-top:calc(3px + env(safe-area-inset-top));padding-bottom:3px}.dgame.fs .dword b{font-size:16px}
+.dgame.fs .dtools{order:1;padding:2px 6px;gap:3px}.dgame.fs .dtb,.dgame.fs .dsh{height:32px;min-width:32px;font-size:16px;border-radius:9px}
+.dgame.fs .dcols{grid-template-columns:repeat(12,1fr);gap:2px}.dgame.fs .dsize{width:30%}.dgame.fs .ddot{width:26px;height:26px}
+.dgame.fs .dcanvas{order:2;margin:2px 0}
+.dgame.fs .dchat{order:4;flex:none;min-height:0;padding:2px 8px calc(4px + env(safe-area-inset-bottom))}
+.dgame.fs .dfloat{display:flex;flex-direction:column;justify-content:flex-start;padding-top:6px!important;gap:4px;order:3;flex:1;min-height:0;width:100%;max-height:40%;padding:0 8px;overflow:hidden;pointer-events:none}
+.dfm{align-self:flex-start;max-width:85%;font:800 13px var(--f-body);background:rgba(18,18,18,.82);color:#fff;border-radius:14px;padding:5px 11px;animation:dfIn .25s ease-out;transition:opacity .5s,transform .5s}
+.dfm.ok{background:#16a34a}.dfm.close{background:#d97706}.dfm.sys{background:rgba(80,80,80,.8);font-weight:600}.dfm.pm{background:#0f766e}.dfm.out{opacity:0;transform:translateY(-14px)}
+@keyframes dfIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 </style>
 </head>
 <body>
@@ -1753,6 +1815,10 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
       render();
     }
     else if (m.t === 'err') { toast(m.msg); if (/^Voice is full/.test(m.msg)) voiceStop(false); if (m.msg === 'No lobby with that code' && load('uc.last')) { store('uc.last', null); if (!S && mode === 'hub') { curKey = null; render(); } } if (S && S.game === 'uno' && cur && cur.update) cur.update(); }
+    else if (m.t === 'dops') { dwOnOps(m.ops || []); }
+    else if (m.t === 'dsync') { dwReset(m.ops, m.log); if (cur && cur.dsync) cur.dsync(); }
+    else if (m.t === 'dmsg') { dwLogPush(m.m); if (cur && cur.dmsg) cur.dmsg(); }
+    else if (m.t === 'dgot') { buzz([30, 40, 30]); }
     else if (m.t === 'notice') toast(m.msg);
     else if (m.t === 'react') floatReact(m.e, m.from);
     else if (m.t === 'wguess') showWhiteGuess(m);
@@ -1959,16 +2025,16 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
 
   screens.home = function () {
     var wakeCard = h('div', { class: 'card wake', style: 'display:none' }, h('div', { class: 'shim' }), h('div', null, h('b', null, 'Waking up the server…'), h('div', { class: 'mute small' }, 'The free server sleeps when nobody plays. This can take up to a minute.'), h('div', { class: 'shim-line', style: 'width:70%' })));
-    var since = Date.now(), fbm = wantGame === 'football', rcm = wantGame === 'race', unm = wantGame === 'uno', ckm = wantGame === 'cricket';
+    var since = Date.now(), fbm = wantGame === 'football', rcm = wantGame === 'race', unm = wantGame === 'uno', ckm = wantGame === 'cricket', dwm = wantGame === 'draw';
     var nameIn = h('input', { type: 'text', maxlength: 14, placeholder: 'Your name', value: savedName, autocomplete: 'off' });
     var codeIn = h('input', { type: 'text', class: 'code', maxlength: 4, placeholder: 'CODE', autocomplete: 'off', autocapitalize: 'characters', value: (new URLSearchParams(location.search).get('c') || '').toUpperCase().slice(0, 4) });
     function nm() { var n = nameIn.value.trim(); if (!n) { toast('Enter your name first'); nameIn.focus(); return null; } savedName = n; store('uc.name', n); return n; }
     var root = h('div', null,
-      h('h1', null, ckm ? '🏏 Gully Cricket' : unm ? '🃏 UNO' : rcm ? '🏖️ Beach Buggy' : fbm ? '⚽ Gully Football' : 'Undercover'),
-      h('p', { class: 'sub' }, ckm ? 'Bat, bowl and field. Gully rules apply!' : unm ? 'Shuffle, stack, and shout UNO!' : rcm ? 'Race round the beach: jumps, bridges, turbo and shields!' : fbm ? 'Flick your disc. Everyone shoots at the same time!' : 'Everyone gets a word. Find who has a different one.'),
+      h('h1', null, dwm ? '🎨 Draw & Guess' : ckm ? '🏏 Gully Cricket' : unm ? '🃏 UNO' : rcm ? '🏖️ Beach Buggy' : fbm ? '⚽ Gully Football' : 'Undercover'),
+      h('p', { class: 'sub' }, dwm ? 'Draw it, guess it. Fast guesses win!' : ckm ? 'Bat, bowl and field. Gully rules apply!' : unm ? 'Shuffle, stack, and shout UNO!' : rcm ? 'Race round the beach: jumps, bridges, turbo and shields!' : fbm ? 'Flick your disc. Everyone shoots at the same time!' : 'Everyone gets a word. Find who has a different one.'),
       wakeCard,
       h('div', { class: 'card' }, nameIn, h('div', { class: 'gap' }),
-        h('button', { class: 'btn primary', type: 'button', onclick: function () { var n = nm(); if (n) send({ t: 'create', name: n, game: ckm ? 'cricket' : unm ? 'uno' : rcm ? 'race' : fbm ? 'football' : undefined, used: loadList('uc.used'), recent: loadList('uc.recent') }); } }, 'Create lobby')),
+        h('button', { class: 'btn primary', type: 'button', onclick: function () { var n = nm(); if (n) send({ t: 'create', name: n, game: dwm ? 'draw' : ckm ? 'cricket' : unm ? 'uno' : rcm ? 'race' : fbm ? 'football' : undefined, used: loadList('uc.used'), recent: loadList('uc.recent') }); } }, 'Create lobby')),
       h('div', { class: 'card' }, h('h2', null, 'Join a lobby'), codeIn, h('div', { class: 'gap' }),
         h('button', { class: 'btn', type: 'button', onclick: function () { var n = nm(); if (!n) return; if (codeIn.value.trim().length < 4) { toast('Enter the 4-letter code'); return; } send({ t: 'join', name: n, code: codeIn.value.trim() }); } }, 'Join')),
       fbm || rcm || unm || ckm ? null : h('details', { class: 'card' }, h('summary', null, 'How to play'),
@@ -2305,7 +2371,7 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
   var chatSheet = h('div', { class: 'chatsheet' }, h('div', { class: 'chead' }, h('b', null, '💬 Chat'), chatInfo, h('button', { class: 'link', type: 'button', onclick: function () { chatOpen = false; paintChat(); } }, 'Close')),
     chatMsgs, h('div', { class: 'cin' }, chatInp, chatSend));
   document.body.appendChild(chatBtn); document.body.appendChild(chatSheet);
-  function chatAllowed() { return S && S.settings && S.settings.chat && (S.game === 'uno' || S.game === 'cricket' || ['lobby', 'vote', 'elim', 'over'].indexOf(S.phase) >= 0); }
+  function chatAllowed() { return S && S.settings && S.settings.chat && (S.game === 'uno' || S.game === 'cricket' || S.game === 'draw' || ['lobby', 'vote', 'elim', 'over'].indexOf(S.phase) >= 0); }
   function sendChat() {
     var t = chatInp.value.trim(); if (!t) return;
     if (!chatAllowed()) return toast('Chat opens during the discussion');
@@ -2737,7 +2803,7 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
   }
 
   /* ================= Main hub, join, open rooms, profile ================= */
-  var GAMES = { cricket: { n: 'Gully Cricket', i: '🏏' }, undercover: { n: 'Undercover', i: '🕵️' }, football: { n: 'Gully Football', i: '⚽' }, race: { n: 'Beach Buggy', i: '🏎️' }, uno: { n: 'UNO', i: '🃏' } };
+  var GAMES = { cricket: { n: 'Gully Cricket', i: '🏏' }, undercover: { n: 'Undercover', i: '🕵️' }, football: { n: 'Gully Football', i: '⚽' }, race: { n: 'Beach Buggy', i: '🏎️' }, uno: { n: 'UNO', i: '🃏' }, draw: { n: 'Draw & Guess', i: '🎨' } };
   var openRooms = [], waitEl = null, onlineN = 0;
   var myCid = load('uc.cid');
   if (!myCid) { myCid = Math.random().toString(36).slice(2, 12); store('uc.cid', myCid); }
@@ -2808,7 +2874,7 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
   }
 
   /* ---------- new home: BADSHAH arcade ---------- */
-  var HX_MAX = { undercover: 20, uno: 12, football: 10, race: 12, cricket: 8 };
+  var HX_MAX = { undercover: 20, uno: 12, football: 10, race: 12, cricket: 8, draw: 20 };
   function hxArt(kind) { return h('span', { class: 'hx-art k-' + kind }, h('span', { class: 'hx-img hx-i-' + kind })); }
   function hxCard(cls, n, kind, title, sub, flag, fn, i) {
     var art = hxArt(kind);
@@ -2857,11 +2923,12 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
       hxCard('', '02', 'uno', 'UNO', 'Last card wins · 2–12P', '', function () { goGame('uno'); }, 9),
       hxCard('', '03', 'fb', 'Gully Football', 'Flick & score · 1–10P', '', function () { goGame('football'); }, 10),
       hxCard('', '04', 'bg', 'Beach Buggy', 'Full throttle · 1–12P', '', function () { goGame('race'); }, 11),
-      hxCard('big', '05', 'ck', 'Gully Cricket', 'Street cricket · 2–8P', 'NEW', function () { goGame('cricket'); }, 7));
+      hxCard('big', '05', 'ck', 'Gully Cricket', 'Street cricket · 2–8P', '', function () { goGame('cricket'); }, 7),
+      hxCard('big', '06', 'dw', 'Draw & Guess', 'Sketch it, guess it · 2–20P', 'NEW', function () { goGame('draw'); }, 12));
     var title = h('h1', { class: 'hx-title', 'aria-label': 'Games' }, 'GAMES'.split('').map(function (c, k) { return h('span', { style: '--k:' + k, 'aria-hidden': 'true' }, c); }));
     var pick = h('div', { class: 'hx-pick' });
     var pickOpen = false;
-    var PICK = [['undercover', 'Undercover', '🕵️'], ['uno', 'UNO', '🃏'], ['football', 'Football', '⚽'], ['race', 'Buggy', '🏖️'], ['cricket', 'Cricket', '🏏']];
+    var PICK = [['undercover', 'Undercover', '🕵️'], ['uno', 'UNO', '🃏'], ['football', 'Football', '⚽'], ['race', 'Buggy', '🏖️'], ['cricket', 'Cricket', '🏏'], ['draw', 'Draw', '🎨']];
     PICK.forEach(function (G, i) {
       pick.appendChild(h('button', { class: 'hx-pk', type: 'button', style: '--i:' + i, onclick: function () { buzz(15); goGame(G[0]); } }, h('span', null, G[2]), h('b', null, G[1])));
     });
@@ -2989,7 +3056,7 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
         S.me.host ? h('button', { class: 'cb-sw' + (S.open ? ' on' : ''), type: 'button', onclick: function () { send({ t: 'settings', open: !S.open }); } },
           h('i'), h('span', null, 'Show in open rooms'), h('em', null, S.open ? 'ON' : 'OFF')) : null,
         S.me.host ? h('div', { class: 'cb-games' }, h('small', null, '🎮 SWITCH GAME · same room, same friends'),
-          h('div', { class: 'cb-grow' }, [['undercover', '🕵️', 'Under'], ['uno', '🃏', 'UNO'], ['football', '⚽', 'Foot'], ['race', '🏖️', 'Buggy'], ['cricket', '🏏', 'Cricket']].map(function (G) {
+          h('div', { class: 'cb-grow' }, [['undercover', '🕵️', 'Under'], ['uno', '🃏', 'UNO'], ['football', '⚽', 'Foot'], ['race', '🏖️', 'Buggy'], ['cricket', '🏏', 'Cricket'], ['draw', '🎨', 'Draw']].map(function (G) {
             return h('button', { class: 'cb-g' + (S.game === G[0] ? ' on' : ''), type: 'button', onclick: function () { if (S.game === G[0]) return; send({ t: 'switchgame', game: G[0] }); buzz(15); } }, G[1], h('span', null, G[2]));
           }))) : null);
     }
@@ -4494,7 +4561,7 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
     fsim = { turn: m.turn, ids: m.ids, frames: r.frames, goal: m.goal, by: m.by, startAt: m.startAt };
   }
   function leaveLink() { return h('button', { class: 'link', type: 'button', onclick: function () { if (confirm('Leave this game?')) send({ t: 'leave' }); } }, 'Leave game'); }
-  function logoText() { var g = S ? S.game : wantGame; return g === 'cricket' ? 'Cricket' : g === 'uno' ? 'UNO' : g === 'football' ? 'Football' : g === 'race' ? 'Buggy' : 'Undercover'; }
+  function logoText() { var g = S ? S.game : wantGame; return g === 'draw' ? 'Draw' : g === 'cricket' ? 'Cricket' : g === 'uno' ? 'UNO' : g === 'football' ? 'Football' : g === 'race' ? 'Buggy' : 'Undercover'; }
 
   screens.flobby = function () {
     var list = h('ul', { class: 'plist' }), count = h('h2'), setBox = h('div'), act = h('div');
@@ -6009,12 +6076,475 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
     } };
   };
 
+  /* ================= Draw & Guess (skribbl style): one shared 800x800 drawing board, same on every phone ================= */
+  var DW = { ops: [], redo: [], byId: {}, log: [] };
+  var DW_COLORS = ['#000000', '#4B4B4B', '#9A9A9A', '#FFFFFF', '#E6003D', '#FF6B6B', '#FF8A00', '#FFC23C', '#FFE600', '#B7E04A', '#2EB84B', '#0B7A3E', '#00B8A9', '#38C8F5', '#1E6BFF', '#0B2A8C', '#6B4EFF', '#A64DFF', '#FF4FA3', '#F5B5C8', '#8A5A2B', '#5A3417', '#F2C7A0', '#C98B5A'];
+  var DW_SHAPE_LIST = [['line', '╱'], ['arrow', '➜'], ['rect', '▭'], ['square', '□'], ['ellipse', '⬭'], ['circle', '○'], ['tri', '△'], ['diamond', '◇'], ['star', '☆'], ['heart', '♡']];
+  var BK = document.createElement('canvas'); BK.width = BK.height = 800;
+  var bx = BK.getContext('2d', { willReadFrequently: true });
+  function bkClear() { bx.setTransform(1, 0, 0, 1, 0, 0); bx.fillStyle = '#ffffff'; bx.fillRect(0, 0, 800, 800); }
+  bkClear();
+  function dwStroke(c, st) { // curve through the points (midpoint smoothing); can continue where it stopped (st._k)
+    var P = st.p, n = P.length >> 1, jc = st._k || 0;
+    c.lineCap = 'round'; c.lineJoin = 'round'; c.strokeStyle = st.c; c.fillStyle = st.c; c.lineWidth = st.w;
+    if (n === 1) { c.beginPath(); c.arc(P[0], P[1], st.w / 2, 0, 6.2832); c.fill(); return; }
+    var x, y;
+    if (jc === 0) { x = P[0]; y = P[1]; } else { x = (P[2 * jc] + P[2 * jc + 2]) / 2; y = (P[2 * jc + 1] + P[2 * jc + 3]) / 2; }
+    c.beginPath(); c.moveTo(x, y);
+    for (var j = jc + 1; j <= n - 2; j++) { var ex = (P[2 * j] + P[2 * j + 2]) / 2, ey = (P[2 * j + 1] + P[2 * j + 3]) / 2; c.quadraticCurveTo(P[2 * j], P[2 * j + 1], ex, ey); x = ex; y = ey; jc = j; }
+    c.stroke();
+    c.beginPath(); c.moveTo(x, y); c.lineTo(P[2 * n - 2], P[2 * n - 1]); c.stroke();
+    st._k = jc;
+  }
+  function dwShape(c, op) {
+    var a = op.a, s = op.s, x0 = a[0], y0 = a[1], x1 = a[2], y1 = a[3], l = Math.min(x0, x1), r = Math.max(x0, x1), t = Math.min(y0, y1), b = Math.max(y0, y1), w = r - l, hh = b - t;
+    if (s === 'square' || s === 'circle') { var m = Math.max(w, hh); l = x1 >= x0 ? x0 : x0 - m; t = y1 >= y0 ? y0 : y0 - m; r = l + m; b = t + m; w = hh = m; }
+    var cx = (l + r) / 2, cy = (t + b) / 2;
+    c.lineCap = 'round'; c.lineJoin = 'round'; c.strokeStyle = op.c; c.fillStyle = op.c; c.lineWidth = op.w;
+    c.beginPath();
+    if (s === 'line') { c.moveTo(x0, y0); c.lineTo(x1, y1); }
+    else if (s === 'arrow') {
+      var len = Math.hypot(x1 - x0, y1 - y0), an = Math.atan2(y1 - y0, x1 - x0), hl = Math.min(60, Math.max(16, len * 0.28));
+      c.moveTo(x0, y0); c.lineTo(x1, y1); c.moveTo(x1, y1); c.lineTo(x1 - hl * Math.cos(an - 0.5), y1 - hl * Math.sin(an - 0.5)); c.moveTo(x1, y1); c.lineTo(x1 - hl * Math.cos(an + 0.5), y1 - hl * Math.sin(an + 0.5));
+    }
+    else if (s === 'rect' || s === 'square') c.rect(l, t, w, hh);
+    else if (s === 'ellipse' || s === 'circle') c.ellipse(cx, cy, Math.max(0.1, w / 2), Math.max(0.1, hh / 2), 0, 0, 6.2832);
+    else if (s === 'tri') { c.moveTo(cx, t); c.lineTo(r, b); c.lineTo(l, b); c.closePath(); }
+    else if (s === 'diamond') { c.moveTo(cx, t); c.lineTo(r, cy); c.lineTo(cx, b); c.lineTo(l, cy); c.closePath(); }
+    else if (s === 'star') { for (var i = 0; i < 10; i++) { var rr = i % 2 ? 0.4 : 1, ag = -Math.PI / 2 + i * Math.PI / 5, px = cx + Math.cos(ag) * rr * w / 2, py = cy + Math.sin(ag) * rr * hh / 2; if (i) c.lineTo(px, py); else c.moveTo(px, py); } c.closePath(); }
+    else if (s === 'heart') {
+      c.moveTo(cx, t + hh * 0.28); c.bezierCurveTo(cx, t - hh * 0.05, l, t, l, t + hh * 0.33); c.bezierCurveTo(l, t + hh * 0.62, cx - w * 0.1, t + hh * 0.78, cx, b);
+      c.bezierCurveTo(cx + w * 0.1, t + hh * 0.78, r, t + hh * 0.62, r, t + hh * 0.33); c.bezierCurveTo(r, t, cx, t - hh * 0.05, cx, t + hh * 0.28); c.closePath();
+    }
+    if (op.f && s !== 'line' && s !== 'arrow') c.fill();
+    c.stroke();
+  }
+  function dwPoly(c, op) {
+    var P = op.p; c.lineCap = 'round'; c.lineJoin = 'round'; c.strokeStyle = op.c; c.fillStyle = op.c; c.lineWidth = op.w; c.beginPath(); c.moveTo(P[0], P[1]);
+    for (var i = 2; i < P.length; i += 2) c.lineTo(P[i], P[i + 1]);
+    if (op.z) c.closePath(); if (op.f && op.z) c.fill(); c.stroke();
+  }
+  function dwFill(x, y, hex) {
+    x = Math.round(x); y = Math.round(y); if (x < 0 || y < 0 || x > 799 || y > 799) return;
+    var img = bx.getImageData(0, 0, 800, 800), d = img.data, r = parseInt(hex.substr(1, 2), 16), g = parseInt(hex.substr(3, 2), 16), b = parseInt(hex.substr(5, 2), 16);
+    var i0 = (y * 800 + x) * 4, tr = d[i0], tg = d[i0 + 1], tb = d[i0 + 2];
+    if (Math.abs(tr - r) + Math.abs(tg - g) + Math.abs(tb - b) < 14) return;
+    function match(i) { return Math.abs(d[i] - tr) + Math.abs(d[i + 1] - tg) + Math.abs(d[i + 2] - tb) <= 110; }
+    var seen = new Uint8Array(640000), stack = [x, y];
+    while (stack.length) {
+      var py = stack.pop(), px = stack.pop(), idx = py * 800 + px;
+      if (seen[idx] || !match(idx * 4)) continue;
+      var lx = px, rx = px;
+      while (lx > 0 && !seen[py * 800 + lx - 1] && match((py * 800 + lx - 1) * 4)) lx--;
+      while (rx < 799 && !seen[py * 800 + rx + 1] && match((py * 800 + rx + 1) * 4)) rx++;
+      for (var k = lx; k <= rx; k++) { seen[py * 800 + k] = 1; var o = (py * 800 + k) * 4; d[o] = r; d[o + 1] = g; d[o + 2] = b; d[o + 3] = 255; }
+      for (var dy = -1; dy <= 1; dy += 2) {
+        var ny = py + dy; if (ny < 0 || ny > 799) continue; var run = false;
+        for (k = lx; k <= rx; k++) { var ok = !seen[ny * 800 + k] && match((ny * 800 + k) * 4); if (ok && !run) { stack.push(k, ny); run = true; } else if (!ok) run = false; }
+      }
+    }
+    bx.putImageData(img, 0, 0);
+  }
+  function dwDrawOp(op) {
+    if (op.k === 'p') { op._k = 0; dwStroke(bx, op); }
+    else if (op.k === 'sh') dwShape(bx, op);
+    else if (op.k === 'poly') dwPoly(bx, op);
+    else if (op.k === 'f') dwFill(op.x, op.y, op.c);
+  }
+  function dwRedraw() { bkClear(); DW.ops.forEach(dwDrawOp); }
+  function dwReset(ops, log) {
+    DW.ops = []; DW.redo = []; DW.byId = {};
+    (ops || []).forEach(function (o) { var c = o.k === 'p' ? { k: 'p', id: o.id, c: o.c, w: o.w, p: o.p.slice() } : o; DW.ops.push(c); if (c.id) DW.byId[c.id] = c; });
+    if (log) DW.log = log;
+    dwRedraw();
+  }
+  function dwApply(op) { // same rules as the server, so undo / redo always agree. Returns what to repaint.
+    if (op.k === 'p') {
+      var ex = DW.byId[op.id];
+      if (ex) { for (var i = 0; i < op.p.length; i++) ex.p.push(op.p[i]); dwStroke(bx, ex); return 'inc'; }
+      var c = { k: 'p', id: op.id, c: op.c, w: op.w, p: op.p.slice() }; DW.ops.push(c); DW.byId[op.id] = c; DW.redo = []; dwStroke(bx, c); return 'inc';
+    }
+    if (op.k === 'sh' || op.k === 'poly' || op.k === 'f') { DW.ops.push(op); DW.redo = []; dwDrawOp(op); return 'inc'; }
+    if (op.k === 'u') { var x = DW.ops.pop(); if (x) { if (x.id) delete DW.byId[x.id]; DW.redo.push(x); } dwRedraw(); return 'full'; }
+    if (op.k === 'r') { var y = DW.redo.pop(); if (y) { DW.ops.push(y); if (y.id) DW.byId[y.id] = y; } dwRedraw(); return 'full'; }
+    if (op.k === 'c') { DW.ops = []; DW.redo = []; DW.byId = {}; dwRedraw(); return 'full'; }
+    if (op.k === 'rp') { var j = -1; DW.ops.forEach(function (o, n) { if (o.id === op.id) j = n; }); if (j >= 0) { delete DW.byId[op.id]; DW.ops[j] = op.o; } dwRedraw(); return 'full'; }
+    return '';
+  }
+  /* ---- smart snap: hold your finger still at the end of a scribble and it becomes a clean shape / straight line ---- */
+  function dwRdp(pts, eps) {
+    if (pts.length < 3) return pts.slice();
+    var a = pts[0], b = pts[pts.length - 1], dm = 0, di = 0, L = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+    for (var i = 1; i < pts.length - 1; i++) { var d = Math.abs((b[0] - a[0]) * (a[1] - pts[i][1]) - (a[0] - pts[i][0]) * (b[1] - a[1])) / L; if (d > dm) { dm = d; di = i; } }
+    if (dm > eps) { var l = dwRdp(pts.slice(0, di + 1), eps), r = dwRdp(pts.slice(di), eps); return l.slice(0, -1).concat(r); }
+    return [a, b];
+  }
+  function dwRecog(P, col, w, fil) {
+    var n = P.length >> 1; if (n < 6) return null;
+    var pts = [], len = 0, i;
+    for (i = 0; i < n; i++) pts.push([P[2 * i], P[2 * i + 1]]);
+    for (i = 1; i < n; i++) len += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+    if (len < 50) return null;
+    var mnx = 1e9, mny = 1e9, mxx = -1e9, mxy = -1e9;
+    pts.forEach(function (p) { mnx = Math.min(mnx, p[0]); mny = Math.min(mny, p[1]); mxx = Math.max(mxx, p[0]); mxy = Math.max(mxy, p[1]); });
+    var bw = mxx - mnx, bh = mxy - mny, diag = Math.hypot(bw, bh), s = pts[0], e = pts[n - 1], chord = Math.hypot(e[0] - s[0], e[1] - s[1]);
+    if (len < chord * 1.14 + 8) return { k: 'sh', s: 'line', c: col, w: w, f: 0, a: [s[0], s[1], e[0], e[1]] };
+    if (chord > Math.max(30, 0.25 * len)) return null; // not closed
+    var cx = (mnx + mxx) / 2, cy = (mny + mxy) / 2;
+    if (bw > 24 && bh > 24) {
+      var rs = pts.map(function (p) { return Math.hypot((p[0] - cx) / (bw / 2), (p[1] - cy) / (bh / 2)); }), mean = rs.reduce(function (a2, b2) { return a2 + b2; }, 0) / rs.length;
+      var sd = Math.sqrt(rs.reduce(function (a2, b2) { return a2 + (b2 - mean) * (b2 - mean); }, 0) / rs.length);
+      if (sd / mean < 0.11) { var asp = bw / bh; if (asp > 0.82 && asp < 1.22) { var m = (bw + bh) / 2; return { k: 'sh', s: 'circle', c: col, w: w, f: fil, a: [cx - m / 2, cy - m / 2, cx + m / 2, cy + m / 2] }; } return { k: 'sh', s: 'ellipse', c: col, w: w, f: fil, a: [mnx, mny, mxx, mxy] }; }
+    }
+    var poly = dwRdp(pts.concat([pts[0]]), Math.max(8, 0.07 * diag)); poly.pop();
+    if (poly.length === 3) return { k: 'poly', c: col, w: w, f: fil, z: 1, p: [].concat.apply([], poly) };
+    if (poly.length === 4) {
+      var axis = true; for (i = 0; i < 4; i++) { var q = poly[i], q2 = poly[(i + 1) % 4], an = Math.abs(Math.atan2(q2[1] - q[1], q2[0] - q[0]) * 180 / Math.PI) % 90; if (an > 18 && an < 72) axis = false; }
+      if (axis) { var asp2 = bw / bh; if (asp2 > 0.88 && asp2 < 1.14) { var m2 = (bw + bh) / 2; return { k: 'sh', s: 'square', c: col, w: w, f: fil, a: [cx - m2 / 2, cy - m2 / 2, cx + m2 / 2, cy + m2 / 2] }; } return { k: 'sh', s: 'rect', c: col, w: w, f: fil, a: [mnx, mny, mxx, mxy] }; }
+      var mids = [[cx, mny], [mxx, cy], [cx, mxy], [mnx, cy]], isD = poly.every(function (p) { return mids.some(function (m3) { return Math.hypot(p[0] - m3[0], p[1] - m3[1]) < 0.3 * diag; }); });
+      if (isD) return { k: 'sh', s: 'diamond', c: col, w: w, f: fil, a: [mnx, mny, mxx, mxy] };
+      return { k: 'poly', c: col, w: w, f: fil, z: 1, p: [].concat.apply([], poly) };
+    }
+    if (poly.length === 5 || poly.length === 6) return { k: 'poly', c: col, w: w, f: fil, z: 1, p: [].concat.apply([], poly) };
+    return null;
+  }
+  function dwRid() { return Math.random().toString(36).slice(2, 8); }
+  function dwLogPush(m) { DW.log.push(m); if (DW.log.length > 80) DW.log.shift(); }
+
+  screens.dlobby = function () {
+    var list = h('ul', { class: 'plist' }), count = h('h2'), setBox = h('div'), act = h('div');
+    var root = h('div', null, h('h1', null, '🎨 Draw & Guess'), h('p', { class: 'sub' }, 'One draws, everyone guesses. Fast guesses score more. 2 to 20 players.'),
+      h('div', { class: 'card' }, count, list), setBox, act,
+      h('details', { class: 'card' }, h('summary', null, 'How to play'),
+        h('p', null, 'Each turn one player picks a ', h('b', null, 'word'), ' (out of 3) and draws it. Everyone else types guesses. The ', h('b', null, 'faster'), ' you guess, the more points you get. The drawer scores when people guess.'),
+        h('p', null, 'Tools: brush, eraser, ', h('b', null, 'fill'), ', colour picker and ', h('b', null, 'shapes'), '. Hold your finger still at the end of a rough circle, square or line and it turns into a clean one. Pinch to zoom.'),
+        h('p', null, 'Letters of the word appear as hints while the time runs. A "close!" note means you are nearly right.')));
+    return { root: root, update: function () {
+      var ps = S.players.filter(function (p) { return !p.left; }), st = S.dwSet || { rounds: 3, secs: 80, hints: 2 };
+      fill(count, 'Players (' + ps.length + ') · 2 or more');
+      fill(list, ps.map(function (p) { return playerRow(p); }));
+      fill(setBox, h('div', { class: 'card tight' }, S.me.host ? [
+        h('div', { class: 'set' }, h('div', { class: 'lbl' }, '🔁 Rounds (everyone draws once per round)'), seg([[2, '2'], [3, '3'], [4, '4'], [5, '5'], [8, '8']], st.rounds, function (v) { send({ t: 'dset', rounds: v }); })),
+        h('div', { class: 'set' }, h('div', { class: 'lbl' }, '⏱ Drawing time'), seg([[40, '40s'], [60, '60s'], [80, '80s'], [100, '100s'], [120, '2m']], st.secs, function (v) { send({ t: 'dset', secs: v }); })),
+        h('div', { class: 'set' }, h('div', { class: 'lbl' }, '💡 Letter hints'), seg([[0, 'None'], [1, '1'], [2, '2'], [3, '3']], st.hints, function (v) { send({ t: 'dset', hints: v }); }))]
+        : h('p', { class: 'mute', style: 'margin:0' }, '🔁 ' + st.rounds + ' rounds · ⏱ ' + st.secs + 's · 💡 ' + st.hints + ' hints')));
+      fill(act, S.me.host ? h('button', { class: 'btn primary', type: 'button', onclick: function () { send({ t: 'dstart' }); } }, ps.length < 2 ? 'Need 2 players' : '🎨 Start drawing!') : h('p', { class: 'mute center' }, 'Waiting for the host to start…'));
+    } };
+  };
+
+  screens.dgame = function () {
+    var K = 1, V = { z: 1, tx: 0, ty: 0 }, size = 300, dpr = 1, tool = 'brush', shape = 'rect', fillShape = false, color = '#000000', bsize = 8, pv = null, dirty = true, raf = 0;
+    var fs = false, pointers = {}, pinch = null, act = null, outQ = [], outT = 0, lastKey = '', shownCnt = 0, lastTurnKey = '', gotFlash = 0;
+    function me() { return S.me.id; }
+    function D() { return S.dw || {}; }
+    function amDrawer() { return !!S.dw && S.dw.drawer === me(); }
+    function canDraw() { return amDrawer() && S.phase === 'ddraw' && !S.dw.paused; }
+    function nm(id) { return nameOf(id); }
+    /* ---------- pieces ---------- */
+    var roundEl = h('div', { class: 'dround' }), wordEl = h('div', { class: 'dword' }), timeEl = h('div', { class: 'dtime' }, h('b', null, '0'));
+    var gear = h('button', { class: 'dgear', type: 'button', 'aria-label': 'Settings', onclick: function (e) { e.stopPropagation(); pop.classList.toggle('open'); paintPop(); } }, '⚙');
+    var fsBtn = h('button', { class: 'dgear dfsb', type: 'button', 'aria-label': 'Fullscreen', onclick: function (e) { e.stopPropagation(); setFs(!fs); } }, '⛶');
+    var floats = h('div', { class: 'dfloat' });
+    var top = h('div', { class: 'dtop' }, roundEl, wordEl, timeEl, fsBtn, gear), bar = h('div', { class: 'dbar' }, h('i'));
+    var pl = h('div', { class: 'dpl' });
+    var cv = h('canvas'), cvx = cv.getContext('2d');
+    var ovBox = h('div', { class: 'dov' }), banner = h('div', { class: 'dbn' }), zoomBtn = h('button', { class: 'dzoom', type: 'button', onclick: function () { V = { z: 1, tx: 0, ty: 0 }; markDirty(); paintZoom(); } }, '🔍 1×');
+    var wrap = h('div', { class: 'dcanvas' }, cv, ovBox, banner, zoomBtn);
+    var tools = h('div', { class: 'dtools' }), chat = h('div', { class: 'dchat' }), msgs = h('div', { class: 'dmsgs' });
+    var inp = h('input', { type: 'text', maxlength: 40, autocomplete: 'off', autocorrect: 'off', autocapitalize: 'none', spellcheck: 'false', enterkeyhint: 'send', class: 'dinput' });
+    function sendGuess() { var v = inp.value.trim(); if (!v) return; send({ t: 'dguess', text: v }); inp.value = ''; inp.focus(); }
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); sendGuess(); } });
+    var sendBtn = h('button', { class: 'dsend', type: 'button', onclick: sendGuess, onpointerdown: function (e) { e.preventDefault(); } }, '➤');
+    fill(chat, msgs, h('div', { class: 'dinp' }, inp, sendBtn));
+    var resBox = h('div', { class: 'dres' }), overBox = h('div', { class: 'dover' });
+    var pop = h('div', { class: 'uset-pop dpop' });
+    var root = h('div', { class: 'dgame' }, top, bar, pl, wrap, tools, chat, floats, resBox, overBox, pop);
+    function setFs(on) {
+      fs = !!on; root.classList.toggle('fs', fs); fsBtn.textContent = fs ? '✕' : '⛶'; fill(floats);
+      try { if (fs && root.requestFullscreen && !document.fullscreenElement) root.requestFullscreen({ navigationUI: 'hide' }).catch(function () {}); else if (!fs && document.fullscreenElement) document.exitFullscreen().catch(function () {}); } catch (e) {}
+      lastKey = ''; paintTools(true); layoutSoon(); setTimeout(fit, 150); setTimeout(fit, 500);
+    }
+    document.addEventListener('fullscreenchange', function () { if (!document.fullscreenElement && fs) setFs(false); });
+    function floatMsg(m) {
+      if (!fs) return; var t, cls = '';
+      if (m.k === 'ok') { t = '🎉 ' + m.name + ' got it!'; cls = 'ok'; } else if (m.k === 'close') { t = '🔥 ' + m.text; cls = 'close'; } else if (m.k === 'sys') { t = m.text; cls = 'sys'; }
+      else if (m.k === 'pm') { t = '🔒 ' + m.name + ': ' + m.text; cls = 'pm'; } else t = m.name + ': ' + m.text;
+      var el = h('div', { class: 'dfm ' + cls }, t); floats.appendChild(el);
+      while (floats.childNodes.length > 6) floats.removeChild(floats.firstChild);
+      setTimeout(function () { el.classList.add('out'); setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 500); }, 4200);
+    }
+    function paintPop() {
+      var d = D(), host = S.me.host, live = S.phase === 'ddraw';
+      function item(ic, tx, fn, cls) { return h('button', { class: 'uset-b' + (cls ? ' ' + cls : ''), type: 'button', onclick: function () { pop.classList.remove('open'); fn(); } }, h('span', null, ic), h('b', null, tx)); }
+      fill(pop, h('div', { class: 'uset-h' }, 'Settings'),
+        item('⛶', fs ? 'Exit fullscreen' : 'Open fullscreen', function () { setFs(!fs); }),
+        host && live ? h('div', { class: 'dtimerow' }, h('small', null, '⏱ Add time to this drawing'), h('div', null, [10, 20, 30].map(function (s) { return h('button', { type: 'button', onclick: function () { send({ t: 'dtime', add: s }); pop.classList.remove('open'); buzz(15); } }, '+' + s + 's'); }))) : null,
+        !host && live && !d.mymore ? item('⏱', 'Ask host for more time', function () { send({ t: 'dmore' }); toast('Asked the host for more time'); }) : null,
+        live && !amDrawer() ? item('🗳️', d.myskip ? 'Take back my skip vote' : 'Vote to skip this drawing (' + d.skip + '/' + d.need + ')', function () { send({ t: 'dskip' }); }) : null,
+        host && (live || S.phase === 'dpick') ? item('⏭', 'Skip this turn', function () { send({ t: 'dforce' }); }) : null,
+        V.z !== 1 ? item('🔍', 'Reset zoom', function () { V = { z: 1, tx: 0, ty: 0 }; markDirty(); paintZoom(); }) : null,
+        item('🚪', 'Leave game', function () { if (confirm('Leave this game?')) send({ t: 'leave' }); }),
+        host ? item('⏹', 'End game (back to lobby)', function () { if (confirm('End the game and go back to the lobby?')) send({ t: 'dlobby' }); }, 'danger') : null);
+    }
+    /* ---------- drawing surface ---------- */
+    function markDirty() { dirty = true; if (!raf) raf = requestAnimationFrame(paintCv); }
+    function clampV() { var s = size; V.z = Math.max(1, Math.min(4, V.z)); V.tx = Math.min(0, Math.max(s - s * V.z, V.tx)); V.ty = Math.min(0, Math.max(s - s * V.z, V.ty)); }
+    function paintCv() {
+      raf = 0; if (!dirty) return; dirty = false;
+      cvx.setTransform(1, 0, 0, 1, 0, 0); cvx.fillStyle = '#ffffff'; cvx.fillRect(0, 0, cv.width, cv.height);
+      cvx.imageSmoothingQuality = 'high';
+      cvx.setTransform(dpr * V.z * K, 0, 0, dpr * V.z * K, dpr * V.tx, dpr * V.ty);
+      cvx.drawImage(BK, 0, 0);
+      if (pv) { if (pv.k === 'sh') dwShape(cvx, pv); else if (pv.k === 'poly') dwPoly(cvx, pv); }
+    }
+    function sizeCv(px) {
+      px = Math.round(px); if (px === size && cv.width) return;
+      size = px; dpr = Math.min(2, window.devicePixelRatio || 1); K = size / 800;
+      wrap.style.width = wrap.style.height = (size + 6) + 'px'; cv.width = cv.height = Math.round(size * dpr); cv.style.width = cv.style.height = size + 'px';
+      clampV(); markDirty();
+    }
+    function toUnit(e) { var r = cv.getBoundingClientRect(); return [(e.clientX - r.left - V.tx) / (V.z * K), (e.clientY - r.top - V.ty) / (V.z * K)]; }
+    function paintZoom() { zoomBtn.style.display = V.z > 1.02 ? '' : 'none'; zoomBtn.textContent = '🔍 ' + V.z.toFixed(1) + '× · reset'; }
+    function flushOut() {
+      outT = 0; if (!outQ.length) return; var q = outQ; outQ = []; send({ t: 'dop', ops: q });
+    }
+    function queue(op) {
+      var last = outQ[outQ.length - 1];
+      if (op.k === 'p' && last && last.k === 'p' && last.id === op.id && last.p.length + op.p.length <= 200) { for (var i = 0; i < op.p.length; i++) last.p.push(op.p[i]); }
+      else outQ.push(op);
+      if (!outT) outT = setTimeout(flushOut, 55);
+    }
+    function emit(op, now) { dwApply(op); markDirty(); queue(op); if (now) { clearTimeout(outT); flushOut(); } }
+    function startAct(e) {
+      var u = toUnit(e);
+      if (tool === 'fill') { emit({ k: 'f', c: color, x: Math.round(u[0]), y: Math.round(u[1]) }, true); buzz(10); return; }
+      if (tool === 'drop') { act = { kind: 'drop' }; pickColor(u); return; }
+      if (tool === 'shape') { act = { kind: 'shape', a: [u[0], u[1]] }; return; }
+      act = { kind: 'draw', id: dwRid(), pts: [u[0], u[1]], sent: 2, last: u, moveT: Date.now(), holdT: 0, snapped: false };
+      var c = tool === 'eraser' ? '#ffffff' : color;
+      act.c = c; act.w = tool === 'eraser' ? Math.max(bsize, 10) : bsize;
+      emit({ k: 'p', id: act.id, c: c, w: act.w, p: [Math.round(u[0] * 10) / 10, Math.round(u[1] * 10) / 10] });
+      armHold();
+    }
+    function armHold() { clearTimeout(act && act.holdT); if (!act || act.kind !== 'draw' || tool === 'eraser') return; act.holdT = setTimeout(doSnap, 480); }
+    function doSnap() {
+      if (!act || act.kind !== 'draw' || act.snapped) return;
+      var o = dwRecog(act.pts, act.c, act.w, fillShape ? 1 : 0); if (!o) return;
+      o = JSON.parse(JSON.stringify(o)); o.a && (o.a = o.a.map(function (v) { return Math.round(v * 10) / 10; })); o.p && (o.p = o.p.map(function (v) { return Math.round(v * 10) / 10; }));
+      act.snapped = true; clearTimeout(outT); flushOut();
+      emit({ k: 'rp', id: act.id, o: o }, true); buzz(18);
+    }
+    function moveAct(e) {
+      if (!act) return;
+      if (act.kind === 'drop') { pickColor(toUnit(e)); return; }
+      var evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e]; if (!evs.length) evs = [e];
+      if (act.kind === 'shape') { var u = toUnit(e); pv = { k: 'sh', s: shape, c: color, w: bsize, f: fillShape ? 1 : 0, a: [act.a[0], act.a[1], u[0], u[1]] }; markDirty(); return; }
+      if (act.snapped) return;
+      var add = [];
+      for (var i = 0; i < evs.length; i++) {
+        var u2 = toUnit(evs[i]); if (Math.hypot(u2[0] - act.last[0], u2[1] - act.last[1]) < 1.6) continue;
+        act.last = u2; act.pts.push(u2[0], u2[1]); add.push(Math.round(u2[0] * 10) / 10, Math.round(u2[1] * 10) / 10);
+      }
+      if (add.length) { act.moveT = Date.now(); emit({ k: 'p', id: act.id, c: act.c, w: act.w, p: add }); armHold(); }
+    }
+    function endAct(e) {
+      if (!act) return; var a = act; act = null; clearTimeout(a.holdT);
+      if (a.kind === 'shape') {
+        pv = null; var u = e ? toUnit(e) : a.a;
+        if (Math.hypot(u[0] - a.a[0], u[1] - a.a[1]) > 8) emit({ k: 'sh', s: shape, c: color, w: bsize, f: fillShape ? 1 : 0, a: [a.a[0], a.a[1], u[0], u[1]].map(function (v) { return Math.round(v * 10) / 10; }) }, true);
+        markDirty(); return;
+      }
+      if (a.kind === 'draw') { clearTimeout(outT); flushOut(); }
+      if (a.kind === 'drop') { paintTools(true); }
+    }
+    function pickColor(u) {
+      var x = Math.max(0, Math.min(799, Math.round(u[0]))), y = Math.max(0, Math.min(799, Math.round(u[1]))), d = bx.getImageData(x, y, 1, 1).data;
+      color = '#' + [d[0], d[1], d[2]].map(function (v) { return ('0' + v.toString(16)).slice(-2); }).join('');
+      paintTools(true);
+    }
+    cv.parentNode.style.touchAction = 'none';
+    function pinchStart() {
+      var ids = Object.keys(pointers); if (ids.length < 2) return;
+      var a = pointers[ids[0]], b = pointers[ids[1]], r = cv.getBoundingClientRect(), mx = (a.x + b.x) / 2 - r.left, my = (a.y + b.y) / 2 - r.top;
+      pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, z: V.z, ux: (mx - V.tx) / (V.z * K), uy: (my - V.ty) / (V.z * K) };
+    }
+    cv.addEventListener('pointerdown', function (e) {
+      if (!S || !S.dw) return; e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch (x) {}
+      pointers[e.pointerId] = { x: e.clientX, y: e.clientY, px: e.clientX, py: e.clientY };
+      var n = Object.keys(pointers).length;
+      if (n >= 2) { if (act) { if (act.kind === 'draw') { clearTimeout(outT); flushOut(); } act = null; pv = null; } pinchStart(); return; }
+      if (canDraw() && !pinch) startAct(e);
+    });
+    cv.addEventListener('pointermove', function (e) {
+      var p = pointers[e.pointerId]; if (!p) return;
+      if (pinch && Object.keys(pointers).length >= 2) {
+        p.x = e.clientX; p.y = e.clientY; var ids = Object.keys(pointers), a = pointers[ids[0]], b = pointers[ids[1]], r = cv.getBoundingClientRect();
+        var d = Math.hypot(a.x - b.x, a.y - b.y) || 1, mx = (a.x + b.x) / 2 - r.left, my = (a.y + b.y) / 2 - r.top;
+        V.z = Math.max(1, Math.min(4, pinch.z * d / pinch.d)); V.tx = mx - pinch.ux * V.z * K; V.ty = my - pinch.uy * V.z * K; clampV(); markDirty(); paintZoom(); return;
+      }
+      if (act) { p.x = e.clientX; p.y = e.clientY; moveAct(e); return; }
+      if (!canDraw() && V.z > 1 && !pinch) { V.tx += e.clientX - p.px; V.ty += e.clientY - p.py; clampV(); markDirty(); }
+      p.px = e.clientX; p.py = e.clientY; p.x = e.clientX; p.y = e.clientY;
+    });
+    function up(e) {
+      var had = !!pointers[e.pointerId]; delete pointers[e.pointerId];
+      if (pinch) { if (Object.keys(pointers).length < 2) { pinch = null; if (!Object.keys(pointers).length) pinch = null; } return; }
+      if (had) endAct(e);
+    }
+    cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+    cv.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+    /* ---------- toolbar ---------- */
+    function tbtn(ic, label, on, fn, cls) { return h('button', { class: 'dtb' + (on ? ' on' : '') + (cls ? ' ' + cls : ''), type: 'button', 'aria-label': label, onclick: fn }, ic); }
+    function paintTools(force) {
+      var show = canDraw() || (amDrawer() && S.phase === 'dpick');
+      var sig = [show, tool, shape, fillShape, color, bsize, DW.ops.length > 0, DW.redo.length > 0].join('|');
+      if (!force && sig === lastKey) return; lastKey = sig;
+      tools.style.display = show ? '' : 'none'; if (!show) { fill(tools); return; }
+      var slider = h('input', { type: 'range', min: 2, max: 48, value: bsize, class: 'dsl', 'aria-label': 'Brush size' });
+      var dot = h('span', { class: 'ddot' }, h('i', { style: 'width:' + Math.min(30, bsize) + 'px;height:' + Math.min(30, bsize) + 'px;background:' + (tool === 'eraser' ? '#fff' : color) }));
+      slider.addEventListener('input', function () { bsize = +slider.value; var i = dot.firstChild; i.style.width = i.style.height = Math.min(30, bsize) + 'px'; });
+      slider.addEventListener('change', function () { lastKey = ''; });
+      fill(tools,
+        h('div', { class: 'dt1' },
+          tbtn('✏️', 'Brush', tool === 'brush', function () { tool = 'brush'; paintTools(true); }),
+          tbtn('🧽', 'Eraser', tool === 'eraser', function () { tool = 'eraser'; paintTools(true); }),
+          tbtn('🪣', 'Fill', tool === 'fill', function () { tool = 'fill'; paintTools(true); }),
+          tbtn('💧', 'Pick colour', tool === 'drop', function () { tool = 'drop'; paintTools(true); }),
+          tbtn('🔷', 'Shapes', tool === 'shape', function () { tool = 'shape'; paintTools(true); }),
+          h('span', { class: 'dsp' }),
+          tbtn('↶', 'Undo', false, function () { if (canDraw() && DW.ops.length) emit({ k: 'u' }, true); }, DW.ops.length ? '' : 'dim'),
+          tbtn('↷', 'Redo', false, function () { if (canDraw() && DW.redo.length) emit({ k: 'r' }, true); }, DW.redo.length ? '' : 'dim'),
+          tbtn('🗑', 'Clear all', false, function () { if (canDraw() && DW.ops.length && confirm('Clear the whole drawing?')) emit({ k: 'c' }, true); })),
+        tool === 'shape' ? h('div', { class: 'dt2' }, DW_SHAPE_LIST.map(function (s) { return h('button', { class: 'dsh' + (shape === s[0] ? ' on' : ''), type: 'button', 'aria-label': s[0], onclick: function () { shape = s[0]; paintTools(true); } }, s[1]); }),
+          h('button', { class: 'dsh dfl' + (fillShape ? ' on' : ''), type: 'button', onclick: function () { fillShape = !fillShape; paintTools(true); } }, fillShape ? '◼ Filled' : '◻ Outline')) : null,
+        h('div', { class: 'dt3' }, h('div', { class: 'dcols' }, DW_COLORS.map(function (c) { return h('button', { class: 'dcol' + (c === color && tool !== 'eraser' ? ' on' : ''), type: 'button', style: 'background:' + c, 'aria-label': c, onclick: function () { color = c; if (tool === 'eraser' || tool === 'drop') tool = 'brush'; paintTools(true); } }); })),
+          h('div', { class: 'dsize' }, dot, slider)));
+      fit();
+    }
+    /* ---------- chat ---------- */
+    function msgEl(m) {
+      if (m.k === 'sys') return h('div', { class: 'dm sys' }, m.text);
+      if (m.k === 'ok') return h('div', { class: 'dm ok' }, '✅ ', h('b', null, m.name), ' guessed the word!', m.pts ? h('em', null, ' +' + m.pts) : null);
+      if (m.k === 'close') return h('div', { class: 'dm close' }, '🔥 ' + m.text);
+      if (m.k === 'pm') return h('div', { class: 'dm pm' }, '🔒 ', h('b', null, m.name + ': '), m.text);
+      return h('div', { class: 'dm' }, h('b', null, m.name + ': '), m.text);
+    }
+    function paintMsgs(all) {
+      var near = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 60;
+      if (all) { fill(msgs, DW.log.map(msgEl)); shownCnt = DW.log.length; }
+      else { while (shownCnt < DW.log.length) msgs.appendChild(msgEl(DW.log[shownCnt++])); while (msgs.childNodes.length > 80) msgs.removeChild(msgs.firstChild); }
+      if (all || near) msgs.scrollTop = msgs.scrollHeight;
+    }
+    /* ---------- layout ---------- */
+    function fit() {
+      var vv = window.visualViewport, hh = vv ? vv.height : innerHeight;
+      root.style.height = hh + 'px'; root.style.top = (vv ? vv.offsetTop : 0) + 'px';
+      var kb = hh < innerHeight - 120, w = root.clientWidth;
+      pl.style.display = kb ? 'none' : '';
+      var used = top.offsetHeight + bar.offsetHeight + (kb || fs ? 0 : pl.offsetHeight) + (tools.style.display === 'none' ? 0 : tools.offsetHeight) + (fs ? 62 : kb ? 96 : 150) + 14;
+      sizeCv(Math.max(150, Math.min(w - (fs ? 10 : 22), hh - used)));
+    }
+    function layoutSoon() { requestAnimationFrame(fit); }
+    window.addEventListener('resize', layoutSoon); if (window.visualViewport) { window.visualViewport.addEventListener('resize', layoutSoon); window.visualViewport.addEventListener('scroll', function () { window.scrollTo(0, 0); layoutSoon(); }); }
+    /* ---------- panels ---------- */
+    function leftMs() { var d = D(); if (!d.endAt && !d.paused) return 0; return d.paused ? d.pleft : Math.max(0, d.endAt - (Date.now() + offset)); }
+    function paintTop() {
+      var d = D(), ph = S.phase, drw = amDrawer(), got = (d.got || []).indexOf(me()) >= 0;
+      roundEl.textContent = 'R ' + Math.min(d.round || 1, d.rounds || 1) + '/' + (d.rounds || 1);
+      var w;
+      if (ph === 'dpick') w = h('div', null, h('small', null, drw ? 'PICK A WORD' : 'GET READY'), h('b', null, '· · ·'));
+      else if (ph === 'ddraw') {
+        if (drw) w = h('div', null, h('small', null, 'DRAW THIS'), h('b', null, d.word.toUpperCase()));
+        else if (got) w = h('div', null, h('small', null, '✓ YOU GOT IT'), h('b', { class: 'okc' }, (d.word || '').toUpperCase()));
+        else w = h('div', null, h('small', null, 'GUESS THE WORD · ' + (d.hint || []).filter(function (c) { return /[a-z0-9_]/i.test(c); }).length + ' LETTERS'), h('b', null, (d.hint || []).map(function (c) { return c === ' ' ? '  ' : c === '_' ? '_' : c.toUpperCase(); }).join(' ')));
+      } else if (ph === 'dres') w = h('div', null, h('small', null, 'THE WORD WAS'), h('b', null, (d.word || (d.last && d.last.word) || '').toUpperCase()));
+      else w = h('div', null, h('small', null, 'GAME OVER'), h('b', null, '🏁'));
+      fill(wordEl, w);
+    }
+    function paintPlayers() {
+      var d = D(), ps = S.players.filter(function (p) { return !p.left; }).slice().sort(function (a, b) { return (d.score[b.id] || 0) - (d.score[a.id] || 0); });
+      fill(pl, ps.map(function (p) {
+        var isD = p.id === d.drawer && S.phase !== 'dover', got = (d.got || []).indexOf(p.id) >= 0 && S.phase === 'ddraw';
+        return h('div', { class: 'dpc' + (isD ? ' dr' : '') + (got ? ' ok' : '') + (p.connected ? '' : ' off') }, avatar(p.name, pidx(p.id), 'sm'), h('span', { class: 'dpn' }, (isD ? '✏️ ' : got ? '✓ ' : '') + p.name + (p.id === me() ? ' (you)' : '')), h('b', null, d.score[p.id] || 0));
+      }));
+    }
+    function paintOv() {
+      var d = D(), ph = S.phase, drw = amDrawer();
+      if (ph === 'dpick') {
+        if (drw && d.choices) {
+          fill(ovBox, h('div', { class: 'dpickbox' }, h('h3', null, 'Pick a word to draw'), d.choices.map(function (w, i) { return h('button', { class: 'dpw', type: 'button', onclick: function () { send({ t: 'dpick', i: i }); buzz(15); } }, w); }), h('small', null, 'Auto-picks when the time runs out')));
+        } else fill(ovBox, h('div', { class: 'dwait' }, avatar(nm(d.drawer), pidx(d.drawer), 'lg'), h('b', null, nm(d.drawer) + ' is choosing a word…')));
+        ovBox.style.display = 'flex';
+      } else if (d.paused && (ph === 'ddraw')) {
+        fill(ovBox, h('div', { class: 'dwait' }, h('b', null, '⏸ ' + nm(d.drawer) + ' went offline'), h('small', null, 'Clock paused. Waiting for them to come back…')));
+        ovBox.style.display = 'flex';
+      } else { ovBox.style.display = 'none'; fill(ovBox); }
+    }
+    function paintBanner() {
+      var d = D(), host = S.me.host, parts = [];
+      if (host && d.paused && S.phase !== 'dres') parts.push(h('div', { class: 'dbr' }, h('span', null, '⏸ ' + nm(d.drawer) + ' is offline'), h('button', { type: 'button', onclick: function () { toast('Waiting for ' + nm(d.drawer) + '…'); } }, '⏳ Wait'), h('button', { type: 'button', class: 'red', onclick: function () { send({ t: 'dforce' }); } }, '⏭ Skip turn')));
+      if (host && d.more && d.more.length && S.phase === 'ddraw') parts.push(h('div', { class: 'dbr' }, h('span', null, '⏱ ' + d.more.join(', ') + ' want' + (d.more.length === 1 ? 's' : '') + ' more time'), [10, 20, 30].map(function (s) { return h('button', { type: 'button', onclick: function () { send({ t: 'dtime', add: s }); buzz(15); } }, '+' + s); })));
+      if (S.phase === 'ddraw' && d.skip > 0 && !amDrawer() && !d.myskip) parts.push(h('div', { class: 'dbr' }, h('span', null, '🗳️ ' + d.skip + '/' + d.need + ' want to skip'), h('button', { type: 'button', onclick: function () { send({ t: 'dskip' }); } }, 'Vote')));
+      fill(banner, parts); banner.style.display = parts.length ? '' : 'none';
+    }
+    function paintRes() {
+      var d = D(), show = S.phase === 'dres' && d.last;
+      resBox.style.display = show ? 'flex' : 'none'; chat.style.display = show || S.phase === 'dover' ? 'none' : ''; if (show) tools.style.display = 'none';
+      if (!show) return;
+      var L = d.last, gains = Object.keys(L.gains || {}).sort(function (a, b) { return L.gains[b] - L.gains[a]; });
+      fill(resBox, h('div', { class: 'dresin' },
+        h('h3', null, L.why === 'skipped' ? '⏭️ Turn skipped' : L.why === 'all' ? '🎉 Everybody got it!' : '⏰ Time’s up!'),
+        h('p', null, 'The word was ', h('b', { class: 'dwd' }, (L.word || '').toUpperCase())),
+        h('ul', { class: 'dgain' }, gains.length ? gains.map(function (id) { return h('li', null, avatar(nm(id), pidx(id), 'sm'), h('span', null, nm(id) + (id === L.drawer ? ' ✏️' : '')), h('b', null, '+' + L.gains[id])); }) : h('li', { class: 'none' }, 'Nobody guessed it 😅')),
+        h('div', { class: 'dresb' },
+          !amDrawer() ? h('button', { class: 'btn small' + (d.liked ? '' : ' primary'), type: 'button', disabled: d.liked ? 'disabled' : null, onclick: function () { send({ t: 'dlike' }); buzz(20); } }, d.liked ? '👍 Thanks!' : '👍 Nice drawing!') : h('span', { class: 'mute' }, (d.likes && d.likes[me()] ? '👍 ' + d.likes[me()] + ' likes so far' : '')),
+          S.me.host ? h('button', { class: 'btn small', type: 'button', onclick: function () { send({ t: 'dforce' }); } }, '⏭ Next now') : null),
+        h('small', { class: 'mute dnext' }, 'Next turn in ' + Math.max(0, Math.ceil(leftMs() / 1000)) + 's')));
+    }
+    function paintOver() {
+      var d = D(), show = S.phase === 'dover';
+      overBox.style.display = show ? 'flex' : 'none'; if (!show) return;
+      var ps = S.players.filter(function (p) { return !p.left; }).slice().sort(function (a, b) { return (d.score[b.id] || 0) - (d.score[a.id] || 0); }), medals = ['🥇', '🥈', '🥉'];
+      fill(overBox, h('div', { class: 'dovin' }, h('h2', null, '🏁 Game over'),
+        h('ul', { class: 'dgain big' }, ps.map(function (p, i) { return h('li', { class: i === 0 ? 'win' : '' }, h('span', { class: 'dmed' }, medals[i] || (i + 1)), avatar(p.name, pidx(p.id), 'sm'), h('span', null, p.name + (p.id === me() ? ' (you)' : '')), h('b', null, d.score[p.id] || 0)); })),
+        d.best ? h('p', { class: 'dbest' }, '🎨 Best artist: ', h('b', null, nm(d.best)), ' (' + d.likes[d.best] + ' 👍)') : null,
+        S.me.host ? h('div', { class: 'dresb' }, h('button', { class: 'btn small primary', type: 'button', onclick: function () { send({ t: 'dstart' }); } }, '🔁 Play again'), h('button', { class: 'btn small', type: 'button', onclick: function () { send({ t: 'dlobby' }); } }, 'Back to lobby'))
+          : h('p', { class: 'mute center' }, 'Waiting for the host…'),
+        h('button', { class: 'link', type: 'button', onclick: function () { if (confirm('Leave this game?')) send({ t: 'leave' }); } }, 'Leave game')));
+    }
+    function turnKey() { var d = D(); return [S.phase === 'dpick' || S.phase === 'ddraw' ? 'play' : S.phase, d.round, d.idx, d.drawer].join('|'); }
+    /* ---------- incoming ---------- */
+    var api = {
+      root: root,
+      update: function () {
+        var tk = turnKey(); if (tk !== lastTurnKey && (S.phase === 'dpick')) { V = { z: 1, tx: 0, ty: 0 }; paintZoom(); } lastTurnKey = tk;
+        paintTop(); paintPlayers(); paintOv(); paintBanner(); paintRes(); paintOver(); paintTools(); if (pop.classList.contains('open')) paintPop();
+        if (S.phase === 'ddraw' || S.phase === 'dpick') { chat.style.display = ''; inp.placeholder = amDrawer() ? 'Chat with people who guessed…' : (D().got || []).indexOf(me()) >= 0 ? 'Chat with the other guessers…' : 'Type your guess…'; }
+        paintMsgs(false); fit(); markDirty();
+      },
+      tick: function () {
+        if (!S || !S.dw) return;
+        var ms = leftMs(), s = Math.ceil(ms / 1000), tot = (S.phase === 'dres' ? 7 : D().secs || 15) * 1000;
+        timeEl.firstChild.textContent = S.phase === 'dover' ? '🏁' : s; timeEl.classList.toggle('low', S.phase === 'ddraw' && s <= 10 && !D().paused);
+        bar.firstChild.style.width = (S.phase === 'dover' ? 0 : Math.max(0, Math.min(100, ms / tot * 100))) + '%'; bar.classList.toggle('low', s <= 10);
+        var nx = resBox.querySelector('.dnext'); if (nx) nx.textContent = 'Next turn in ' + Math.max(0, s) + 's';
+      },
+      dops: function (ops) { ops.forEach(function (o) { dwApply(o); }); markDirty(); lastKey = ''; paintTools(); },
+      dsync: function () { markDirty(); paintMsgs(true); lastKey = ''; paintTools(); },
+      dmsg: function () { var m = DW.log[DW.log.length - 1]; paintMsgs(false); if (m) floatMsg(m); },
+    };
+    fill(msgs, DW.log.map(msgEl)); shownCnt = DW.log.length; setTimeout(function () { msgs.scrollTop = msgs.scrollHeight; }, 50);
+    paintZoom(); root.addEventListener('pointerdown', function (e) { if (!pop.contains(e.target) && e.target !== gear) pop.classList.remove('open'); });
+    return api;
+  };
+  function dwOnOps(ops) { if (cur && cur.dops) cur.dops(ops); else ops.forEach(dwApply); }
   function keyFor() {
     if (!S) return mode === 'menu' ? 'menu' : mode === 'solo' ? 'solo' : mode === 'hub' ? 'hub' : mode === 'profile' ? 'profile' : 'home';
     if (S.game === 'football') return S.phase === 'lobby' ? 'flobby' : (S.phase === 'pkaim' || S.phase === 'pkshow') ? 'fpen' : 'fgame';
     if (S.game === 'race') return S.phase === 'lobby' ? 'rlobby' : 'rgame';
     if (S.game === 'uno') return S.phase === 'lobby' ? 'ulobby' : 'ugame';
     if (S.game === 'cricket') return S.phase === 'lobby' ? 'clobby' : 'cgame';
+    if (S.game === 'draw') return S.phase === 'lobby' ? 'dlobby' : 'dgame';
     if (S.phase === 'lobby') return S.me.host ? 'lobby-host' : 'lobby';
     return S.phase;
   }
@@ -6027,6 +6557,7 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
     document.body.classList.toggle("fbmode", key === "fgame" || key === "fpen");
     document.body.classList.toggle("unomode", key === "ugame");
     document.body.classList.toggle("ckmode", key === "cgame");
+    document.body.classList.toggle("dwmode", key === "dgame");
     if (key !== curKey) {
       curKey = key; clear(app);
       cur = (key === 'home' ? screens.home : key.indexOf('lobby') === 0 ? screens.lobby : screens[key])();

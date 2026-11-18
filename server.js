@@ -755,7 +755,7 @@ function ckView(room, p) {
 function makeRoom(words) {
   const room = {
     code: newCode(), hostId: null, supervisorId: null, players: new Map(),
-    game: 'undercover', unSet: { secs: 20 }, un: null, ckSet: { mode: 'team', overs: 2, building: true, onetip: true }, ck: null, ckTeam: {}, fbSet: { goals: 3, secs: 8, mode: 'match', tie: 'pens' }, fb: null, rc: null,
+    game: 'undercover', dwSet: { rounds: 3, secs: 80, hints: 2 }, dw: null, unSet: { secs: 20 }, un: null, ckSet: { mode: 'team', overs: 2, building: true, onetip: true }, ck: null, ckTeam: {}, fbSet: { goals: 3, secs: 8, mode: 'match', tie: 'pens' }, fb: null, rc: null,
     open: true, pending: new Map(), blocked: new Set(), cool: new Map(),
     phase: 'lobby', round: 0, seq: 0, timer: null, endsAt: 0,
     settings: { describeSecs: 30, autoRoles: true, undercover: 1, white: 1, whiteGuess: true, hint: false, board: true, reacts: true, modes: ['mix'], joker: false, chat: true, chatSlow: 5, reactCd: 3, ucGuess: true, whiteTries: 2, sheriff: true },
@@ -878,6 +878,7 @@ function view(room, p) {
     }
   }
   if (room.game === 'cricket') { v.ckSet = room.ckSet; v.ckTeam = ckTeams(room); v.ck = ckView(room, p); }
+  if (room.game === 'draw') { v.dwSet = room.dwSet; if (room.dw) v.dw = dwView(room, p); }
   if (room.game === 'race' && room.rc) {
     const r = room.rc;
     v.rc = { ids: r.ids, startAt: r.startAt, laps: RACE_LAPS, fin: r.fin, results: r.results, rank: raceRank(room) };
@@ -1497,6 +1498,7 @@ function afterRemoval(room) {
   if (room.game === 'race') return raceCheck(room);
   if (room.game === 'uno') return broadcast(room);
   if (room.game === 'cricket') return ckCheck(room);
+  if (room.game === 'draw') return dwCheck(room);
   if (!['describe', 'vote', 'whiteguess', 'elim'].includes(room.phase)) return broadcast(room);
   const win = checkWin(room);
   if (win) return endGame(room, win);
@@ -1529,9 +1531,9 @@ function removePlayer(room, p, selfLeft) {
   p.ws = null; p.connected = false;
   if (room.supervisorId === p.id && room.phase === 'lobby') { room.supervisorId = null; room.customPair = null; }
   if (room.supReq === p.id) room.supReq = null;
-  if (room.phase === 'lobby' || room.phase === 'over') room.players.delete(p.id);
+  if (room.phase === 'lobby' || room.phase === 'over' || room.phase === 'dover') room.players.delete(p.id);
   else { p.left = true; p.alive = false; delete room.votes[p.id]; delete room.descs[p.id]; }
-  if (![...room.players.values()].some((q) => !q.left)) { clearTimeout(room.timer); rooms.delete(room.code); return; }
+  if (![...room.players.values()].some((q) => !q.left)) { clearTimeout(room.timer); dwClear(room); rooms.delete(room.code); return; }
   if (wasHost && !transferHost(room)) { /* nobody connected: host stays unassigned until someone rejoins */ }
   if (room.game === 'uno') unRemove(room, p);
   afterRemoval(room);
@@ -1554,8 +1556,226 @@ function attach(ws, room, p) {
   const photos = {}; for (const q of room.players.values()) if (q.photo && !q.left) photos[q.name] = q.photo;
   send(ws, { t: 'photos', map: photos });
   send(ws, { t: 'chatlog', list: room.chat || [] });
+  if (room.game === 'draw' && room.dw) dwBack(room, p);
   if (room.game === 'football' && room.phase === 'fplay' && room.fb && room.fb.sim) send(ws, fgoMsg(room.fb));
   broadcast(room);
+}
+
+// ================================================================ Draw & Guess (skribbl style)
+// Everything for this game lives in this block so only server.js needs uploading.
+const DW_WORDS = 'cat,dog,elephant,tiger,lion,monkey,giraffe,zebra,horse,cow,pig,sheep,goat,rabbit,mouse,rat,squirrel,bat,fox,wolf,bear,panda,kangaroo,koala,camel,donkey,deer,hippo,rhino,crocodile,snake,frog,turtle,lizard,fish,shark,whale,dolphin,octopus,crab,jellyfish,starfish,seahorse,penguin,owl,eagle,parrot,peacock,duck,chicken,rooster,pigeon,crow,swan,flamingo,butterfly,bee,ant,spider,mosquito,fly,ladybug,snail,worm,dragonfly,scorpion,cockroach,gorilla,cheetah,leopard,bull,buffalo,hen,tortoise,seal,walrus,hedgehog,dinosaur,dragon,unicorn,mermaid,ghost,robot,alien,pizza,burger,sandwich,hot dog,french fries,ice cream,cake,cookie,donut,chocolate,candy,lollipop,popcorn,pancake,waffle,bread,butter,cheese,egg,bacon,sausage,noodles,pasta,soup,salad,rice,apple,banana,orange,grapes,watermelon,strawberry,cherry,pineapple,mango,lemon,coconut,peach,pear,kiwi,pomegranate,papaya,guava,carrot,potato,tomato,onion,garlic,corn,pumpkin,mushroom,broccoli,cucumber,chilli,peas,cabbage,coffee,tea,milk,juice,water bottle,soda,lassi,sugarcane juice,honey,jam,sushi,taco,cupcake,birthday cake,pie,candle,samosa,jalebi,dosa,idli,vada pav,pani puri,biryani,roti,naan,paneer,laddoo,gulab jamun,chai,pakora,pav bhaji,kulfi,rasgulla,thali,tandoor,butter chicken,papad,pickle,chaat,momos,maggi,dhokla,poha,upma,kheer,halwa,house,school,hospital,bank,temple,church,mosque,castle,palace,tower,bridge,tunnel,lighthouse,windmill,tent,igloo,farm,barn,factory,shop,market,mall,cinema,stadium,airport,railway station,bus stop,petrol pump,police station,fire station,library,museum,zoo,park,garden,playground,swimming pool,beach,island,mountain,volcano,desert,forest,jungle,river,waterfall,lake,ocean,cave,hill,village,city,skyscraper,apartment,hotel,restaurant,toilet,kitchen,bedroom,balcony,staircase,elevator,Taj Mahal,Eiffel Tower,Statue of Liberty,Great Wall,pyramid,Big Ben,Leaning Tower,Gateway of India,India Gate,Red Fort,Qutub Minar,Golden Temple,Mount Everest,Niagara Falls,Colosseum,car,bus,truck,bike,bicycle,scooter,auto rickshaw,rickshaw,tractor,train,metro,airplane,helicopter,rocket,ship,boat,submarine,sailboat,ambulance,fire truck,police car,taxi,jeep,tank,hot air balloon,parachute,skateboard,roller skates,wheelchair,trolley,cycle rickshaw,bullock cart,horse cart,chair,table,sofa,bed,pillow,blanket,mattress,wardrobe,mirror,lamp,fan,air conditioner,fridge,washing machine,oven,microwave,gas stove,pressure cooker,kettle,toaster,mixer,iron,broom,bucket,mug,plate,spoon,fork,knife,glass,bottle,bowl,pan,teapot,clock,wall clock,calendar,door,window,curtain,carpet,stairs,key,lock,matchbox,umbrella,suitcase,backpack,wallet,purse,watch,ring,necklace,earrings,bangles,crown,sunglasses,spectacles,hat,cap,helmet,scarf,tie,belt,gloves,shoes,slippers,sandals,socks,boots,shirt,t-shirt,jeans,jacket,sweater,dress,skirt,saree,kurta,turban,bindi,dupatta,lungi,topi,raincoat,pajamas,phone,mobile,laptop,computer,keyboard,mouse pad,monitor,television,remote,camera,headphones,speaker,microphone,charger,battery,torch,bulb,wifi,router,printer,calculator,satellite,drone,game controller,joystick,power bank,earphones,selfie stick,smart watch,tablet,pendrive,cable,plug,switch,pencil,pen,eraser,ruler,notebook,book,bag,scissors,glue,stapler,paint brush,crayon,chalk,blackboard,globe,map,compass,telescope,microscope,magnet,flag,envelope,letter,stamp,newspaper,magazine,diary,passport,ticket,football,cricket,cricket bat,cricket ball,stumps,wicket,tennis,badminton,shuttlecock,basketball,volleyball,hockey,golf,baseball,boxing,wrestling,kabaddi,carrom,chess,ludo,snake and ladder,cards,dice,puzzle,swing,seesaw,slide,kite,top,marbles,gilli danda,hide and seek,tug of war,skipping rope,hula hoop,yo-yo,balloon,trophy,medal,whistle,goal post,referee,umpire,six,bowling,archery,swimming,running,high jump,gym,dumbbell,yoga,cycling,surfing,skiing,fishing,doctor,nurse,teacher,police,soldier,farmer,chef,pilot,driver,actor,singer,dancer,painter,carpenter,tailor,barber,plumber,electrician,mechanic,fireman,postman,judge,lawyer,engineer,scientist,astronaut,magician,clown,king,queen,prince,princess,pirate,ninja,superhero,vampire,witch,zombie,monster,santa claus,snowman,baby,grandfather,twins,cowboy,detective,thief,shopkeeper,milkman,watchman,head,face,eye,ear,nose,mouth,tongue,teeth,hair,beard,moustache,neck,shoulder,arm,elbow,hand,finger,thumb,nail,chest,heart,stomach,back,leg,knee,foot,toe,skeleton,brain,bone,muscle,fist,smile,tears,sneeze,yawn,sleeping,laughing,crying,angry,dizzy,sweating,sun,moon,star,cloud,rain,rainbow,lightning,thunder,snow,wind,tornado,fire,smoke,ice,wave,flood,earthquake,sunrise,sunset,night,eclipse,comet,planet,earth,galaxy,saturn,milky way,meteor,tree,flower,rose,lotus,sunflower,cactus,grass,leaf,branch,seed,bush,palm tree,bamboo,mango tree,banana leaf,rock,stone,sand,mud,puddle,iceberg,diya,rangoli,firecracker,holi,diwali,rakhi,mehndi,wedding,baraat,dhol,tabla,sitar,flute,harmonium,guitar,piano,drum,violin,trumpet,saxophone,bell,temple bell,ganesh,om,lotus flower,peacock feather,kolam,garland,incense stick,pooja thali,yoga mat,spinning wheel,gandhi,elephant ride,snake charmer,monkey show,bollywood,hero,villain,film,movie ticket,song,dance,sword,shield,bow and arrow,axe,hammer,screw,screwdriver,saw,drill,wrench,ladder,rope,chain,hook,anchor,net,cage,trap,treasure,treasure map,pirate ship,diamond,gold,coin,money,rupee note,piggy bank,credit card,shopping cart,price tag,gift,sleep,run,jump,swim,sing,cry,laugh,eat,drink,cook,wash,brush teeth,take a bath,climb,fall,throw,catch,kick,push,pull,hug,clap,point,dig,paint,write,read,fight,whisper,shout,camping,shopping,haircut,photograph,selfie,traffic,traffic light,zebra crossing,speed breaker,signboard,christmas tree,scarecrow,fireworks,birthday,party hat,confetti,piñata,smiley,thumbs up,peace sign,question mark,arrow,circle,square,triangle,star shape,spider web,beehive,nest,egg shell,footprint,fingerprint,shadow,reflection,bubble,bubble gum,soap,shampoo,toothbrush,toothpaste,towel,comb,razor,perfume,lipstick,nail polish,cotton,syringe,thermometer,bandage,pills,stethoscope,crutches,mask,sanitizer,traffic cone,petrol,bulldozer,crane,construction worker,bricks,cement,paint bucket,wall,fence,gate,tap,pipe,sink,bathtub,shower,dustbin,garbage truck'.split(',').map((s) => s.trim()).filter(Boolean);
+const DW_SHAPES = ['line', 'rect', 'square', 'ellipse', 'circle', 'tri', 'diamond', 'star', 'heart', 'arrow'];
+const DW_COL = /^#[0-9a-fA-F]{6}$/;
+function dwNorm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, ''); }
+function dwLev(a, b) {
+  const m = a.length, n = b.length; if (!m) return n; if (!n) return m;
+  let prev = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    prev = cur;
+  }
+  return prev[n];
+}
+function dwActive(room) { return [...room.players.values()].filter((q) => !q.left); }
+function dwEligible(room) { const d = room.dw; return dwActive(room).filter((q) => q.id !== d.drawer && q.connected); }
+function dwNew(room) {
+  const act = dwActive(room);
+  room.dw = {
+    seq: 0, tm: null, order: shuffle(act.map((q) => q.id)), idx: -1, round: 1, rounds: room.dwSet.rounds, score: {}, likes: {}, used: new Set(),
+    ops: [], redo: [], byId: {}, log: [], drawer: null, choices: null, word: '', rev: new Set(), hintN: 0, got: {}, gotN: 0, gotSum: 0, endAt: 0, secs: 0, extra: 0,
+    turnStart: 0, paused: null, skip: {}, more: {}, liked: {}, last: null, gains: {},
+  };
+  for (const q of act) room.dw.score[q.id] = 0;
+  return room.dw;
+}
+function dwClear(room) { if (room.dw) { clearTimeout(room.dw.tm); room.dw.seq++; } }
+function dwSys(room, text, to) { const d = room.dw; const e = { k: 'sys', text, to: to || null, at: Date.now() }; d.log.push(e); if (d.log.length > 80) d.log.shift(); dwSendMsg(room, e); }
+function dwSendMsg(room, e) {
+  for (const q of room.players.values()) if (q.ws && q.connected && (!e.to || e.to.includes(q.id))) send(q.ws, { t: 'dmsg', m: { k: e.k, id: e.id, name: e.name, text: e.text, pts: e.pts } });
+}
+function dwLogFor(room, p) { return room.dw.log.filter((e) => !e.to || e.to.includes(p.id)).slice(-50).map((e) => ({ k: e.k, id: e.id, name: e.name, text: e.text, pts: e.pts })); }
+function dwSync(room, p) { if (p.ws && p.connected && room.dw) send(p.ws, { t: 'dsync', ops: room.dw.ops, log: dwLogFor(room, p) }); }
+function dwSyncAll(room) { for (const q of room.players.values()) dwSync(room, q); }
+function dwTimer(room) {
+  const d = room.dw; if (!d) return; clearTimeout(d.tm); if (d.paused) return;
+  const seq = d.seq;
+  d.tm = setTimeout(() => { if (room.dw === d && d.seq === seq) dwTick(room); }, 400);
+}
+function dwHintArr(d) { return d.word.split('').map((ch, i) => (/[a-z0-9]/i.test(ch) ? (d.rev.has(i) ? ch : '_') : ch)); }
+function dwTick(room) {
+  const d = room.dw, now = Date.now();
+  if (room.phase === 'dpick') { if (now >= d.endAt) return dwPick(room, 0); }
+  else if (room.phase === 'ddraw') {
+    if (now >= d.endAt) return dwEnd(room, 'time');
+    const max = room.dwSet.hints, el = now - d.turnStart, base = d.secs * 1000;
+    if (d.hintN < max) {
+      const thr = base * (max === 1 ? 0.5 : 0.3 + 0.5 * d.hintN / (max - 1));
+      if (el >= thr) {
+        const hid = []; d.word.split('').forEach((ch, i) => { if (/[a-z0-9]/i.test(ch) && !d.rev.has(i)) hid.push(i); });
+        if (hid.length > 2) { d.rev.add(hid[Math.floor(Math.random() * hid.length)]); d.hintN++; broadcast(room); } else d.hintN = max;
+      }
+    }
+  }
+  dwTimer(room);
+}
+function dwNext(room) {
+  const d = room.dw; if (!d) return;
+  clearTimeout(d.tm);
+  let p = null;
+  for (let guard = 0; guard < 200; guard++) {
+    d.idx++;
+    if (d.idx >= d.order.length) { d.round++; d.idx = 0; if (d.round > d.rounds) return dwOver(room); }
+    const q = room.players.get(d.order[d.idx]);
+    if (q && !q.left) { p = q; break; }
+  }
+  if (!p || dwActive(room).length < 2) return dwOver(room);
+  const pool = DW_WORDS.filter((w) => !d.used.has(w));
+  const src = pool.length >= 3 ? pool : DW_WORDS;
+  d.choices = shuffle(src.slice()).slice(0, 3); d.choices.forEach((w) => d.used.add(w));
+  d.drawer = p.id; d.word = ''; d.rev = new Set(); d.hintN = 0; d.got = {}; d.gotN = 0; d.gotSum = 0; d.skip = {}; d.more = {}; d.liked = {}; d.extra = 0; d.gains = {};
+  d.ops = []; d.redo = []; d.byId = {}; d.last = null; d.paused = null;
+  setPhase(room, 'dpick'); d.seq++;
+  d.endAt = Date.now() + 15000;
+  if (!p.connected) { d.paused = { left: 15000 }; }
+  dwSys(room, '🎨 ' + p.name + ' is choosing a word… (round ' + d.round + '/' + d.rounds + ')');
+  dwSyncAll(room); broadcast(room); dwTimer(room);
+}
+function dwPick(room, i) {
+  const d = room.dw; if (!d || room.phase !== 'dpick') return;
+  d.word = d.choices[Math.max(0, Math.min(d.choices.length - 1, i | 0))]; d.choices = null;
+  setPhase(room, 'ddraw'); d.seq++;
+  d.secs = room.dwSet.secs; d.turnStart = Date.now(); d.endAt = d.turnStart + d.secs * 1000; d.paused = null;
+  const dp = room.players.get(d.drawer);
+  if (dp && !dp.connected) d.paused = { left: d.secs * 1000 };
+  dwSys(room, '✏️ ' + (dp ? dp.name : 'Someone') + ' is drawing! Word has ' + d.word.replace(/[^a-z0-9]/gi, '').length + ' letters');
+  broadcast(room); dwTimer(room);
+}
+function dwEnd(room, why) {
+  const d = room.dw; if (!d || !['dpick', 'ddraw'].includes(room.phase)) return;
+  clearTimeout(d.tm); d.seq++;
+  const elig = Math.max(1, d.gotN + dwEligible(room).filter((q) => !d.got[q.id]).length);
+  let dp = 0;
+  if (why !== 'skipped' && d.gotN) dp = Math.round(d.gotSum / elig);
+  if (dp) { d.score[d.drawer] = (d.score[d.drawer] || 0) + dp; d.gains[d.drawer] = dp; }
+  if (!d.word && d.choices) d.word = d.choices[0];
+  d.last = { word: d.word, drawer: d.drawer, gains: Object.assign({}, d.gains), why, got: d.gotN };
+  setPhase(room, 'dres'); d.endAt = Date.now() + 7000; d.paused = null; d.choices = null;
+  const nm = (room.players.get(d.drawer) || {}).name || 'Drawer';
+  dwSys(room, (why === 'skipped' ? '⏭️ Turn skipped. ' : why === 'all' ? '🎉 Everybody guessed! ' : '⏰ Time is up! ') + 'The word was “' + d.word + '”' + (dp ? ' · ' + nm + ' +' + dp : ''));
+  broadcast(room);
+  const seq = d.seq; d.tm = setTimeout(() => { if (room.dw === d && d.seq === seq && room.phase === 'dres') dwNext(room); }, 7000);
+}
+function dwOver(room) {
+  const d = room.dw; if (!d) return;
+  clearTimeout(d.tm); d.seq++;
+  setPhase(room, 'dover'); d.paused = null; d.choices = null;
+  let best = null; for (const [id, n] of Object.entries(d.likes)) if (n > 0 && (!best || n > d.likes[best])) best = id;
+  d.best = best;
+  dwSys(room, '🏁 Game over!');
+  broadcast(room);
+}
+function dwCheck(room) { // somebody left / went away: keep the game consistent
+  const d = room.dw; if (!d || ['lobby', 'dover'].includes(room.phase)) return broadcast(room);
+  if (dwActive(room).length < 2) return dwOver(room);
+  const dp = room.players.get(d.drawer);
+  if (['dpick', 'ddraw'].includes(room.phase) && (!dp || dp.left)) return dwEnd(room, 'skipped');
+  if (room.phase === 'ddraw' && !d.paused) {
+    const el = dwEligible(room);
+    if (el.length && el.every((q) => d.got[q.id])) return dwEnd(room, 'all');
+  }
+  return broadcast(room);
+}
+function dwDisc(room, p) { // drawer lost connection: freeze the clock; host chooses wait / skip
+  const d = room.dw; if (!d || p.id !== d.drawer || !['dpick', 'ddraw'].includes(room.phase) || d.paused) return;
+  d.paused = { left: Math.max(1500, d.endAt - Date.now()) }; clearTimeout(d.tm);
+  dwSys(room, '⏸ ' + p.name + ' went offline. The host can wait or skip');
+}
+function dwBack(room, p) {
+  const d = room.dw; if (!d) return;
+  dwSync(room, p);
+  if (p.id === d.drawer && d.paused) { d.endAt = Date.now() + d.paused.left; d.paused = null; dwSys(room, '▶️ ' + p.name + ' is back!'); dwTimer(room); }
+  if (!(d.score[p.id] >= 0)) d.score[p.id] = 0;
+}
+function dwJoined(room, p) {
+  const d = room.dw; if (!d) return;
+  if (!d.order.includes(p.id)) d.order.push(p.id);
+  if (!(d.score[p.id] >= 0)) d.score[p.id] = 0;
+}
+function dwView(room, p) {
+  const d = room.dw, isD = p.id === d.drawer, know = isD || !!d.got[p.id] || room.phase === 'dres' || room.phase === 'dover';
+  const el = dwEligible(room);
+  return {
+    round: d.round, rounds: d.rounds, drawer: d.drawer, idx: d.idx, n: d.order.length, score: d.score, got: Object.keys(d.got),
+    word: know ? d.word : null, hint: room.phase === 'ddraw' && d.word ? dwHintArr(d) : null, len: d.word ? d.word.length : 0,
+    choices: isD && room.phase === 'dpick' ? d.choices : null, endAt: d.endAt, pleft: d.paused ? d.paused.left : 0, paused: d.paused ? 1 : 0,
+    secs: room.phase === 'dpick' ? 15 : d.secs + d.extra, skip: Object.keys(d.skip).length, myskip: !!d.skip[p.id], need: Math.floor(el.length / 2) + 1,
+    more: p.id === room.hostId ? Object.values(d.more) : [], mymore: !!d.more[p.id], last: d.last, likes: d.likes, liked: !!d.liked[p.id], best: d.best || null,
+  };
+}
+function dwClean(op) {
+  if (!op || typeof op !== 'object') return null;
+  const num = (x) => { x = Number(x); return Number.isFinite(x) ? Math.max(-20, Math.min(820, Math.round(x * 10) / 10)) : 0; };
+  const col = DW_COL.test(op.c) ? op.c : '#000000';
+  const w = Math.max(1, Math.min(60, Math.round(Number(op.w) || 4)));
+  if (op.k === 'p') {
+    if (!Array.isArray(op.p) || !op.p.length || op.p.length > 240) return null;
+    return { k: 'p', id: String(op.id || '').slice(0, 12), c: col, w, p: op.p.map(num) };
+  }
+  if (op.k === 'sh') {
+    if (!DW_SHAPES.includes(op.s) || !Array.isArray(op.a) || op.a.length !== 4) return null;
+    return { k: 'sh', s: op.s, c: col, w, f: op.f ? 1 : 0, a: op.a.map(num) };
+  }
+  if (op.k === 'poly') {
+    if (!Array.isArray(op.p) || op.p.length < 4 || op.p.length > 40) return null;
+    return { k: 'poly', c: col, w, f: op.f ? 1 : 0, z: op.z ? 1 : 0, p: op.p.map(num) };
+  }
+  if (op.k === 'f') return { k: 'f', c: col, x: num(op.x), y: num(op.y) };
+  if (op.k === 'u' || op.k === 'r' || op.k === 'c') return { k: op.k };
+  if (op.k === 'rp') { const inner = dwClean(op.o); if (!inner || inner.k === 'p' || inner.k === 'f') return null; return { k: 'rp', id: String(op.id || '').slice(0, 12), o: inner }; }
+  return null;
+}
+function dwApply(d, op) {
+  if (op.k === 'p') {
+    const ex = d.byId[op.id];
+    if (ex) { if (ex.p.length < 4000) ex.p.push(...op.p); }
+    else { if (d.ops.length >= 2500) return false; d.ops.push(op); d.byId[op.id] = op; d.redo = []; }
+  } else if (op.k === 'sh' || op.k === 'poly' || op.k === 'f') {
+    if (d.ops.length >= 2500) return false; d.ops.push(op); d.redo = [];
+  } else if (op.k === 'u') { const x = d.ops.pop(); if (x) { if (x.id) delete d.byId[x.id]; d.redo.push(x); if (d.redo.length > 60) d.redo.shift(); } }
+  else if (op.k === 'r') { const x = d.redo.pop(); if (x) { d.ops.push(x); if (x.id) d.byId[x.id] = x; } }
+  else if (op.k === 'c') { d.ops = []; d.redo = []; d.byId = {}; }
+  else if (op.k === 'rp') {
+    const i = d.ops.findIndex((o) => o.id && o.id === op.id);
+    if (i < 0) return false; delete d.byId[op.id]; d.ops[i] = op.o;
+  }
+  return true;
+}
+function dwGuess(room, p, textRaw) {
+  const d = room.dw, text = clean(textRaw, 40); if (!text) return;
+  const now = Date.now(); if (now - (p.lastDg || 0) < 250) return; p.lastDg = now;
+  if (room.phase === 'lobby' || !d) return;
+  const live = room.phase === 'ddraw' && !d.paused;
+  const isD = p.id === d.drawer;
+  if (isD || d.got[p.id] || !live) { // drawer + people who already guessed talk privately; everybody can chat between turns
+    const to = (room.phase === 'ddraw') ? [d.drawer, ...Object.keys(d.got)] : null;
+    if (room.phase === 'ddraw' && !isD && !d.got[p.id]) return;
+    const e = { k: 'pm', id: p.id, name: p.name, text, to, at: now }; d.log.push(e); if (d.log.length > 80) d.log.shift(); return dwSendMsg(room, e);
+  }
+  const n = dwNorm(text), w = dwNorm(d.word);
+  if (!n) return;
+  if (n === w || n === w + 's' || n + 's' === w) {
+    const total = d.secs * 1000 + d.extra * 1000, f = Math.max(0, Math.min(1, (now - d.turnStart) / total));
+    const pts = Math.max(60, Math.round(500 * (1 - 0.75 * f) - 25 * d.gotN));
+    d.got[p.id] = now; d.gotN++; d.gotSum += pts; d.score[p.id] = (d.score[p.id] || 0) + pts; d.gains[p.id] = pts;
+    const e = { k: 'ok', id: p.id, name: p.name, text: '', pts, at: now }; d.log.push(e); dwSendMsg(room, e);
+    if (p.ws) send(p.ws, { t: 'dgot', word: d.word, pts });
+    const el = dwEligible(room);
+    if (el.length && el.every((q) => d.got[q.id])) return dwEnd(room, 'all');
+    return broadcast(room);
+  }
+  const e = { k: 'g', id: p.id, name: p.name, text, at: now }; d.log.push(e); if (d.log.length > 80) d.log.shift(); dwSendMsg(room, e);
+  if (w.length >= 4 && dwLev(n, w) <= (w.length >= 8 ? 2 : 1)) { const c = { k: 'close', text: '“' + text + '” is close!', to: [p.id], at: now }; dwSendMsg(room, c); }
 }
 
 function handle(ws, m) {
@@ -1565,7 +1785,7 @@ function handle(ws, m) {
     const name = clean(m.name, 14);
     if (!name) return errTo(ws, 'Enter your name');
     const room = makeRoom(loadWords(m));
-    if (m.game === 'football' || m.game === 'race' || m.game === 'uno' || m.game === 'cricket') room.game = m.game;
+    if (m.game === 'football' || m.game === 'race' || m.game === 'uno' || m.game === 'cricket' || m.game === 'draw') room.game = m.game;
     if (m.open === false) room.open = false;
     const p = addPlayer(room, name);
     room.hostId = room.ownerId = p.id;
@@ -1580,7 +1800,8 @@ function handle(ws, m) {
     if ([...room.players.values()].filter((q) => !q.left).length >= MAX_PLAYERS) return errTo(ws, 'Lobby is full');
     if ([...room.players.values()].some((q) => !q.left && norm(q.name) === norm(name))) return errTo(ws, 'That name is taken in this lobby');
     const np = addPlayer(room, name);
-    if (room.phase !== 'lobby' && room.phase !== 'over' && room.phase !== 'fover' && room.phase !== 'rover' && room.phase !== 'uover' && room.phase !== 'cover') { np.watch = true; notice(room, '👀 ' + name + ' joined. Watching until the next game'); }
+    if (room.game === 'draw') dwJoined(room, np);
+    if (room.phase !== 'lobby' && room.phase !== 'over' && room.phase !== 'fover' && room.phase !== 'rover' && room.phase !== 'uover' && room.phase !== 'cover' && room.game !== 'draw') { np.watch = true; notice(room, '👀 ' + name + ' joined. Watching until the next game'); }
     return attach(ws, room, np);
   }
   if (m.t === 'rooms') { if (Date.now() - (ws.roomsAt || 0) < 700) return; ws.roomsAt = Date.now(); return send(ws, { t: 'rooms', list: openList(), online: wss.clients.size }); }
@@ -1674,6 +1895,7 @@ function handle(ws, m) {
       if ([...room.players.values()].filter((q) => !q.left).length >= MAX_PLAYERS) return send(r.ws, { t: 'reqres', ok: false, msg: 'Room is full' });
       if ([...room.players.values()].some((q) => !q.left && norm(q.name) === norm(r.name))) return send(r.ws, { t: 'reqres', ok: false, msg: 'That name is already in the room' });
       const np = addPlayer(room, r.name);
+      if (room.game === 'draw') dwJoined(room, np);
       if (r.photo) np.photo = r.photo;
       attach(r.ws, room, np);
       if (np.photo) for (const q of room.players.values()) if (q.ws && q.connected) send(q.ws, { t: 'photo', name: np.name, data: np.photo });
@@ -1838,16 +2060,16 @@ function handle(ws, m) {
     }
     case 'switchgame': {
       if (!hostOnly()) return;
-      const g = ['undercover', 'football', 'race', 'uno', 'cricket'].includes(m.game) ? m.game : null;
+      const g = ['undercover', 'football', 'race', 'uno', 'cricket', 'draw'].includes(m.game) ? m.game : null;
       if (!g) return;
-      if (!['lobby', 'over', 'fover', 'rover', 'uover', 'cover'].includes(room.phase)) return errTo(ws, 'Finish or end the current game first');
+      if (!['lobby', 'over', 'fover', 'rover', 'uover', 'cover', 'dover'].includes(room.phase)) return errTo(ws, 'Finish or end the current game first');
       if (g === room.game && room.phase === 'lobby') return;
-      clearTimeout(room.timer); room.seq++;
+      clearTimeout(room.timer); dwClear(room); room.dw = null; room.seq++;
       room.game = g; room.un = null; room.fb = null; room.pkPick = null; room.rc = null; room.ck = null; room.winner = null; room.guess = null; room.votes = {}; room.tie = false; room.descs = {}; room.history = [];
       for (const [qid, q] of room.players) if (q.left) room.players.delete(qid);
       for (const q of room.players.values()) { q.watch = false; q.alive = true; q.role = null; q.word = ''; q.revealed = false; }
       setPhase(room, 'lobby');
-      const gn = { undercover: '🕵️ Undercover', football: '⚽ Football', race: '🏖️ Beach Buggy', uno: '🃏 UNO', cricket: '🏏 Cricket' }[g];
+      const gn = { undercover: '🕵️ Undercover', football: '⚽ Football', race: '🏖️ Beach Buggy', uno: '🃏 UNO', cricket: '🏏 Cricket', draw: '🎨 Draw & Guess' }[g];
       notice(room, '🎮 The host switched the game to ' + gn);
       return broadcast(room);
     }
@@ -1877,6 +2099,64 @@ function handle(ws, m) {
       pk.s = m.z;
       broadcast(room);
       return pkMaybe(room);
+    }
+    case 'dset': {
+      if (!hostOnly() || room.game !== 'draw' || !['lobby', 'dover'].includes(room.phase)) return;
+      const s = room.dwSet;
+      if ([2, 3, 4, 5, 8].includes(Number(m.rounds))) s.rounds = Number(m.rounds);
+      if ([40, 60, 80, 100, 120, 150].includes(Number(m.secs))) s.secs = Number(m.secs);
+      if ([0, 1, 2, 3].includes(Number(m.hints))) s.hints = Number(m.hints);
+      return broadcast(room);
+    }
+    case 'dstart': {
+      if (!hostOnly() || room.game !== 'draw' || !['lobby', 'dover'].includes(room.phase)) return;
+      if (dwActive(room).filter((q) => q.connected).length < 2) return errTo(ws, 'Need at least 2 players');
+      for (const [qid, q] of room.players) if (q.left) room.players.delete(qid);
+      dwClear(room); dwNew(room);
+      return dwNext(room);
+    }
+    case 'dpick': { const d = room.dw; if (room.game !== 'draw' || !d || room.phase !== 'dpick' || p.id !== d.drawer || d.paused) return; return dwPick(room, Number(m.i)); }
+    case 'dop': {
+      const d = room.dw; if (room.game !== 'draw' || !d || room.phase !== 'ddraw' || p.id !== d.drawer || d.paused || !Array.isArray(m.ops)) return;
+      const out = [];
+      for (const raw of m.ops.slice(0, 40)) { const c = dwClean(raw); if (c && dwApply(d, c)) out.push(c); }
+      if (out.length) for (const q of room.players.values()) if (q.id !== p.id && q.ws && q.connected) send(q.ws, { t: 'dops', ops: out });
+      return;
+    }
+    case 'dguess': { if (room.game !== 'draw' || !room.dw) return; return dwGuess(room, p, m.text); }
+    case 'dtime': {
+      const d = room.dw; if (!hostOnly() || room.game !== 'draw' || !d || room.phase !== 'ddraw') return;
+      const add = Number(m.add); if (![10, 20, 30].includes(add)) return;
+      if (d.extra >= 180) return errTo(ws, 'That is already a lot of extra time');
+      d.extra += add; if (d.paused) d.paused.left += add * 1000; else d.endAt += add * 1000; d.more = {};
+      dwSys(room, '⏱ Host added +' + add + ' seconds'); return broadcast(room);
+    }
+    case 'dmore': {
+      const d = room.dw; if (room.game !== 'draw' || !d || room.phase !== 'ddraw' || d.more[p.id]) return;
+      d.more[p.id] = p.name; return broadcast(room);
+    }
+    case 'dskip': {
+      const d = room.dw; if (room.game !== 'draw' || !d || room.phase !== 'ddraw' || p.id === d.drawer) return;
+      if (d.skip[p.id]) delete d.skip[p.id]; else d.skip[p.id] = 1;
+      const need = Math.floor(dwEligible(room).length / 2) + 1;
+      if (Object.keys(d.skip).length >= need) { dwSys(room, '🗳️ Players voted to skip this drawing'); return dwEnd(room, 'skipped'); }
+      return broadcast(room);
+    }
+    case 'dforce': {
+      const d = room.dw; if (!hostOnly() || room.game !== 'draw' || !d) return;
+      if (['dpick', 'ddraw'].includes(room.phase)) { dwSys(room, '⏭️ Host skipped this turn'); return dwEnd(room, 'skipped'); }
+      if (room.phase === 'dres') return dwNext(room);
+      return;
+    }
+    case 'dlike': {
+      const d = room.dw; if (room.game !== 'draw' || !d || room.phase !== 'dres' || p.id === d.drawer || d.liked[p.id]) return;
+      d.liked[p.id] = 1; d.likes[d.drawer] = (d.likes[d.drawer] || 0) + 1; return broadcast(room);
+    }
+    case 'dlobby': {
+      if (!hostOnly() || room.game !== 'draw' || room.phase === 'lobby') return;
+      dwClear(room); room.dw = null; clearTimeout(room.timer);
+      for (const [qid, q] of room.players) if (q.left) room.players.delete(qid);
+      setPhase(room, 'lobby'); return broadcast(room);
     }
     case 'uset': {
       if (!hostOnly() || room.game !== 'uno' || room.phase !== 'lobby') return;
@@ -2046,6 +2326,7 @@ function handle(ws, m) {
     case 'chat': {
       const s = room.settings, now = Date.now();
       if (!s.chat) return errTo(ws, 'Chat is off');
+      if (room.game === 'draw' && room.phase !== 'lobby' && room.phase !== 'dover') return errTo(ws, 'Use the guess box');
       if (room.game === 'undercover' && !['lobby', 'vote', 'elim', 'over'].includes(room.phase)) return errTo(ws, 'Chat opens during the discussion');
       if (p.watch && room.game === 'undercover' && room.phase !== 'lobby' && room.phase !== 'over') return errTo(ws, '👀 You can see the words, so chat opens for you after this game');
       if (p.muteUntil && p.muteUntil > now) return errTo(ws, '🔇 You are muted for ' + Math.ceil((p.muteUntil - now) / 1000) + 's');
@@ -2098,7 +2379,7 @@ wss.on('connection', (ws) => {
     ws.isAlive = true;
     let m;
     try { m = JSON.parse(raw.toString()); } catch (e) { return; }
-    const hot = m && (m.t === 'rpos' || m.t === 'ckpos' || m.t === 'rprog' || m.t === 'rbump' || m.t === 'vsig' || m.t === 'ping');
+    const hot = m && (m.t === 'dop' || m.t === 'dguess' || m.t === 'rpos' || m.t === 'ckpos' || m.t === 'rprog' || m.t === 'rbump' || m.t === 'vsig' || m.t === 'ping');
     if (hot ? ++ws.rh > 260 : ++ws.rl > 40) return; // flood guard (reset every 5s); race positions & voice setup have their own, bigger budget
     try { handle(ws, m); } catch (e) { console.error('handler error:', e); }
   });
@@ -2107,7 +2388,7 @@ wss.on('connection', (ws) => {
     const room = ctx && rooms.get(ctx.code);
     const p = room && room.players.get(ctx.pid);
     if (ws.pend) dropReq(rooms.get(ws.pend.room), ws.pend, null);
-    if (p && p.ws === ws) { p.ws = null; p.connected = false; p.voice = false; p.discAt = Date.now(); broadcast(room); }
+    if (p && p.ws === ws) { p.ws = null; p.connected = false; p.voice = false; p.discAt = Date.now(); if (room.game === 'draw' && room.dw) dwDisc(room, p); broadcast(room); }
   });
   ws.on('error', () => {});
 });
