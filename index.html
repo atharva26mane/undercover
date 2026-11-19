@@ -1679,6 +1679,20 @@ html[data-theme=dark] .dgame .dgain li{background:rgba(255,255,255,.08)}html[dat
 html[data-theme=dark] .dgame .dwd{color:#ff5c7c}html[data-theme=dark] .dgame .dm.ok,html[data-theme=dark] .dgame .dword b.okc{color:#4ade80}html[data-theme=dark] .dgame .dm.close{color:#fbbf24}html[data-theme=dark] .dgame .dm.pm{color:#4ade80;background:rgba(74,222,128,.12)}
 html[data-theme=dark] .dgame .dtimerow{color:#F4EFE3}html[data-theme=dark] .dgame .dtimerow button{color:#121212}
 html[data-theme=dark] .dgame .dtime{border-color:#F4EFE3}
+
+.uc-dk.uc-X .uc-ov{background:conic-gradient(#E8408F 0 25%,#0FB5A6 0 50%,#7B3FD6 0 75%,#FF7A1A 0)}
+.uc-long .uc-ov b{font-size:calc(var(--cw)*.3)}.uc-long .uc-c{font-size:calc(var(--cw)*.15)}
+.uc-Xu .uc-ov b,.uc-Xc .uc-ov b,.uc-Xy .uc-ov b{font-size:calc(var(--cw)*.3)}
+.ubtn.dis{opacity:.38;filter:grayscale(.7)}
+.upick-pl{display:flex;flex-direction:column;gap:6px;max-height:50dvh;overflow:auto;margin:6px 0}.upl-b{display:flex;align-items:center;gap:8px;border:2px solid #121212;border-radius:12px;background:#fff;color:#121212;padding:6px 10px;font:800 14px var(--f-body)}.upl-b span{flex:1;text-align:left}.upl-b small{opacity:.6}
+.upc-b{font-size:10px!important;letter-spacing:0;padding:0!important}.upl-b .av{flex:none;width:34px!important;height:34px!important}
+.umode{font:800 10px var(--f-mono);background:#121212;color:#FFD600;border-radius:6px;padding:2px 5px;margin-right:4px;vertical-align:middle}
+.uchip.out{opacity:.4;filter:grayscale(1)}.ucnt.hot{background:#E6003D!important;color:#fff!important;animation:uHint .7s infinite}
+body.unodark{background-color:#1a0f2b!important;background-image:radial-gradient(rgba(255,255,255,.07) 1.25px,transparent 1.25px)!important}
+.ugame.uflipping .utable{animation:uFlipT .8s ease-in-out}
+@keyframes uFlipT{0%{transform:rotateY(0)}50%{transform:rotateY(90deg);opacity:.4}100%{transform:rotateY(0)}}
+.ugame.udark::before{content:'';position:absolute;inset:-20px;background:radial-gradient(circle at 50% 40%,rgba(70,20,120,.55),rgba(20,5,45,.85));pointer-events:none;z-index:0}
+.ugame.umercy::before{content:'';position:absolute;inset:-20px;background:radial-gradient(circle at 50% 40%,rgba(120,0,20,.28),rgba(30,0,8,.6));pointer-events:none;z-index:0}
 </style>
 </head>
 <body>
@@ -5028,33 +5042,51 @@ html[data-theme=dark] .dgame .dtime{border-color:#F4EFE3}
   };
 
   /* ================= UNO ================= */
-  var UCOL = { R: '#F0344D', Y: '#FFC800', G: '#00A859', B: '#2D6CDF', X: '#1c1c24' }, UNAME = { R: 'RED', Y: 'YELLOW', G: 'GREEN', B: 'BLUE' };
-  var USYM = { s: '⊘', r: '⇄', d: '+2', w: '', f: '+4' };
+  var UCOL = { R: '#F0344D', Y: '#FFC800', G: '#00A859', B: '#2D6CDF', P: '#E8408F', T: '#0FB5A6', V: '#7B3FD6', O: '#FF7A1A', X: '#1c1c24' }, UNAME = { R: 'RED', Y: 'YELLOW', G: 'GREEN', B: 'BLUE', P: 'PINK', T: 'TEAL', V: 'PURPLE', O: 'ORANGE' };
+  var USYM = { s: '⊘', r: '⇄', d: '+2', w: '', f: '+4', o: '+1', v: '+5', k: '⏩', l: '⟲', t: '+2', c: '+🎨', q: '+4', a: '🗑', y: '⇄+4', h: '+6', j: '+10', u: '🎰' };
   function uIsNum(c) { return c[1] >= '0' && c[1] <= '9'; }
-  function ucard(c, cls) {
-    var col = c[0], v = c[1], sym = uIsNum(c) ? v : USYM[v];
-    return h('div', { class: 'ucard uc-' + col + (col === 'X' ? ' uc-w' + v : '') + (cls ? ' ' + cls : ''), style: col !== 'X' ? '--cc:' + UCOL[col] : '' },
+  function uf(c) { var i = c.indexOf('~'); return i < 0 ? c : (S && S.un && S.un.side === 'D' ? c.slice(i + 1) : c.slice(0, i)); } // the face that is up right now
+  function ucard(c, cls, dark) { // c is ONE face, for example "R5" or "Xh"
+    var col = c[0], v = c[1], sym = uIsNum(c) ? v : USYM[v], dk = dark || 'PTVO'.indexOf(col) >= 0;
+    return h('div', { class: 'ucard uc-' + col + (col === 'X' ? ' uc-w' + v : '') + (dk ? ' uc-dk' : '') + (String(sym).length > 2 ? ' uc-long' : '') + (cls ? ' ' + cls : ''), style: col !== 'X' ? '--cc:' + UCOL[col] : '' },
       h('i', { class: 'uc-c tl' }, sym), h('span', { class: 'uc-ov' }, h('b', null, sym)), h('i', { class: 'uc-c br' }, sym));
   }
   function uback(cls) { return h('div', { class: 'ucard back' + (cls ? ' ' + cls : '') }, h('span', { class: 'uc-ov' }, h('b', null, 'UNO'))); }
   function rc(el) { return el.getBoundingClientRect(); }
   var unoDone = { gid: 0, ev: 0, resh: 0 };
 
+  var UMODES = [['classic', 'Classic'], ['flip', 'Flip'], ['mercy', 'No Mercy']];
+  var UINFO = {
+    classic: ['Classic UNO with stacking. 2 to 12 players, each on their own phone.', [
+      ['Match', 'Play a card of the same colour or number/symbol. First to empty their hand wins.'],
+      ['Stack', '+2 on +2 (or a +4), +4 on +4. Whoever can’t add draws the whole pile and loses the turn.'],
+      ['Combos', 'Throw several cards of the same kind together (same number, or Skips, Reverses, +2s…).'],
+      ['Wild', 'Wild and +4 can be played any time; you pick the colour.']]],
+    flip: ['UNO Flip: every card has a Light and a Dark side. Play a Flip and the whole game turns over!', [
+      ['Light side', 'Red/Yellow/Green/Blue. +1 (Draw One), Skip, Reverse, Flip, Wild, Wild +2 (stacks on +1).'],
+      ['Dark side', 'Pink/Teal/Purple/Orange. +5 (stacks on +5), Skip Everyone (you go again), Reverse, Flip, Wild.'],
+      ['Wild Draw Colour', 'Dark side only: next player draws until they get the colour you pick.'],
+      ['Flip', 'Plays on the same colour or another Flip. Everyone’s cards, the pile and the table flip sides.']]],
+    mercy: ['UNO No Mercy: brutal. Big draws, wild chaos, and 25 cards means you are OUT.', [
+      ['Draw & stack', '+2 +4 +6 +10 stack on an equal or bigger draw card. The total goes to the first player who can’t add.'],
+      ['No match?', 'Keep drawing until you get a card you can play.'],
+      ['Mercy', '25 cards or more and you are knocked out. Last player standing wins.'],
+      ['Specials', 'Skip Everyone, Discard All (drops all your cards of that colour), Reverse +4, Colour Roulette. 0 = everyone passes hands, 7 = swap hands with someone.']]]
+  };
   screens.ulobby = function () {
-    var list = h('ul', { class: 'plist' }), count = h('h2'), setBox = h('div'), act = h('div');
-    var root = h('div', null, h('h1', null, '🃏 UNO'), h('p', { class: 'sub' }, 'Classic UNO with stacking. 2 to 12 players, each on their own phone.'),
-      h('div', { class: 'card' }, count, list), setBox, act,
-      h('details', { class: 'card' }, h('summary', null, 'How to play'),
-        h('p', null, 'Play a card that matches the ', h('b', null, 'colour'), ' or the ', h('b', null, 'number/symbol'), ' on top. First to empty their hand wins.'),
-        h('p', null, h('b', null, '+2'), ' on +2 and ', h('b', null, '+4'), ' on +4 stack up (never mixed). The player who can\'t add draws everything and loses the turn.'),
-        h('p', null, 'You can throw several ', h('b', null, 'number cards of the same number'), ' together. Wild and +4: you choose the colour.'),
-        h('p', null, h('b', null, 'UNO!'), ' When you play down to ONE card, press UNO within 3 seconds. After that anyone can press CATCH and you draw 2. A power card can\'t be your last card.')));
+    var list = h('ul', { class: 'plist' }), count = h('h2'), setBox = h('div'), act = h('div'), sub = h('p', { class: 'sub' }), how = h('details', { class: 'card' });
+    var root = h('div', null, h('h1', null, '🃏 UNO'), sub, h('div', { class: 'card' }, count, list), setBox, act, how);
     return { root: root, update: function () {
-      var ps = S.players.filter(function (p) { return !p.left; }), us = S.unSet || { secs: 20 };
+      var ps = S.players.filter(function (p) { return !p.left; }), us = S.unSet || { secs: 20, mode: 'classic' }, md = us.mode || 'classic', info = UINFO[md];
+      fill(sub, info[0]);
+      fill(how, h('summary', null, 'How to play · ' + UMODES.filter(function (m) { return m[0] === md; })[0][1]), info[1].map(function (r) { return h('p', null, h('b', null, r[0] + ': '), r[1]); }),
+        h('p', null, h('b', null, 'UNO!: '), 'When you play down to ONE card, press UNO (the button only works then). If you forget, anyone can press CAUGHT after 3 seconds and you draw 2.'));
       fill(count, 'Players (' + ps.length + ') · 2 to 12 play');
       fill(list, ps.map(function (p) { return playerRow(p); }));
-      fill(setBox, h('div', { class: 'card tight' }, S.me.host ? h('div', { class: 'set' }, h('div', { class: 'lbl' }, '⏱ Turn timer'), seg([[10, '10s'], [20, '20s'], [30, '30s'], [0, 'Off']], us.secs, function (v) { send({ t: 'uset', secs: v }); }))
-        : h('p', { class: 'mute', style: 'margin:0' }, '⏱ Turn timer: ' + (us.secs ? us.secs + 's' : 'off'))));
+      fill(setBox, h('div', { class: 'card tight' }, S.me.host ? [
+        h('div', { class: 'set' }, h('div', { class: 'lbl' }, '🎴 Type'), seg(UMODES, md, function (v) { send({ t: 'uset', mode: v }); })),
+        h('div', { class: 'set' }, h('div', { class: 'lbl' }, '⏱ Turn timer'), seg([[10, '10s'], [20, '20s'], [30, '30s'], [0, 'Off']], us.secs, function (v) { send({ t: 'uset', secs: v }); }))]
+        : h('p', { class: 'mute', style: 'margin:0' }, '🎴 ' + UMODES.filter(function (m) { return m[0] === md; })[0][1] + ' · ⏱ Turn timer: ' + (us.secs ? us.secs + 's' : 'off'))));
       fill(act, S.me.host ? h('button', { class: 'btn primary', type: 'button', onclick: function () { send({ t: 'ustart' }); } }, ps.length < 2 ? 'Need 2 players' : '🃏 Shuffle & deal!') : h('p', { class: 'mute center' }, 'Waiting for the host to start…'));
     } };
   };
@@ -5081,6 +5113,7 @@ html[data-theme=dark] .dgame .dtime{border-color:#F4EFE3}
       function item(ic, tx, fn, cls) { return h('button', { class: 'uset-b' + (cls ? ' ' + cls : ''), type: 'button', onclick: function () { setPop.classList.remove('open'); fn(); } }, h('span', null, ic), h('b', null, tx)); }
       fill(setPop, h('div', { class: 'uset-h' }, 'Settings'),
         S.me.host && S.phase === 'uturn' ? item(pz ? '▶️' : '⏸', pz ? 'Resume game' : 'Pause game', function () { send({ t: pz ? 'uresume' : 'upause' }); }) : null,
+        S.me.host && S.phase === 'uturn' ? item('⏭', 'Skip ' + (S.un.cur === me() ? 'my' : nameOf(S.un.cur) + '’s') + ' turn', function () { if (confirm('Skip ' + (S.un.cur === me() ? 'your' : nameOf(S.un.cur) + '’s') + ' turn?')) send({ t: 'uskip' }); }) : null,
         can ? item(isFs() ? '🗗' : '⛶', isFs() ? 'Exit full screen' : 'Full screen', function () { toggleFs(); }) : null,
         item('🚪', 'Leave game', function () { if (confirm('Leave this game?')) send({ t: 'leave' }); }),
         S.me.host ? item('⏹', 'End game (back to lobby)', function () { if (confirm('End the game and go back to the lobby?')) send({ t: 'ulobby' }); }, 'danger') : null);
@@ -5103,21 +5136,16 @@ html[data-theme=dark] .dgame .dtime{border-color:#F4EFE3}
     function myTurn() { return S.phase === 'uturn' && S.un.cur === me(); }
     function later(fn, ms) { var t = setTimeout(fn, ms); timersU.push(t); return t; }
     /* ---- rules mirror (the server decides; this only dims cards that can't be played) ---- */
-    function canCard(c, i, extra) {
-      var u = S.un, hand = u.hand; if (!myTurn()) return false;
-      if (u.drew !== null && i !== u.drew) return false;
-      if (hand.length === 1 && !uIsNum(c)) return false;
-      if (u.pend) return c[1] === (u.pend.k === '2' ? 'd' : 'f');
-      return c[0] === 'X' || c[0] === u.color || c[1] === u.top[1];
-    }
+    function canCard(c, i) { return myTurn() && S.un.ok.indexOf(i) >= 0; }
     function addable(c, i) { // can this card join the current multi-selection?
       if (!sel.length) return canCard(c, i);
-      var f = S.un.hand[sel[0]]; return uIsNum(f) && uIsNum(c) && c[1] === f[1] && sel.indexOf(i) < 0 && !S.un.pend && S.un.drew === null;
+      var u = S.un; if (sel.indexOf(i) >= 0 || u.drew !== null) return false;
+      var f = uf(u.hand[sel[0]]), g = uf(c); return g[1] === f[1] && u.mv.indexOf(g[1]) >= 0 && (!u.pend || u.ok.indexOf(i) >= 0);
     }
     /* ---- flying cards & effects ---- */
     function fly(from, to, o) {
       o = o || {}; if (!from || !to || !fx.animate) return;
-      var el = o.face ? ucard(o.face, 'fly') : uback('fly'); el.style.setProperty('--cw', (o.w || 46) + 'px');
+      var el = o.face ? ucard(o.face, 'fly', o.dark) : uback('fly'); el.style.setProperty('--cw', (o.w || 46) + 'px');
       el.style.left = (from.left + from.width / 2) + 'px'; el.style.top = (from.top + from.height / 2) + 'px'; el.style.opacity = '0'; fx.appendChild(el);
       var dx = (to.left + to.width / 2) - (from.left + from.width / 2), dy = (to.top + to.height / 2) - (from.top + from.height / 2);
       var rot = o.rot == null ? (Math.random() * 40 - 20) : o.rot;
@@ -5164,16 +5192,24 @@ html[data-theme=dark] .dgame .dtime{border-color:#F4EFE3}
       var u = S.un, id = ev.id, k = ev.k;
       if (k === 'play') {
         var from = id === me() ? rc(meBar) : (chipEls[id] ? rc(chipEls[id]) : rc(opp)), to = rc(discPile);
-        if (!mine) ev.cards.forEach(function (c, j) { fly(from, to, { face: c, w: 50, dur: 480, delay: j * 110, s1: 1.15, rot: Math.random() * 30 - 15 }); });
+        if (!mine) ev.cards.forEach(function (c, j) { fly(from, to, { face: c, dark: ev.side === 'D', w: 50, dur: 480, delay: j * 110, s1: 1.15, rot: Math.random() * 30 - 15 }); });
         var last = ev.cards[ev.cards.length - 1], v = last[1], delay = 420 + (ev.cards.length - 1) * 110;
         later(function () {
           discPile.classList.remove('upop'); void discPile.offsetWidth; discPile.classList.add('upop');
-          if (last[0] === 'X') ripple(ev.color);
-          if (v === 'd') { bigText('+2', 'u-d'); shakeRoot(); buzz([90, 40, 90]); }
-          else if (v === 'f') { bigText('+4', 'u-f'); shakeRoot(); buzz([120, 50, 120, 50, 200]); }
+          if (last[0] === 'X' && ev.color) ripple(ev.color);
+          var bigs = { d: ['+2', 'u-d'], o: ['+1', 'u-d'], t: ['+2', 'u-d'], v: ['+5', 'u-f'], q: ['+4', 'u-f'], f: ['+4', 'u-f'], h: ['+6', 'u-f'], j: ['+10', 'u-f'] };
+          if (bigs[v]) { bigText(bigs[v][0] + (ev.pend > parseInt(bigs[v][0], 10) ? ' → ' + ev.pend : ''), bigs[v][1]); shakeRoot(); buzz([90, 40, 90, 40, 140]); }
+          else if (v === 'y') { bigText('🔄 +4 REVERSE', 'u-f'); shakeRoot(); buzz([120, 50, 120]); }
           else if (v === 's') { bigText('🚫 SKIP', 'u-s'); buzz([70]); }
+          else if (v === 'k') { bigText('⏩ SKIP EVERYONE', 'u-s'); buzz([70, 40, 70]); }
+          else if (v === 'l') { bigText('🔃 FLIP!', 'u-r'); root.classList.remove('uflipping'); void root.offsetWidth; root.classList.add('uflipping'); setTimeout(function () { root.classList.remove('uflipping'); }, 800); buzz([60, 40, 60, 40, 120]); }
+          else if (v === 'a') { bigText('🗑 DISCARD ALL ×' + (ev.all || 0), 'u-s'); buzz([60, 40, 60]); }
+          else if (v === 'u') { bigText('🎰 COLOUR ROULETTE', 'u-f'); shakeRoot(); buzz([90, 40, 90]); }
+          else if (v === 'c') { bigText('🎨 DRAW TO ' + (UNAME[ev.color] || ''), 'u-f'); shakeRoot(); buzz([90, 40, 90]); }
           else if (v === 'r') { bigText('🔄 REVERSE', 'u-r'); dirEl.classList.remove('uspin'); void dirEl.offsetWidth; dirEl.classList.add('uspin'); setTimeout(function () { dirEl.classList.remove('uspin'); }, 950); buzz([40, 40, 40]); }
           else if (v === 'w') { bigText('🎨 ' + UNAME[ev.color], 'u-w'); }
+          else if (ev.rot) { bigText('🔁 EVERYONE PASSES HANDS', 'u-r'); buzz([50, 40, 50]); }
+          else if (ev.swap) { bigText('🔀 ' + (id === me() ? 'YOU' : nameOf(id)) + ' ⇄ ' + (ev.swap === me() ? 'YOU' : nameOf(ev.swap)), 'u-r'); buzz([50, 40, 50]); }
           else if (ev.cards.length > 1) bigText('×' + ev.cards.length + ' COMBO!', 'u-c');
           if (ev.fin) { later(function () { bigText('🏁 ' + (id === me() ? 'YOU' : nameOf(id)) + ' finished #' + ev.fin, 'u-c'); if (typeof confetti === 'function') confetti(); buzz([80, 50, 80]); }, 900); }
         }, delay);
@@ -5189,33 +5225,35 @@ html[data-theme=dark] .dgame .dtime{border-color:#F4EFE3}
         for (var q = 0; q < 2; q++) fly(src2, dst2, { w: 42, dur: 420, delay: q * 120, s1: id === me() ? 1.3 : 0.6, fade: id !== me() });
         if (id === me()) { shakeRoot(); buzz([200, 60, 200]); } else buzz([60]);
       } else if (k === 'pass') bubble(id, 'pass', 'u-pass');
+      else if (k === 'out') { bubble(id, '💀 OUT!', 'u-caught'); bigText('💀 ' + (id === me() ? 'YOU ARE' : nameOf(id) + ' is') + ' OUT (25 cards)', 'u-c'); if (id === me()) { shakeRoot(); buzz([200, 60, 200, 60, 300]); } else buzz([60]); }
+      else if (k === 'hskip') { bubble(id, '⏭ skipped by host', 'u-pass'); bigText('⏭ ' + (id === me() ? 'YOUR TURN WAS' : nameOf(id) + '’s turn') + ' SKIPPED', 'u-s'); buzz([40, 30, 40]); }
     }
     /* ---- painting ---- */
     function paintTop() {
       var u = S.un; var cur = u ? u.cur : null;
       var pz = u && u.paused;
       fill(topbar, h('div', { class: 'utl' },
-          h('div', { class: 'utt' }, S.phase === 'udeal' ? '🔀 Dealing…' : S.phase === 'uover' ? '🏁 Game over' : pz ? '⏸ Paused' : (cur === me() ? '👉 YOUR TURN' : '⏳ ' + nameOf(cur)), S.endsAt && S.phase === 'uturn' && !pz ? h('b', { class: 'usec' }, ' ' + secsLeft() + 's') : null)),
+          h('div', { class: 'utt' }, u && u.mode !== 'classic' ? h('span', { class: 'umode' }, u.mode === 'flip' ? (u.side === 'D' ? 'FLIP·DARK ' : 'FLIP·LIGHT ') : 'NO MERCY ') : null, S.phase === 'udeal' ? '🔀 Dealing…' : S.phase === 'uover' ? '🏁 Game over' : pz ? '⏸ Paused' : (cur === me() ? '👉 YOUR TURN' : '⏳ ' + nameOf(cur)), S.endsAt && S.phase === 'uturn' && !pz ? h('b', { class: 'usec' }, ' ' + secsLeft() + 's') : null)),
         h('div', { class: 'utr' }, gear));
       paintFs(); var pb = !!pz && S.phase === 'uturn'; pausedBox.style.display = pb ? 'flex' : 'none';
       if (pb) fill(pausedBox, h('div', { class: 'upaused-in' }, h('div', { class: 'upz' }, '⏸'), h('b', null, 'GAME PAUSED'), S.me.host ? h('button', { class: 'ubtn uplayB', type: 'button', onclick: function () { send({ t: 'uresume' }); } }, '▶ Resume') : h('span', null, 'Waiting for the host to resume…')));
     }
     function paintOpp() {
-      var u = S.un, ids = u.ids, k = ids.indexOf(me()), order = [], n = ids.length, fin = u.fin || [];
+      var u = S.un, ids = u.ids, k = ids.indexOf(me()), order = [], n = ids.length, fin = u.fin || [], outs = u.out || [];
       for (var i = 1; i <= n; i++) { var j = (k < 0 ? i - 1 : k + i); j = ((j % n) + n) % n; if (ids[j] !== me()) order.push(ids[j]); }
-      var nx = null; if (S.phase === 'uturn') { var q = ids.indexOf(u.cur); for (var g = 0; g < n; g++) { q = (((q + u.dir) % n) + n) % n; if (fin.indexOf(ids[q]) < 0) { nx = ids[q]; break; } } }
+      var nx = null; if (S.phase === 'uturn') { var q = ids.indexOf(u.cur); for (var g = 0; g < n; g++) { q = (((q + u.dir) % n) + n) % n; if (fin.indexOf(ids[q]) < 0 && outs.indexOf(ids[q]) < 0) { nx = ids[q]; break; } } }
       chipEls = {}; var m = order.length, sm = m > 5, rx = 39, ry = 38; var portrait = (table.clientHeight || 1) > (table.clientWidth || 0), cy = portrait ? 47 : 42; if (!portrait) ry = 33;
       // seats spread evenly by distance along the oval (not by angle), so the sides never get crowded
       var tw = table.clientWidth || 800, th = table.clientHeight || 360, A0 = th > tw ? 42 : 58, A1 = th > tw ? 318 : 302, N = 120, cum = [0], P = [];
       for (var k2 = 0; k2 <= N; k2++) { var a2 = (A0 + (A1 - A0) * k2 / N) * Math.PI / 180; P.push(a2); if (k2) { var a1 = P[k2 - 1]; cum.push(cum[k2 - 1] + Math.hypot((Math.sin(a2) - Math.sin(a1)) * rx * tw, (Math.cos(a2) - Math.cos(a1)) * ry * th)); } }
       function seatAng(ix) { if (m === 1) return Math.PI; var L = cum[N] * ix / (m - 1); for (var k3 = 1; k3 <= N; k3++) if (cum[k3] >= L) { var f = (L - cum[k3 - 1]) / ((cum[k3] - cum[k3 - 1]) || 1); return P[k3 - 1] + (P[k3] - P[k3 - 1]) * f; } return P[N]; }
       fill(opp, order.map(function (id, ix) {
-        var c = u.counts[id], turn = u.cur === id && S.phase === 'uturn', nm = nameOf(id), fp = fin.indexOf(id), ang = seatAng(ix);
+        var c = u.counts[id], turn = u.cur === id && S.phase === 'uturn', nm = nameOf(id), fp = fin.indexOf(id), isOut = outs.indexOf(id) >= 0, ang = seatAng(ix);
         var x = 50 - rx * Math.sin(ang), y = cy + ry * Math.cos(ang);
-        var el = h('div', { class: 'uchip' + (turn ? ' turn' : '') + (sm ? ' sm' : '') + (fp >= 0 ? ' fin' : ''), style: 'left:' + x + '%;top:' + y + '%;--ci:' + ix },
+        var el = h('div', { class: 'uchip' + (turn ? ' turn' : '') + (sm ? ' sm' : '') + (fp >= 0 ? ' fin' : '') + (isOut ? ' out' : ''), style: 'left:' + x + '%;top:' + y + '%;--ci:' + ix },
           turn ? h('span', { class: 'uarrow' }, '▼') : null,
-          h('div', { class: 'uav' }, turn ? h('i', { class: 'uglow' }) : null, avatar(nm, pidx(id), null), h('b', { class: 'ucnt' }, fp >= 0 ? '🏁' + (fp + 1) : String(c)), turn ? h('i', { class: 'uturnring' }) : null),
-          fp >= 0 || !c ? null : h('div', { class: 'ufan' }, (function () { var a = [], nn = Math.min(c, 9); for (var q2 = 0; q2 < nn; q2++) a.push(h('i', { style: 'transform:rotate(' + ((q2 - (nn - 1) / 2) * 7) + 'deg)' })); return a; })()),
+          h('div', { class: 'uav' }, turn ? h('i', { class: 'uglow' }) : null, avatar(nm, pidx(id), null), h('b', { class: 'ucnt' + (u.mode === 'mercy' && c >= 18 ? ' hot' : '') }, isOut ? '💀' : fp >= 0 ? '🏁' + (fp + 1) : String(c)), turn ? h('i', { class: 'uturnring' }) : null),
+          fp >= 0 || isOut || !c ? null : h('div', { class: 'ufan' }, (function () { var a = [], nn = Math.min(c, 9); for (var q2 = 0; q2 < nn; q2++) a.push(h('i', { style: 'transform:rotate(' + ((q2 - (nn - 1) / 2) * 7) + 'deg)' })); return a; })()),
           h('span', { class: 'unm' }, nm.length > 7 ? nm.slice(0, 7) + '…' : nm), id === nx && !turn ? h('span', { class: 'unext' }, 'NEXT') : null);
         chipEls[id] = el; return el;
       }));
@@ -5223,14 +5261,18 @@ html[data-theme=dark] .dgame .dtime{border-color:#F4EFE3}
     function paintTable() {
       var u = S.un; fill(drawPile, uback('l3'), uback('l2'), uback('l1'), h('span', { class: 'upc' }, String(u.pile)));
       if (u.top !== dTop.c || u.gid !== dTop.g) { if (dTop.c && u.gid === dTop.g) dHist.push({ c: dTop.c, r: dTop.r }); if (u.gid !== dTop.g) dHist = []; dHist = dHist.slice(-3); dTop = { c: u.top, g: u.gid, r: Math.round(Math.random() * 26 - 13) }; }
-      var topEl = ucard(u.top, 'big'); topEl.style.rotate = dTop.r + 'deg';
-      fill(discPile, dHist.map(function (d) { var e = ucard(d.c, 'uunder'); e.style.rotate = d.r + 'deg'; return e; }), topEl);
-      dirEl.style.color = UCOL[u.color];
-      discPile.style.setProperty('--glow', UCOL[u.color]); colEl.style.background = UCOL[u.color]; colEl.textContent = UNAME[u.color];
+      var topEl = ucard(uf(u.top), 'big', u.side === 'D'); topEl.style.rotate = dTop.r + 'deg';
+      fill(discPile, dHist.map(function (d) { var e = ucard(uf(d.c), 'uunder', u.side === 'D'); e.style.rotate = d.r + 'deg'; return e; }), topEl);
+      var cc = u.color ? UCOL[u.color] : '#8a8a99';
+      dirEl.style.color = cc;
+      discPile.style.setProperty('--glow', cc); colEl.style.background = cc; colEl.textContent = u.color ? UNAME[u.color] : 'ANY COLOUR';
       colEl.style.color = u.color === 'Y' ? '#121212' : '#fff';
       var dc = 'udir' + (u.dir === 1 ? ' cw' : ' ccw'); dirEl.className = dc + (dirEl.classList.contains('uspin') ? ' uspin' : '');
       var pend = u.pend, txt = '';
-      if (pend && S.phase === 'uturn') txt = (u.cur === me() ? '😬 Stack +' + pend.n + '. Add a ' + (pend.k === '2' ? '+2' : '+4') + ' or draw ' + pend.n : '💥 Stack +' + pend.n + ' → ' + nameOf(u.cur));
+      var pk = pend && pend.k, mine2 = u.cur === me();
+      if (pend && S.phase === 'uturn') txt = pk === 'roul' ? (mine2 ? '🎰 Colour Roulette! Pick a colour and draw until it shows' : '🎰 Roulette → ' + nameOf(u.cur))
+        : pk === 'col' ? (mine2 ? '🎨 Draw until you get ' + UNAME[pend.col] : '🎨 ' + nameOf(u.cur) + ' draws until ' + UNAME[pend.col])
+        : (mine2 ? '😬 Stack +' + pend.n + '. Add an equal or bigger draw card, or draw ' + pend.n : '💥 Stack +' + pend.n + ' → ' + nameOf(u.cur));
       else if (u.drew !== null && myTurn()) txt = '✨ Play the card you drew, or pass';
       banner.textContent = txt; banner.style.display = txt ? '' : 'none';
       drawPile.classList.toggle('can', myTurn() && u.drew === null);
@@ -5239,26 +5281,28 @@ html[data-theme=dark] .dgame .dtime{border-color:#F4EFE3}
       var u = S.un, inG = inGame();
       if (!inG) { fill(meBar, h('div', { class: 'uwatch' }, '👀 You are watching. You play in the next game.')); fill(btns, null); fill(handBox, null); return; }
       var fin = u.fin || [], myFin = fin.indexOf(me());
+      if ((u.out || []).indexOf(me()) >= 0) { root.classList.remove('myturn'); fill(meBar, avatar(nameOf(me()), pidx(me()), 'sm'), h('b', null, '💀 You hit 25 cards and are OUT. Watching the rest')); meBar.className = 'ume'; fill(btns, null); fill(handBox, null); return; }
       if (myFin >= 0) { root.classList.remove('myturn'); fill(meBar, avatar(nameOf(me()), pidx(me()), 'sm'), h('b', null, '🏁 You finished #' + (myFin + 1) + '! Watching the rest')); meBar.className = 'ume'; fill(btns, null); fill(handBox, null); return; }
       var hand = u.hand, key = hand.join(',');
       if (key !== lastHand) { sel = []; lastHand = key; }
       var my = myTurn();
-      fill(meBar, h('div', { class: 'uav umeav' }, my ? h('i', { class: 'uglow' }) : null, avatar(nameOf(me()), pidx(me()), null), my ? h('i', { class: 'uturnring' }) : null, h('b', { class: 'ucnt' }, String(hand.length))), h('b', { class: 'umet' }, my ? (u.pend ? 'Draw or stack' : u.drew !== null ? 'Play it or pass' : 'Your turn!') : nameOf(me())));
+      fill(meBar, h('div', { class: 'uav umeav' }, my ? h('i', { class: 'uglow' }) : null, avatar(nameOf(me()), pidx(me()), null), my ? h('i', { class: 'uturnring' }) : null, h('b', { class: 'ucnt' }, String(hand.length))), h('b', { class: 'umet' }, my ? (u.pend ? (u.pend.k === 'n' ? 'Draw or stack' : 'Draw!') : u.drew !== null ? 'Play it or pass' : 'Your turn!') : nameOf(me())));
       meBar.className = 'ume' + (my ? ' turn' : ''); root.classList.toggle('myturn', my);
-      var same = []; if (sel.length && uIsNum(hand[sel[0]]) && !u.pend && u.drew === null) hand.forEach(function (c, i) { if (uIsNum(c) && c[1] === hand[sel[0]][1]) same.push(i); });
-      var allBtn = my && same.length > sel.length ? h('button', { class: 'ubtn uallB', type: 'button', onclick: function () { sel = same.slice(); buzz([15, 20, 15]); paintMe(); } }, '✅ ALL ' + same.length + '× ' + hand[sel[0]][1]) : null;
+      var same = [], sf = sel.length ? uf(hand[sel[0]]) : null; if (sf && u.drew === null && u.mv.indexOf(sf[1]) >= 0) hand.forEach(function (c, i) { if (uf(c)[1] === sf[1] && (!u.pend || u.ok.indexOf(i) >= 0)) same.push(i); });
+      var canUno = hand.length === 1 && u.owe, canCatch = u.ids.some(function (id2) { return id2 !== me() && fin.indexOf(id2) < 0 && (u.out || []).indexOf(id2) < 0 && u.counts[id2] === 1; });
+      var allBtn = my && same.length > sel.length ? h('button', { class: 'ubtn uallB', type: 'button', onclick: function () { sel = same.slice(); buzz([15, 20, 15]); paintMe(); } }, '✅ ALL ' + same.length + '× ' + (USYM[sf[1]] || sf[1])) : null;
       fill(btns,
         h('div', { class: 'ub-act' }, allBtn,
           my && sel.length ? h('button', { class: 'ubtn uplayB', type: 'button', onclick: playSel }, sel.length > 1 ? 'PLAY ×' + sel.length : 'PLAY') : null,
-          my && u.drew === null ? h('button', { class: 'ubtn udrawB', type: 'button', onclick: doDraw }, u.pend ? 'DRAW +' + u.pend.n : 'DRAW') : null,
+          my && u.drew === null ? h('button', { class: 'ubtn udrawB', type: 'button', onclick: doDraw }, u.pend && u.pend.k === 'n' ? 'DRAW +' + u.pend.n : 'DRAW') : null,
           my && u.drew !== null ? h('button', { class: 'ubtn upassB', type: 'button', onclick: function () { send({ t: 'upass' }); } }, 'PASS') : null),
         h('div', { class: 'ub-main' },
-          h('button', { class: 'ubtn ucatchB', type: 'button', onclick: function () { send({ t: 'ucatch' }); buzz([25]); } }, '😜 CAUGHT!'),
-          h('button', { class: 'ubtn uunoB', type: 'button', onclick: function () { send({ t: 'uuno' }); buzz([25]); } }, 'UNO!')));
+          h('button', { class: 'ubtn ucatchB' + (canCatch ? '' : ' dis'), type: 'button', onclick: function () { if (!canCatch) { toast('Catch works when someone has 1 card and forgot UNO'); return; } send({ t: 'ucatch' }); buzz([25]); } }, '😜 CAUGHT!'),
+          h('button', { class: 'ubtn uunoB' + (canUno ? '' : ' dis'), type: 'button', onclick: function () { if (!canUno) { toast('UNO works only when you have 1 card left'); return; } send({ t: 'uuno' }); buzz([25]); } }, 'UNO!')));
       var old = handBox.scrollLeft;
       fill(handBox, hand.map(function (c, i) {
         var ok = my && (sel.length ? (sel.indexOf(i) >= 0 || addable(c, i)) : canCard(c, i));
-        var el = ucard(c, 'hc' + (sel.indexOf(i) >= 0 ? ' sel' : '') + (my && !ok ? ' dim' : '') + (ok && my ? ' ok' : '') + (dealing ? '' : ' in')); el.style.setProperty('--i', i);
+        var el = ucard(uf(c), 'hc' + (sel.indexOf(i) >= 0 ? ' sel' : '') + (my && !ok ? ' dim' : '') + (ok && my ? ' ok' : '') + (dealing ? '' : ' in'), u.side === 'D'); el.style.setProperty('--i', i);
         el.addEventListener('click', function () { tapCard(i, el); }); return el;
       }));
       handBox.scrollLeft = old;
@@ -5273,22 +5317,35 @@ html[data-theme=dark] .dgame .dtime{border-color:#F4EFE3}
     }
     function playSel() {
       var u = S.un; if (!sel.length || !myTurn()) return;
-      var cards = sel.map(function (i) { return u.hand[i]; });
-      if (cards.some(function (c) { return c[0] === 'X'; })) return pickColor(function (col) { sendPlay(col); });
-      sendPlay(null);
+      var f0 = uf(u.hand[sel[0]]), need = f0[0] === 'X' && f0[1] !== 'u', swap = u.mode === 'mercy' && f0[1] === '7';
+      function after(col) { if (swap) return pickPlayer(function (t) { sendPlay(col, t); }); sendPlay(col); }
+      if (need) return pickColor(after);
+      after(null);
     }
-    function sendPlay(col) {
+    function sendPlay(col, target) {
       var u = S.un, idx = sel.slice(), cards = idx.map(function (i) { return u.hand[i]; }), els = handBox.querySelectorAll('.ucard'), to = rc(discPile);
-      idx.forEach(function (i, j) { if (els[i]) fly(rc(els[i]), to, { face: cards[j], w: 56, dur: 460, delay: j * 110, s1: 1.15, rot: Math.random() * 24 - 12 }); });
+      idx.forEach(function (i, j) { if (els[i]) fly(rc(els[i]), to, { face: uf(cards[j]), dark: u.side === 'D', w: 56, dur: 460, delay: j * 110, s1: 1.15, rot: Math.random() * 24 - 12 }); });
       idx.forEach(function (i) { if (els[i]) els[i].style.visibility = 'hidden'; });
-      mineSent = true; send({ t: 'uplay', cards: idx, color: col || undefined }); sel = []; buzz([35]);
+      mineSent = true; send({ t: 'uplay', cards: idx, color: col || undefined, target: target || undefined }); sel = []; buzz([35]);
     }
     var mineSent = false;
-    function doDraw() { if (!myTurn() || S.un.drew !== null) return; mineSent = false; send({ t: 'udraw' }); buzz([20]); }
+    function doDraw() {
+      if (!myTurn() || S.un.drew !== null) return; mineSent = false;
+      if (S.un.pend && S.un.pend.k === 'roul') return pickColor(function (col) { send({ t: 'udraw', color: col }); buzz([20]); });
+      send({ t: 'udraw' }); buzz([20]);
+    }
     drawPile.addEventListener('click', doDraw);
     function pickColor(cb) {
-      fill(picker, h('div', { class: 'upick-in' }, h('b', null, 'Pick a colour'), h('div', { class: 'upick-row' }, ['R', 'Y', 'G', 'B'].map(function (c) {
-        return h('button', { class: 'upc-b', type: 'button', style: 'background:' + UCOL[c], onclick: function () { picker.style.display = 'none'; cb(c); } }, UNAME[c][0]);
+      var cols = S.un.side === 'D' ? ['P', 'T', 'V', 'O'] : ['R', 'Y', 'G', 'B'];
+      fill(picker, h('div', { class: 'upick-in' }, h('b', null, S.un.pend && S.un.pend.k === 'roul' ? 'Pick a colour to draw until' : 'Pick a colour'), h('div', { class: 'upick-row' }, cols.map(function (c) {
+        return h('button', { class: 'upc-b', type: 'button', style: 'background:' + UCOL[c], onclick: function () { picker.style.display = 'none'; cb(c); } }, UNAME[c]);
+      })), h('button', { class: 'link', type: 'button', onclick: function () { picker.style.display = 'none'; } }, 'Cancel')));
+      picker.style.display = 'flex';
+    }
+    function pickPlayer(cb) {
+      var u = S.un, fin = u.fin || [], outs = u.out || [];
+      fill(picker, h('div', { class: 'upick-in' }, h('b', null, '7️⃣ Swap hands with…'), h('div', { class: 'upick-pl' }, u.ids.filter(function (id) { return id !== me() && fin.indexOf(id) < 0 && outs.indexOf(id) < 0; }).map(function (id) {
+        return h('button', { class: 'upl-b', type: 'button', onclick: function () { picker.style.display = 'none'; cb(id); } }, avatar(nameOf(id), pidx(id), 'sm'), h('span', null, nameOf(id)), h('small', null, u.counts[id] + ' cards'));
       })), h('button', { class: 'link', type: 'button', onclick: function () { picker.style.display = 'none'; } }, 'Cancel')));
       picker.style.display = 'flex';
     }
@@ -5296,11 +5353,11 @@ html[data-theme=dark] .dgame .dtime{border-color:#F4EFE3}
       var u = S.un; if (S.phase !== 'uover') { overBox.style.display = 'none'; return; }
       overBox.style.display = 'flex'; var w = u.winner, key = u.gid + ':' + w;
       fill(overBox, h('div', { class: 'uover-in' }, h('div', { class: 'utro' }, '🏆'), h('h2', null, (w === me() ? 'YOU WIN!' : nameOf(w) + ' wins!')),
-        u.ranks.map(function (r, i) { return h('div', { class: 'brow' }, h('span', { class: 'rank' }, String(i + 1)), avatar(nameOf(r.id), pidx(r.id), 'sm'), h('span', { class: 'pname' }, nameOf(r.id) + (r.id === me() ? ' (you)' : '')), h('span', { class: 'pts' }, r.left ? r.left + ' left' : '🎉')); }),
+        u.ranks.map(function (r, i) { return h('div', { class: 'brow' }, h('span', { class: 'rank' }, String(i + 1)), avatar(nameOf(r.id), pidx(r.id), 'sm'), h('span', { class: 'pname' }, nameOf(r.id) + (r.id === me() ? ' (you)' : '')), h('span', { class: 'pts' }, r.out ? '💀 out' : r.left ? r.left + ' left' : '🎉')); }),
         S.me.host ? h('div', { class: 'row' }, hostBtn('🔁 Play again', { t: 'ustart' }, 'primary'), hostBtn('Back to lobby', { t: 'ulobby' }, 'yellow')) : h('p', { class: 'mute center' }, 'Waiting for the host…')));
       if (shown !== key) { shown = key; later(function () { if (typeof confetti === 'function') { confetti(); later(confetti, 500); } }, 150); buzz(w === me() ? [100, 60, 100, 60, 400] : [80, 50, 80]); }
     }
-    function paintAll() { paintTop(); paintOpp(); paintTable(); paintMe(); paintOver(); }
+    function paintAll() { root.classList.toggle('udark', S.un.side === 'D'); root.classList.toggle('umercy', S.un.mode === 'mercy'); paintTop(); paintOpp(); paintTable(); paintMe(); paintOver(); }
     return { root: root, say: say, tick: function () {
       if (!S || !S.un) return; var s = S.endsAt && S.phase === 'uturn' && !S.un.paused ? secsLeft() : 0, el = topbar.querySelector('.usec'); if (el) el.textContent = s + 's';
       var tot = (S.unSet && S.unSet.secs) || 20; timerBar.firstChild.style.width = (S.phase === 'uturn' && S.endsAt && !S.un.paused ? Math.min(100, s / tot * 100) : (S.un.paused && S.un.paused > 1 ? Math.min(100, S.un.paused / 1000 / tot * 100) : 0)) + '%'; timerBar.classList.toggle('low', s <= 5 && s > 0);
@@ -6578,6 +6635,7 @@ html[data-theme=dark] .dgame .dtime{border-color:#F4EFE3}
     document.body.classList.toggle("unomode", key === "ugame");
     document.body.classList.toggle("ckmode", key === "cgame");
     document.body.classList.toggle("dwmode", key === "dgame");
+    document.body.classList.toggle("unodark", key === "ugame" && !!(S.un && S.un.side === "D"));
     if (key !== curKey) {
       curKey = key; clear(app);
       cur = (key === 'home' ? screens.home : key.indexOf('lobby') === 0 ? screens.lobby : screens[key])();
