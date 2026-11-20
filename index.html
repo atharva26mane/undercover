@@ -1921,6 +1921,8 @@ button:focus-visible { outline: 3px solid var(--cream); outline-offset: 2px; }
         <section data-pane="2" hidden>
           <h3>Match</h3>
           <div class="seg" id="lMode"><button type="button" data-m="t2">2 min</button><button type="button" data-m="t3">3 min</button><button type="button" data-m="t5">5 min</button><button type="button" data-m="g">First to</button><select id="lGoals"><option>3</option><option>5</option><option>7</option><option>10</option></select></div>
+          <h3>Giant balls</h3>
+          <div class="hs"><span>⚽ Balls</span><button type="button" data-bl="-1">−</button><b id="nBalls">3</b><button type="button" data-bl="1">+</button></div>
           <h3>Head start goals</h3>
           <div class="hs"><span class="o">Orange</span><button type="button" data-h="o-">−</button><b id="hO">0</b><button type="button" data-h="o+">+</button><span class="b">Blue</span><button type="button" data-h="b-">−</button><b id="hB">0</b><button type="button" data-h="b+">+</button></div>
           <div class="qrow big"><span>Graphics</span><button type="button" data-q="low">Low</button><button type="button" data-q="medium">Med</button><button type="button" data-q="high">High</button></div>
@@ -2472,12 +2474,15 @@ function newPlayer(i, team, name, isMe, look) {
   const p = { i, team, name, me: !!isMe, mesh, tag, p: [0, 0, 0], v: [0, 0, 0], yaw: 0, ground: true, mode: 'run', mt: 0, dive: false, jumps: 0, spin: [0, 0], role: 'att', ball: null, think: 0, tgt: [0, 0], skill: rand(0.82, 1), jumpCd: 0, anim: 0, emote: 0 };
   PL.push(p); return p;
 }
-function setup() {
-  const bg = ballGeo();
-  for (let i = 0; i < 3; i++) { const m = new T.Mesh(bg, new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.48, metalness: 0.0 })); m.castShadow = true; m.scale.setScalar(BALL_R); const sh = new T.Mesh(new T.CircleGeometry(1, 24), new T.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.3, depthWrite: false })); sh.rotation.x = -Math.PI / 2; scene.add(m, sh); BALLS.push({ i, mesh: m, shadow: sh, p: [0, 0, 0], v: [0, 0, 0], q: new T.Quaternion(), out: 0, last: null }); }
+let BGEO = null;
+function setBalls(n) { // add or remove giant balls (1-5)
+  n = clamp(n | 0, 1, 5); if (!BGEO) BGEO = ballGeo();
+  while (BALLS.length > n) { const b = BALLS.pop(); scene.remove(b.mesh, b.shadow); b.mesh.material.dispose(); b.shadow.material.dispose(); }
+  while (BALLS.length < n) { const i = BALLS.length, m = new T.Mesh(BGEO, new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.48, metalness: 0.0 })); m.castShadow = true; m.scale.setScalar(BALL_R); const sh = new T.Mesh(new T.CircleGeometry(1, 24), new T.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.3, depthWrite: false })); sh.rotation.x = -Math.PI / 2; scene.add(m, sh); BALLS.push({ i, mesh: m, shadow: sh, p: [0, -50, 0], v: [0, 0, 0], q: new T.Quaternion(), out: 0, last: null }); }
 }
+function setup() { setBalls(3); }
 /* ================= lobby (test: you + bots) ================= */
-const LOB_DEF = { name: 'Hacker', num: 10, char: 'hacker', jelly: 0, team: 'o', bots: ['o', 'o', 'o', 'o', 'o', 'b', 'b', 'b', 'b', 'b', 'b'], diff: 'normal', mode: 't2', goals: 5, head: { o: 0, b: 0 }, friendBots: false };
+const LOB_DEF = { name: 'Hacker', num: 10, char: 'hacker', jelly: 0, team: 'o', bots: ['o', 'o', 'o', 'o', 'o', 'b', 'b', 'b', 'b', 'b', 'b'], diff: 'normal', mode: 't2', goals: 5, head: { o: 0, b: 0 }, friendBots: false, balls: 3 };
 let LOB = JSON.parse(JSON.stringify(LOB_DEF));
 try { const s = JSON.parse(localStorage.getItem('bully.lobby') || 'null'); if (s) LOB = Object.assign(LOB, s); } catch (e) { /* ignore */ }
 function saveLob() { try { localStorage.setItem('bully.lobby', JSON.stringify(LOB)); } catch (e) { /* ignore */ } }
@@ -2503,7 +2508,7 @@ function renderLobby() {
   ROOT.querySelectorAll('#lDiff [data-d]').forEach((b) => b.classList.toggle('on', b.dataset.d === LOB.diff));
   ROOT.querySelectorAll('#lMode [data-m]').forEach((b) => b.classList.toggle('on', b.dataset.m === LOB.mode));
   $('lGoals').value = String(LOB.goals); $('lFriendBots').checked = !!LOB.friendBots;
-  $('hO').textContent = LOB.head.o; $('hB').textContent = LOB.head.b;
+  $('hO').textContent = LOB.head.o; $('hB').textContent = LOB.head.b; $('nBalls').textContent = LOB.balls || 3;
   ROOT.querySelectorAll('.ch').forEach((c) => c.classList.toggle('on', c.dataset.c === LOB.char));
   ROOT.querySelectorAll('#jellyCols button').forEach((c, i) => c.classList.toggle('on', LOB.char === 'jelly' && i === LOB.jelly));
   ['o', 'b'].forEach((t) => {
@@ -2543,6 +2548,7 @@ function initLobby() {
   $('lGoals').onchange = (e) => { LOB.goals = +e.target.value; LOB.mode = 'g'; saveLob(); renderLobby(); };
   $('lFriendBots').onchange = (e) => { LOB.friendBots = e.target.checked; saveLob(); };
   ROOT.querySelectorAll('[data-h]').forEach((b) => b.onclick = () => { const t = b.dataset.h[0], d = b.dataset.h[1] === '+' ? 1 : -1; LOB.head[t] = clamp(LOB.head[t] + d, 0, 5); saveLob(); renderLobby(); });
+  ROOT.querySelectorAll('[data-bl]').forEach((b) => b.onclick = () => { LOB.balls = clamp((LOB.balls || 3) + (+b.dataset.bl), 1, 5); saveLob(); renderLobby(); });
   $('lShuffle').onclick = () => { // random fair split of you + bots
     const n = LOB.bots.length + 1, all = Array.from({ length: n }, (_, i) => i).sort(() => Math.random() - 0.5), half = Math.ceil(n / 2), side = Math.random() < 0.5 ? ['o', 'b'] : ['b', 'o'];
     const teamOf = (i) => (all.indexOf(i) < half ? side[0] : side[1]); LOB.team = teamOf(0); LOB.bots = LOB.bots.map((_, j) => teamOf(j + 1)); saveLob(); renderLobby();
@@ -2570,7 +2576,7 @@ function kickoff() {
     const spots = [[0, 9], [-8, 12], [8, 12], [-5, 19], [5, 19], [0, 27]];
     team.forEach((p, j) => { const sp = p.role === 'keep' ? [0, 27] : p.role === 'def' ? [rand(-4, 4), 20] : spots[j % 5]; p.p = [sp[0] + rand(-1, 1), 0, s * sp[1]]; p.v = [0, 0, 0]; p.yaw = s > 0 ? Math.PI : 0; p.mode = 'run'; p.ground = true; p.dive = false; });
   });
-  BALLS.forEach((b, i) => { b.p = [(i - 1) * 6, BALL_R + 10 + i * 3, 0]; b.v = [0, 0, 0]; b.out = 0; });
+  BALLS.forEach((b, i) => { b.p = [(i - (BALLS.length - 1) / 2) * 6, BALL_R + 10 + i * 3, 0]; b.v = [0, 0, 0]; b.out = 0; });
   camYaw = ME && ME.team === 'b' ? Math.PI : 0; camPitch = 0.34;
 }
 
@@ -2824,6 +2830,7 @@ function confetti() { const box = $('confetti'), cols = ['#ff9a1f', '#2a9dff', '
 /* ================= match flow ================= */
 let cheerT = 0;
 function goal(b, team) {
+  if (NET && !HOSTING) return;
   Gm.score[team]++; if (NET) EV.push(['g', team, b.last && b.last.team === team ? PL.indexOf(b.last) : -1, BALLS.indexOf(b)]); goalFx(b, team, b.last && b.last.team === team ? b.last : null);
   b.out = 2.4; b.p[1] = -50;
   if (Gm.mode === 'g' && Gm.score[team] >= Gm.goalsTo) setTimeout(() => { if (Gm.phase === 'play') endMatch(); }, 1600);
@@ -2838,7 +2845,7 @@ function goalFx(b, team, by) {
   if (HOSTING) PL.forEach((p) => { if (p.team === team && p.mode === 'run' && Math.random() < 0.7) p.emote = 1.2; });
 }
 function startMatch() {
-  if (NET) netBuild(); else buildTeams(); const SET = NET ? NET.set() : LOB; Gm.mode = SET.mode; Gm.goalsTo = SET.goals; Gm.score = { o: SET.head.o, b: SET.head.b }; $('sO').textContent = Gm.score.o; $('sB').textContent = Gm.score.b; drawScreen();
+  if (NET) netBuild(); else buildTeams(); const SET = NET ? NET.set() : LOB; Gm.mode = SET.mode; Gm.goalsTo = SET.goals; Gm.score = { o: SET.head.o, b: SET.head.b }; setBalls(SET.balls || 3); $('sO').textContent = Gm.score.o; $('sB').textContent = Gm.score.b; drawScreen();
   Gm.t = Gm.mode === 'g' ? 0 : ({ t2: 120, t3: 180, t5: 300 }[Gm.mode] || 120); kickoff(); Gm.phase = 'count'; Gm.count = 3.6; $('ovEnd').hidden = true; $('ovIntro').hidden = true;
   $('teamTag').textContent = 'YOU ARE ' + TEAM[ME.team].name + ' · ATTACK THE ' + (ME.team === 'o' ? 'BLUE' : 'ORANGE') + ' GOAL'; $('teamTag').style.background = TEAM[ME.team].col;
 }
@@ -2851,7 +2858,7 @@ function endMatch() {
 
 
 /* ================= online (hub): the host's phone runs the match, everyone else follows ================= */
-let netAt = 0, myJ = 0, myE = 0, lastSnap = null, netSeq = -1;
+let sentJ = 0, netAt = 0, myJ = 0, myE = 0, lastSnap = null, netSeq = -1;
 const PH = ['intro', 'count', 'play', 'end'];
 const r2 = (v) => Math.round(v * 100) / 100;
 function netBuild() { // same roster, same order on every phone
@@ -2869,7 +2876,7 @@ function netBuild() { // same roster, same order on every phone
   if (!ME) ME = PL[0];
 }
 function netSend(force) { // host: snapshot of the whole match
-  const now = performance.now(); if (!force && now - netAt < 66) return; netAt = now;
+  const now = performance.now(); if (!force && now - netAt < 33) return; netAt = now;
   const ev = EV.splice(0);
   NET.send({ t: 'bst', g: [PH.indexOf(Gm.phase), r2(Gm.count), r2(Gm.t), Gm.score.o, Gm.score.b],
     p: PL.map((p) => [r2(p.p[0]), r2(p.p[1]), r2(p.p[2]), r2(p.yaw), r2(p.v[0]), r2(p.v[1]), r2(p.v[2]), (p.mode === 'down' ? 1 : p.mode === 'getup' ? 2 : 0) | (p.ground ? 4 : 0) | (p.dive ? 8 : 0) | (p.emote > 0 ? 16 : 0)]),
@@ -2882,13 +2889,13 @@ function myInput() { // world direction from my stick (same maths as stepPlayer)
 }
 function netTick(now) {
   if (HOSTING) { if (Gm.phase !== 'intro') netSend(false); return; }
-  if (now - netAt < 66) return; netAt = now; const i = myInput();
+  if (now - netAt < 33 && myJ === sentJ) return; netAt = now; sentJ = myJ; const i = myInput();
   NET.send({ t: 'bin', x: r2(i[0]), z: r2(i[1]), j: myJ, e: myE });
 }
 function netIn(m) { const p = PL.find((q) => q.pid === m.id); if (p && p.remote) p.rin = m; }
 function netSnap(m) {
   if (HOSTING || !PL.length) return;
-  m.at = performance.now(); lastSnap = m;
+  m.at = performance.now(); lastSnap = m; if (m.b && m.b.length && m.b.length !== BALLS.length) setBalls(m.b.length);
   const ph = PH[m.g[0]] || 'play';
   if (ph === 'count' && Gm.phase !== 'count') { Gm.phase = 'count'; }
   if (ph === 'play' && Gm.phase === 'count') { big('GO!'); SND.go(); SND.whistle(1); }
@@ -2896,7 +2903,7 @@ function netSnap(m) {
   Gm.t = m.g[2];
   (m.ev || []).forEach((e) => {
     if (e[0] === 'g') { Gm.score = { o: m.g[3], b: m.g[4] }; const b = BALLS[e[3]] || BALLS[0]; goalFx(b, e[1], PL[e[2]] || null); }
-    else if (e[0] === 'f' && PL[e[1]] === ME) doFx(e[2], e[3]);
+    else if (e[0] === 'f' && PL[e[1]] === ME && !['push', 'boing', 'bump', 'hit'].includes(e[2])) doFx(e[2], e[3]);
   });
   Gm.score = { o: m.g[3], b: m.g[4] }; $('sO').textContent = Gm.score.o; $('sB').textContent = Gm.score.b;
   if (ph === 'end' && Gm.phase !== 'end') { Gm.phase = 'end'; endMatch(); return; }
@@ -2912,23 +2919,29 @@ function netClientFrame(dt) {
     if (p === ME && mode === 0) { // my buddy: move right away on my phone, then ease onto the host's spot
       if (p.mode === 'down') { p.mode = 'run'; p.dive = false; }
       stepPlayer(p, dt);
-      const d = Math.hypot(tx - p.p[0], tz - p.p[2]); const k = d > 4 ? 1 : 0.08;
+      const d = Math.hypot(tx - p.p[0], tz - p.p[2]); const k = d > 4 ? 1 : Math.min(1, dt * (d > 1.2 ? 8 : 3));
       p.p[0] += (tx - p.p[0]) * k; p.p[2] += (tz - p.p[2]) * k; if (!(s[7] & 4) && p.ground) { p.p[1] += (ty - p.p[1]) * 0.3; }
       return;
     }
-    const k = Math.min(1, dt * 14);
+    const k = Math.min(1, dt * 20);
     p.p[0] += (tx - p.p[0]) * k; p.p[1] += (ty - p.p[1]) * k; p.p[2] += (tz - p.p[2]) * k;
     p.v[0] = s[4]; p.v[1] = s[5]; p.v[2] = s[6];
     let dy = s[3] - p.yaw; while (dy > Math.PI) dy -= 2 * Math.PI; while (dy < -Math.PI) dy += 2 * Math.PI; p.yaw += dy * k;
     const was = p.mode; p.mode = mode === 1 ? 'down' : mode === 2 ? 'getup' : 'run'; if (p.mode === 'down' && was !== 'down') p.spin = [rand(-9, 9), rand(6, 12)];
     p.ground = !!(s[7] & 4); p.dive = !!(s[7] & 8); if (s[7] & 16) p.emote = Math.max(p.emote, 0.2);
   });
+  // balls: simulate on this phone (so my pushes show at once), then ease onto the host's balls
+  const step = 1 / 120; let n = Math.min(8, Math.round(dt / step) || 1); const others = PL.filter((p) => p !== ME); PL.length = 0; PL.push(ME);
+  while (n--) { BALLS.forEach((b) => { if (b.out <= 0) stepBall(b, step); }); collide(step); }
+  PL.push(...others); PL.sort((x, y) => x.i - y.i);
   BALLS.forEach((b, i) => {
-    const s = m.b[i]; if (!s) return; const k = Math.min(1, dt * 14);
-    if (s[10]) { b.out = 1; b.p[1] = -50; return; } b.out = 0;
-    const tx = s[0] + s[3] * age, ty = s[1] + s[4] * age, tz = s[2] + s[5] * age;
-    if (Math.hypot(tx - b.p[0], ty - b.p[1], tz - b.p[2]) > 8) { b.p = [tx, ty, tz]; } else { b.p[0] += (tx - b.p[0]) * k; b.p[1] += (ty - b.p[1]) * k; b.p[2] += (tz - b.p[2]) * k; }
-    qT.set(s[6], s[7], s[8], s[9]).normalize(); b.q.slerp(qT, k);
+    const s = m.b[i]; if (!s) return;
+    if (s[10]) { b.out = 1; b.p[1] = -50; return; } if (b.out > 0) { b.out = 0; b.p = [s[0], s[1], s[2]]; }
+    const tx = s[0] + s[3] * age, ty = s[1] + s[4] * age, tz = s[2] + s[5] * age, d = Math.hypot(tx - b.p[0], ty - b.p[1], tz - b.p[2]);
+    const k = d > 6 ? 1 : Math.min(1, dt * (d > 2 ? 10 : 4));
+    b.p[0] += (tx - b.p[0]) * k; b.p[1] += (ty - b.p[1]) * k; b.p[2] += (tz - b.p[2]) * k;
+    b.v[0] += (s[3] - b.v[0]) * k; b.v[1] += (s[4] - b.v[1]) * k; b.v[2] += (s[5] - b.v[2]) * k;
+    qT.set(s[6], s[7], s[8], s[9]).normalize(); b.q.slerp(qT, Math.min(1, dt * 8));
   });
 }
 let jumpQ = false;
@@ -8748,11 +8761,12 @@ window.golfMount = function (SR, API) {
       fill(setBox, h('div', { class: 'card tight' }, host ? [
         h('div', { class: 'set' }, h('div', { class: 'lbl' }, '🤖 Bot level'), seg([['easy', 'Easy'], ['normal', 'Normal'], ['hard', 'Hard']], st.diff, function (v) { send({ t: 'bset', diff: v }); })),
         h('div', { class: 'set' }, h('div', { class: 'lbl' }, '⏱ Match'), seg([['t2', '2 min'], ['t3', '3 min'], ['t5', '5 min'], ['g', 'First to…']], st.mode, function (v) { send({ t: 'bset', mode: v }); })),
+        h('div', { class: 'set' }, h('div', { class: 'lbl' }, '⚽ Giant balls'), h('div', { class: 'bfstep' }, h('button', { type: 'button', onclick: function () { send({ t: 'bset', balls: Math.max(1, (st.balls || 3) - 1) }); } }, '−'), h('b', null, st.balls || 3), h('button', { type: 'button', onclick: function () { send({ t: 'bset', balls: Math.min(5, (st.balls || 3) + 1) }); } }, '+'))),
         st.mode === 'g' ? h('div', { class: 'set' }, h('div', { class: 'lbl' }, '🥅 Goals to win'), seg([[3, '3'], [5, '5'], [7, '7'], [10, '10']], st.goals, function (v) { send({ t: 'bset', goals: v }); })) : null,
         h('div', { class: 'set' }, h('div', { class: 'lbl' }, '🎁 Head start goals'),
           h('div', { class: 'bfstep' }, '🟠', h('button', { type: 'button', onclick: function () { send({ t: 'bset', head: { o: Math.max(0, st.head.o - 1), b: st.head.b } }); } }, '−'), h('b', null, st.head.o), h('button', { type: 'button', onclick: function () { send({ t: 'bset', head: { o: Math.min(5, st.head.o + 1), b: st.head.b } }); } }, '+'),
             '  🔵', h('button', { type: 'button', onclick: function () { send({ t: 'bset', head: { o: st.head.o, b: Math.max(0, st.head.b - 1) } }); } }, '−'), h('b', null, st.head.b), h('button', { type: 'button', onclick: function () { send({ t: 'bset', head: { o: st.head.o, b: Math.min(5, st.head.b + 1) } }); } }, '+')))]
-        : h('p', { class: 'mute', style: 'margin:0' }, '⏱ ' + ml[st.mode] + ' · 🤖 ' + st.diff + (st.head.o || st.head.b ? ' · 🎁 head start ' + st.head.o + '–' + st.head.b : ''))));
+        : h('p', { class: 'mute', style: 'margin:0' }, '⏱ ' + ml[st.mode] + ' · ⚽ ' + (st.balls || 3) + ' balls · 🤖 ' + st.diff + (st.head.o || st.head.b ? ' · 🎁 head start ' + st.head.o + '–' + st.head.b : ''))));
       fill(act, host ? h('button', { class: 'btn primary', type: 'button', onclick: function () { send({ t: 'bstart' }); } }, ps.length + st.bots.o + st.bots.b < 2 ? 'Add a bot first' : '🤼 Kick off!') : h('p', { class: 'mute center' }, 'Waiting for the host to start…'));
     } };
   };

@@ -765,7 +765,7 @@ function ckView(room, p) {
 function makeRoom(words) {
   const room = {
     code: newCode(), hostId: null, supervisorId: null, players: new Map(),
-    game: 'undercover', dwSet: { rounds: 3, secs: 80, hints: 2 }, dw: null, gfSet: { holes: 3, secs: 8 }, gf: null, bfSet: { diff: 'normal', mode: 't2', goals: 5, head: { o: 0, b: 0 }, bots: { o: 2, b: 2 } }, bf: null, unSet: { secs: 20, mode: 'classic' }, un: null, ckSet: { mode: 'team', overs: 2, building: true, onetip: true }, ck: null, ckTeam: {}, fbSet: { goals: 3, secs: 8, mode: 'match', tie: 'pens' }, fb: null, rc: null,
+    game: 'undercover', dwSet: { rounds: 3, secs: 80, hints: 2 }, dw: null, gfSet: { holes: 3, secs: 8 }, gf: null, bfSet: { diff: 'normal', mode: 't2', goals: 5, head: { o: 0, b: 0 }, bots: { o: 2, b: 2 }, balls: 3 }, bf: null, unSet: { secs: 20, mode: 'classic' }, un: null, ckSet: { mode: 'team', overs: 2, building: true, onetip: true }, ck: null, ckTeam: {}, fbSet: { goals: 3, secs: 8, mode: 'match', tie: 'pens' }, fb: null, rc: null,
     open: true, pending: new Map(), blocked: new Set(), cool: new Map(),
     phase: 'lobby', round: 0, seq: 0, timer: null, endsAt: 0,
     settings: { describeSecs: 30, autoRoles: true, undercover: 1, white: 1, whiteGuess: true, hint: false, board: true, reacts: true, modes: ['mix'], joker: false, chat: true, chatSlow: 5, reactCd: 3, ucGuess: true, whiteTries: 2, sheriff: true },
@@ -2613,6 +2613,7 @@ function handle(ws, m) {
       if (['easy', 'normal', 'hard'].includes(m.diff)) st.diff = m.diff;
       if (['t2', 't3', 't5', 'g'].includes(m.mode)) st.mode = m.mode;
       if ([3, 5, 7, 10].includes(Number(m.goals))) st.goals = Number(m.goals);
+      if ([1, 2, 3, 4, 5].includes(Number(m.balls))) st.balls = Number(m.balls);
       if (m.head && typeof m.head === 'object') ['o', 'b'].forEach((k) => { const v = Number(m.head[k]); if (Number.isInteger(v) && v >= 0 && v <= 5) st.head[k] = v; });
       if (m.bots && typeof m.bots === 'object') ['o', 'b'].forEach((k) => { const v = Number(m.bots[k]); if (Number.isInteger(v) && v >= 0 && v <= 11) st.bots[k] = v; });
       const hn = bfHumans(room).length; while (hn + st.bots.o + st.bots.b > 12) { if (st.bots.o >= st.bots.b && st.bots.o > 0) st.bots.o--; else if (st.bots.b > 0) st.bots.b--; else break; }
@@ -2659,7 +2660,7 @@ function handle(ws, m) {
     }
     case 'bst': { // the host's match snapshot, sent on to everyone else
       if (room.game !== 'bully' || room.phase !== 'bplay' || p.id !== room.hostId) return;
-      const now = Date.now(); if (now - (room.bfAt || 0) < 40) return; room.bfAt = now;
+      const now = Date.now(); if (now - (room.bfAt || 0) < 20) return; room.bfAt = now;
       m.t = 'bst'; return bfRelay(room, p, m);
     }
     case 'bend': {
@@ -2968,7 +2969,7 @@ wss.on('connection', (ws) => {
     let m;
     try { m = JSON.parse(raw.toString()); } catch (e) { return; }
     const hot = m && (m.t === 'dop' || m.t === 'dguess' || m.t === 'rpos' || m.t === 'ckpos' || m.t === 'rprog' || m.t === 'rbump' || m.t === 'vsig' || m.t === 'ping' || m.t === 'bin' || m.t === 'bst');
-    if (hot ? ++ws.rh > 260 : ++ws.rl > 40) return; // flood guard (reset every 5s); race positions & voice setup have their own, bigger budget
+    if (hot ? ++ws.rh > 420 : ++ws.rl > 40) return; // flood guard (reset every 5s); race positions & voice setup have their own, bigger budget
     try { handle(ws, m); } catch (e) { console.error('handler error:', e); }
   });
   ws.on('close', () => {
