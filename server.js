@@ -765,7 +765,7 @@ function ckView(room, p) {
 function makeRoom(words) {
   const room = {
     code: newCode(), hostId: null, supervisorId: null, players: new Map(),
-    game: 'undercover', dwSet: { rounds: 3, secs: 80, hints: 2 }, dw: null, gfSet: { holes: 3, secs: 8 }, gf: null, unSet: { secs: 20, mode: 'classic' }, un: null, ckSet: { mode: 'team', overs: 2, building: true, onetip: true }, ck: null, ckTeam: {}, fbSet: { goals: 3, secs: 8, mode: 'match', tie: 'pens' }, fb: null, rc: null,
+    game: 'undercover', dwSet: { rounds: 3, secs: 80, hints: 2 }, dw: null, gfSet: { holes: 3, secs: 8 }, gf: null, bfSet: { diff: 'normal', mode: 't2', goals: 5, head: { o: 0, b: 0 }, bots: { o: 2, b: 2 } }, bf: null, unSet: { secs: 20, mode: 'classic' }, un: null, ckSet: { mode: 'team', overs: 2, building: true, onetip: true }, ck: null, ckTeam: {}, fbSet: { goals: 3, secs: 8, mode: 'match', tie: 'pens' }, fb: null, rc: null,
     open: true, pending: new Map(), blocked: new Set(), cool: new Map(),
     phase: 'lobby', round: 0, seq: 0, timer: null, endsAt: 0,
     settings: { describeSecs: 30, autoRoles: true, undercover: 1, white: 1, whiteGuess: true, hint: false, board: true, reacts: true, modes: ['mix'], joker: false, chat: true, chatSlow: 5, reactCd: 3, ucGuess: true, whiteTries: 2, sheriff: true },
@@ -892,6 +892,7 @@ function view(room, p) {
   if (room.game === 'cricket') { v.ckSet = room.ckSet; v.ckTeam = ckTeams(room); v.ck = ckView(room, p); }
   if (room.game === 'draw') { v.dwSet = room.dwSet; if (room.dw) v.dw = dwView(room, p); }
   if (room.game === 'golf') { v.gfSet = room.gfSet; if (room.gf) v.gf = gfView(room); }
+  if (room.game === 'bully') { v.bfSet = room.bfSet; v.bfMe = {}; for (const q of room.players.values()) if (!q.left) v.bfMe[q.id] = bfOf(room, q); if (room.bf) v.bf = { ids: room.bf.ids, seq: room.bf.seq, res: room.bf.res || null }; }
   if (room.game === 'race' && room.rc) {
     const r = room.rc;
     v.rc = { ids: r.ids, startAt: r.startAt, laps: RACE_LAPS, fin: r.fin, results: r.results, rank: raceRank(room) };
@@ -1613,6 +1614,7 @@ function afterRemoval(room) {
   if (room.game === 'cricket') return ckCheck(room);
   if (room.game === 'draw') return dwCheck(room);
   if (room.game === 'golf') return gfCheck(room);
+  if (room.game === 'bully') return bfCheck(room);
   if (!['describe', 'vote', 'whiteguess', 'elim'].includes(room.phase)) return broadcast(room);
   const win = checkWin(room);
   if (win) return endGame(room, win);
@@ -1645,7 +1647,7 @@ function removePlayer(room, p, selfLeft) {
   p.ws = null; p.connected = false;
   if (room.supervisorId === p.id && room.phase === 'lobby') { room.supervisorId = null; room.customPair = null; }
   if (room.supReq === p.id) room.supReq = null;
-  if (room.phase === 'lobby' || room.phase === 'over' || room.phase === 'dover' || room.phase === 'gover') room.players.delete(p.id);
+  if (room.phase === 'lobby' || room.phase === 'over' || room.phase === 'dover' || room.phase === 'gover' || room.phase === 'bover') room.players.delete(p.id);
   else { p.left = true; p.alive = false; delete room.votes[p.id]; delete room.descs[p.id]; }
   if (![...room.players.values()].some((q) => !q.left)) { clearTimeout(room.timer); dwClear(room); rooms.delete(room.code); return; }
   if (wasHost && !transferHost(room)) { /* nobody connected: host stays unassigned until someone rejoins */ }
@@ -1674,6 +1676,31 @@ function attach(ws, room, p) {
   if (room.game === 'football' && room.phase === 'fplay' && room.fb && room.fb.sim) send(ws, fgoMsg(room.fb));
   broadcast(room);
 }
+
+
+// ================================================================ Bully Football (6v6 party football, the host's phone runs the match)
+const BF_CHARS = ['vedant', 'dj', 'rutu', 'hacker', 'beasty', 'moizt', 'bocha', 'jelly'];
+function bfOf(room, q) { // a player's picks, with defaults
+  if (!q.bf) { const used = new Set([...room.players.values()].filter((x) => x !== q && x.bf).map((x) => x.bf.num)); let n = 7; while (used.has(n)) n++; q.bf = { char: 'jelly', jelly: Math.floor(Math.random() * 6), num: n, team: null }; }
+  if (!q.bf.team) { const c = { o: 0, b: 0 }; for (const x of room.players.values()) if (x !== q && !x.left && x.bf && x.bf.team) c[x.bf.team]++; q.bf.team = c.o <= c.b ? 'o' : 'b'; }
+  return q.bf;
+}
+function bfHumans(room) { return [...room.players.values()].filter((q) => !q.left); }
+function bfStart(room) {
+  const hs = bfHumans(room), set = room.bfSet;
+  const total = hs.length + set.bots.o + set.bots.b;
+  if (total > 12) return 'Too many players: 12 max (remove some bots)';
+  if (total < 2) return 'Add at least one bot or another player';
+  hs.forEach((q) => bfOf(room, q));
+  room.bf = { ids: hs.map((q) => q.id), seq: (room.bf ? room.bf.seq : 0) + 1, res: null, host: room.hostId };
+  for (const q of room.players.values()) q.watch = false;
+  setPhase(room, 'bplay'); return broadcast(room);
+}
+function bfCheck(room) { // somebody left: if the host's phone (which runs the match) is gone, back to the lobby
+  if (room.phase === 'bplay') { const h = room.players.get(room.hostId); if (!h || h.left || !room.bf || room.bf.host !== room.hostId) { setPhase(room, 'lobby'); room.bf = null; notice(room, '⚠️ The match stopped: the host left'); } }
+  return broadcast(room);
+}
+function bfRelay(room, from, obj) { const str = JSON.stringify(obj); for (const q of room.players.values()) if (q !== from && q.ws && q.connected && q.ws.readyState === 1) q.ws.send(str); }
 
 // ================================================================ Draw & Guess (skribbl style)
 // Everything for this game lives in this block so only server.js needs uploading.
@@ -2259,7 +2286,7 @@ function handle(ws, m) {
     const name = clean(m.name, 14);
     if (!name) return errTo(ws, 'Enter your name');
     const room = makeRoom(loadWords(m));
-    if (m.game === 'football' || m.game === 'race' || m.game === 'uno' || m.game === 'cricket' || m.game === 'draw' || m.game === 'golf') room.game = m.game;
+    if (m.game === 'football' || m.game === 'race' || m.game === 'uno' || m.game === 'cricket' || m.game === 'draw' || m.game === 'golf' || m.game === 'bully') room.game = m.game;
     if (m.open === false) room.open = false;
     const p = addPlayer(room, name);
     room.hostId = room.ownerId = p.id;
@@ -2534,16 +2561,16 @@ function handle(ws, m) {
     }
     case 'switchgame': {
       if (!hostOnly()) return;
-      const g = ['undercover', 'football', 'race', 'uno', 'cricket', 'draw', 'golf'].includes(m.game) ? m.game : null;
+      const g = ['undercover', 'football', 'race', 'uno', 'cricket', 'draw', 'golf', 'bully'].includes(m.game) ? m.game : null;
       if (!g) return;
-      if (!['lobby', 'over', 'fover', 'rover', 'uover', 'cover', 'dover', 'gover'].includes(room.phase)) return errTo(ws, 'Finish or end the current game first');
+      if (!['lobby', 'over', 'fover', 'rover', 'uover', 'cover', 'dover', 'gover', 'bover'].includes(room.phase)) return errTo(ws, 'Finish or end the current game first');
       if (g === room.game && room.phase === 'lobby') return;
-      clearTimeout(room.timer); dwClear(room); room.dw = null; room.gf = null; room.seq++;
+      clearTimeout(room.timer); dwClear(room); room.dw = null; room.gf = null; room.bf = null; room.seq++;
       room.game = g; room.un = null; room.fb = null; room.pkPick = null; room.rc = null; room.ck = null; room.winner = null; room.guess = null; room.votes = {}; room.tie = false; room.descs = {}; room.history = [];
       for (const [qid, q] of room.players) if (q.left) room.players.delete(qid);
       for (const q of room.players.values()) { q.watch = false; q.alive = true; q.role = null; q.word = ''; q.revealed = false; }
       setPhase(room, 'lobby');
-      const gn = { undercover: '🕵️ Undercover', football: '⚽ Football', race: '🏖️ Beach Buggy', uno: '🃏 UNO', cricket: '🏏 Cricket', draw: '🎨 Draw & Guess', golf: '⛳ Golf' }[g];
+      const gn = { undercover: '🕵️ Undercover', football: '⚽ Football', race: '🏖️ Beach Buggy', uno: '🃏 UNO', cricket: '🏏 Cricket', draw: '🎨 Draw & Guess', golf: '⛳ Golf', bully: '🤼 Bully Football' }[g];
       notice(room, '🎮 The host switched the game to ' + gn);
       return broadcast(room);
     }
@@ -2579,6 +2606,66 @@ function handle(ws, m) {
       if ([1, 3, 6, 9].includes(Number(m.holes))) room.gfSet.holes = Number(m.holes);
       if ([8, 12, 20].includes(Number(m.secs))) room.gfSet.secs = Number(m.secs);
       return broadcast(room);
+    }
+    case 'bset': {
+      if (!hostOnly() || room.game !== 'bully' || !['lobby', 'bover'].includes(room.phase)) return;
+      const st = room.bfSet;
+      if (['easy', 'normal', 'hard'].includes(m.diff)) st.diff = m.diff;
+      if (['t2', 't3', 't5', 'g'].includes(m.mode)) st.mode = m.mode;
+      if ([3, 5, 7, 10].includes(Number(m.goals))) st.goals = Number(m.goals);
+      if (m.head && typeof m.head === 'object') ['o', 'b'].forEach((k) => { const v = Number(m.head[k]); if (Number.isInteger(v) && v >= 0 && v <= 5) st.head[k] = v; });
+      if (m.bots && typeof m.bots === 'object') ['o', 'b'].forEach((k) => { const v = Number(m.bots[k]); if (Number.isInteger(v) && v >= 0 && v <= 11) st.bots[k] = v; });
+      const hn = bfHumans(room).length; while (hn + st.bots.o + st.bots.b > 12) { if (st.bots.o >= st.bots.b && st.bots.o > 0) st.bots.o--; else if (st.bots.b > 0) st.bots.b--; else break; }
+      return broadcast(room);
+    }
+    case 'bme': { // my character / number / team
+      if (room.game !== 'bully' || !['lobby', 'bover'].includes(room.phase)) return;
+      const me = bfOf(room, p);
+      if (typeof m.char === 'string' && BF_CHARS.includes(m.char)) {
+        if (m.char !== 'jelly' && [...room.players.values()].some((q) => q !== p && !q.left && q.bf && q.bf.char === m.char)) return errTo(ws, 'Someone already picked that character');
+        me.char = m.char;
+      }
+      if (Number.isInteger(m.jelly) && m.jelly >= 0 && m.jelly < 6) me.jelly = m.jelly;
+      if (Number.isInteger(m.num) && m.num >= 0 && m.num <= 100) me.num = m.num;
+      if (m.team === 'o' || m.team === 'b') me.team = m.team;
+      return broadcast(room);
+    }
+    case 'bteam': { // host moves a player to the other side
+      if (!hostOnly() || room.game !== 'bully' || !['lobby', 'bover'].includes(room.phase)) return;
+      const q = room.players.get(String(m.id)); if (!q || q.left) return; const b = bfOf(room, q); b.team = b.team === 'o' ? 'b' : 'o'; return broadcast(room);
+    }
+    case 'bshuffle': {
+      if (!hostOnly() || room.game !== 'bully' || !['lobby', 'bover'].includes(room.phase)) return;
+      const hs = bfHumans(room).sort(() => Math.random() - 0.5), st = room.bfSet, total = hs.length + st.bots.o + st.bots.b, half = Math.ceil(total / 2), side = Math.random() < 0.5 ? ['o', 'b'] : ['b', 'o'];
+      const hA = Math.min(hs.length, Math.ceil(hs.length / 2)); hs.forEach((q, i) => { bfOf(room, q).team = i < hA ? side[0] : side[1]; });
+      st.bots[side[0]] = Math.max(0, half - hA); st.bots[side[1]] = Math.max(0, total - half - (hs.length - hA));
+      return broadcast(room);
+    }
+    case 'bstart': {
+      if (!hostOnly() || room.game !== 'bully' || !['lobby', 'bover', 'bplay'].includes(room.phase)) return;
+      const e = bfStart(room); return e ? errTo(ws, e) : undefined;
+    }
+    case 'blobby': {
+      if (!hostOnly() || room.game !== 'bully' || room.phase === 'lobby') return;
+      setPhase(room, 'lobby'); room.bf = null;
+      for (const [qid, q] of room.players) if (q.left) room.players.delete(qid);
+      return broadcast(room);
+    }
+    case 'bin': { // a player's stick + buttons, passed straight to the host's phone
+      if (room.game !== 'bully' || room.phase !== 'bplay' || p.id === room.hostId) return;
+      const h = room.players.get(room.hostId); if (!h || !h.ws || !h.connected) return;
+      const n = (v, a) => { v = Number(v); return Number.isFinite(v) ? Math.max(-a, Math.min(a, Math.round(v * 100) / 100)) : 0; };
+      return send(h.ws, { t: 'bin', id: p.id, x: n(m.x, 1), z: n(m.z, 1), j: (Number(m.j) | 0) % 1e6, e: (Number(m.e) | 0) % 1e6, y: n(m.y, 7) });
+    }
+    case 'bst': { // the host's match snapshot, sent on to everyone else
+      if (room.game !== 'bully' || room.phase !== 'bplay' || p.id !== room.hostId) return;
+      const now = Date.now(); if (now - (room.bfAt || 0) < 40) return; room.bfAt = now;
+      m.t = 'bst'; return bfRelay(room, p, m);
+    }
+    case 'bend': {
+      if (room.game !== 'bully' || room.phase !== 'bplay' || p.id !== room.hostId || !room.bf) return;
+      room.bf.res = { o: Math.max(0, Math.min(99, Number(m.o) | 0)), b: Math.max(0, Math.min(99, Number(m.b) | 0)) };
+      setPhase(room, 'bover'); return broadcast(room);
     }
     case 'gstart': {
       if (!hostOnly() || room.game !== 'golf' || !['lobby', 'gover'].includes(room.phase)) return;
@@ -2880,7 +2967,7 @@ wss.on('connection', (ws) => {
     ws.isAlive = true;
     let m;
     try { m = JSON.parse(raw.toString()); } catch (e) { return; }
-    const hot = m && (m.t === 'dop' || m.t === 'dguess' || m.t === 'rpos' || m.t === 'ckpos' || m.t === 'rprog' || m.t === 'rbump' || m.t === 'vsig' || m.t === 'ping');
+    const hot = m && (m.t === 'dop' || m.t === 'dguess' || m.t === 'rpos' || m.t === 'ckpos' || m.t === 'rprog' || m.t === 'rbump' || m.t === 'vsig' || m.t === 'ping' || m.t === 'bin' || m.t === 'bst');
     if (hot ? ++ws.rh > 260 : ++ws.rl > 40) return; // flood guard (reset every 5s); race positions & voice setup have their own, bigger budget
     try { handle(ws, m); } catch (e) { console.error('handler error:', e); }
   });
