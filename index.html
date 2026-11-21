@@ -4123,6 +4123,69 @@ window.golfMount = function (SR, API) {
 };
 
 </script>
+<style id="ux2">
+/* ===== loading screen ===== */
+#boot{position:fixed;inset:0;z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:calc(40px + env(safe-area-inset-top)) 28px calc(48px + env(safe-area-inset-bottom));background:radial-gradient(120% 80% at 50% 30%,#2a1850 0%,#12101f 60%,#0a0912 100%);color:#fff;font-family:'Nunito',system-ui,sans-serif;opacity:0;animation:bootin .35s ease .6s forwards;transition:opacity .35s}
+#boot.out{opacity:0!important;pointer-events:none}
+@keyframes bootin{to{opacity:1}}
+#boot .bt-art{flex:1;width:100%;display:flex;align-items:center;justify-content:center;min-height:120px}
+#boot h2{margin:0 0 6px;font:900 26px/1.1 'Lilita One','Nunito',system-ui,sans-serif;letter-spacing:.3px;text-align:center}
+#boot .bt-sub{margin:0 0 18px;text-align:center;font-weight:700;font-size:14px;opacity:.75;min-height:20px}
+#boot .bt-bar{width:100%;max-width:360px;height:16px;border-radius:10px;background:rgba(255,255,255,.12);border:2px solid #ff9a2e;overflow:hidden;box-shadow:0 0 18px rgba(255,154,46,.35)}
+#boot .bt-bar i{display:block;height:100%;width:4%;border-radius:8px;background:linear-gradient(90deg,#ff7a00,#ffb347);transition:width .5s ease}
+#boot .bt-low{width:100%;max-width:360px;text-align:center}
+/* ===== voice button ===== */
+.vpill{position:relative;display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 16px;border-radius:21px;border:2px solid #121212;background:#fff;color:#121212;font:800 14px/1 'Nunito',system-ui,sans-serif;box-shadow:2px 2px 0 #121212;cursor:pointer;touch-action:none;white-space:nowrap}
+.vpill:active{transform:translate(1px,1px);box-shadow:1px 1px 0 #121212}
+.vpill svg{flex:none}
+.vpill em{font-style:normal;font-weight:800;font-size:11px;background:#121212;color:#fff;border-radius:9px;padding:3px 7px}
+.vpill.live{background:#12c25a;color:#fff;border-color:#0a7a37;animation:vlive 1.2s ease-in-out infinite}
+.vpill.muted{background:#e5334a;color:#fff;border-color:#8c1224}
+.vleave{height:42px;padding:0 12px;border-radius:21px;border:2px solid #121212;background:#fff;color:#121212;font:800 13px/1 'Nunito',system-ui,sans-serif;box-shadow:2px 2px 0 #121212;cursor:pointer}
+.vwrap{position:relative;display:inline-flex}
+.vhint{position:absolute;bottom:calc(100% + 10px);left:0;background:#fff3c4;color:#121212;border:2px solid #121212;border-radius:12px;padding:7px 11px;font:800 12.5px/1.2 'Nunito',system-ui,sans-serif;white-space:nowrap;box-shadow:2px 2px 0 #121212;animation:vhint 1.4s ease-in-out infinite;pointer-events:none}
+.vhint:after{content:'';position:absolute;left:24px;top:100%;border:7px solid transparent;border-top-color:#121212}
+@keyframes vhint{50%{transform:translateY(-3px)}}
+/* ===== feedback + admin ===== */
+.ux-row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 4px}
+.ux-pill{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 15px;border-radius:20px;border:2px solid #121212;background:#171629;color:#fff;font:800 13.5px/1 'Nunito',system-ui,sans-serif;cursor:pointer}
+.ux-pill:active{transform:scale(.97)}
+.ux-pill.adm{background:#ff7a00;border-color:#121212}
+.ux-ov{position:fixed;inset:0;z-index:9000;background:rgba(8,7,20,.75);display:flex;align-items:flex-end;justify-content:center;padding:12px;font-family:'Nunito',system-ui,sans-serif}
+.ux-sheet{width:100%;max-width:480px;max-height:92vh;overflow:auto;background:#171629;color:#fff;border-radius:22px;padding:18px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.ux-sheet h3{margin:0 0 6px;font:900 21px/1.1 'Lilita One','Nunito',system-ui,sans-serif}
+.ux-sheet p{margin:0 0 12px;opacity:.75;font-weight:700;font-size:13.5px}
+.ux-sheet textarea{width:100%;min-height:110px;resize:vertical;border-radius:14px;border:2px solid #3a3860;background:#0f0e1a;color:#fff;padding:12px;font:600 15px/1.35 'Nunito',system-ui,sans-serif;box-sizing:border-box}
+.ux-sheet .ux-cnt{text-align:right;font-size:11px;opacity:.55;margin:3px 0 8px}
+.ux-tg{display:flex;align-items:center;gap:12px;width:100%;background:#0f0e1a;border:2px solid #3a3860;border-radius:14px;padding:10px 12px;color:#fff;font:800 14px/1.2 'Nunito',system-ui,sans-serif;text-align:left;cursor:pointer;margin-bottom:12px}
+.ux-tg .sw{flex:none;width:46px;height:26px;border-radius:13px;background:#555;position:relative;transition:background .2s}
+.ux-tg .sw:after{content:'';position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s}
+.ux-tg.on .sw{background:#12c25a}.ux-tg.on .sw:after{transform:translateX(20px)}
+.ux-tg small{display:block;font-weight:600;opacity:.65;margin-top:2px}
+.ux-b{display:block;width:100%;min-height:48px;border-radius:14px;border:0;background:linear-gradient(#ffa133,#ff7a00);color:#fff;font:900 16px/1 'Lilita One','Nunito',system-ui,sans-serif;letter-spacing:.4px;cursor:pointer;box-shadow:0 4px 0 #b34f00}
+.ux-b.gh{background:#2a2850;box-shadow:none;margin-top:8px;font-size:14px}
+.ux-b[disabled]{opacity:.5}
+.adm{background:#12111f;color:#fff;border-radius:18px;padding:12px;font-family:'Nunito',system-ui,sans-serif;min-height:60vh}
+.adm-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.adm-top b{font:900 20px 'Lilita One','Nunito',system-ui,sans-serif;flex:1}
+.adm-top button{border:0;border-radius:12px;background:#2a2850;color:#fff;font:800 13px 'Nunito',system-ui,sans-serif;padding:9px 13px;cursor:pointer}
+.adm-tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px}
+.adm-tabs button{flex:none;border:0;border-radius:16px;background:#23213f;color:#cfcdf0;font:800 13px 'Nunito',system-ui,sans-serif;padding:8px 13px;cursor:pointer}
+.adm-tabs button.on{background:#ff7a00;color:#fff}
+.adm-card{background:#1d1b34;border-radius:14px;padding:10px 12px;margin-bottom:8px}
+.adm-r{display:flex;align-items:center;gap:10px}
+.adm-r>div{min-width:0;flex:1}
+.adm-r b{display:block;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adm-r small,.adm-mute{display:block;color:#a9a7cf;font-weight:700;font-size:12px;line-height:1.35}
+.adm-acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.adm-acts button{border:0;border-radius:10px;background:#2f2c57;color:#fff;font:800 12px 'Nunito',system-ui,sans-serif;padding:8px 11px;cursor:pointer}
+.adm-acts button.red{background:#c9304a}.adm-acts button.go{background:#12a850}
+.adm-fb{font-weight:600;font-size:14.5px;line-height:1.4;white-space:pre-wrap;word-break:break-word;margin-bottom:6px}
+.adm-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#12c25a;margin-right:4px}.adm-dot.off{background:#777}
+#apause{position:fixed;inset:0;z-index:8500;background:rgba(10,9,24,.82);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-family:'Nunito',system-ui,sans-serif;text-align:center;padding:20px}
+#apause b{font:900 28px 'Lilita One','Nunito',system-ui,sans-serif}
+</style>
+<div id="boot" role="status" aria-live="polite"><div class="bt-art" id="bootArt"></div><div class="bt-low"><h2>The game is loading</h2><p class="bt-sub" id="bootSub">About 40s left</p><div class="bt-bar"><i id="bootBar"></i></div></div></div>
 <div id="net">Reconnecting…</div>
 <div id="wrap"><header id="hdr"></header><main id="app"></main></div>
 <div id="toast"></div>
@@ -4237,10 +4300,11 @@ window.golfMount = function (SR, API) {
     if (open && ws.readyState === 1) ws.send(JSON.stringify(m)); else queue.push(m);
   }
   function connect() {
-    var url = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws';
+    var url = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws?c=' + encodeURIComponent(myCid);
     ws = new WebSocket(url);
     ws.onopen = function () {
-      open = true; retry = 0; document.getElementById('net').style.display = 'none';
+      open = true; retry = 0; document.getElementById('net').style.display = 'none'; bootDone();
+      sendHello(true); if (load('uc.adm')) ws.send(JSON.stringify({ t: 'adm', token: load('uc.adm') }));
       if (session) ws.send(JSON.stringify({ t: 'rejoin', code: session.code, token: session.token }));
       var q = queue; queue = []; q.forEach(function (m) { ws.send(JSON.stringify(m)); });
     };
@@ -4279,6 +4343,7 @@ window.golfMount = function (SR, API) {
     else if (m.t === 'sheriff') showSheriff(m);
     else if (m.t === 'rrank') { rRank = m.list || []; if (cur && cur.rank) cur.rank(); }
     else if (m.t === 'pong') { if (pingT) { var pm = Math.round(performance.now() - pingT); pingMs = pingMs ? Math.round(pingMs * 0.5 + pm * 0.5) : pm; pingT = 0; } }
+    else if (m.t === 'admok' || m.t === 'admno' || m.t === 'admdata' || m.t === 'fbok') adminMsg(m);
     else if (m.t === 'bst') { if (cur && cur.bst) cur.bst(m); }
     else if (m.t === 'bin') { if (cur && cur.bin) cur.bin(m); }
     else if (m.t === 'rcars') { if (cur && cur.cars) cur.cars(m.l); }
@@ -5263,6 +5328,7 @@ window.golfMount = function (SR, API) {
   var openRooms = [], waitEl = null, onlineN = 0;
   var myCid = load('uc.cid');
   if (!myCid) { myCid = Math.random().toString(36).slice(2, 12); store('uc.cid', myCid); }
+  try { document.cookie = 'uc_cid=' + myCid + ';path=/;max-age=31536000;SameSite=Lax'; } catch (e) {}
   function myPic() { return load('uc.photo') || ''; }
   function meFace(cls) {
     var ph = myPic();
@@ -5394,6 +5460,12 @@ window.golfMount = function (SR, API) {
       pickOpen = !pickOpen; buzz(20); pick.classList.toggle('open', pickOpen); newBtn.setAttribute('aria-expanded', String(pickOpen));
       newBtn.firstChild.textContent = pickOpen ? 'CLOSE −' : 'START A NEW ROOM +';
     } }, 'START A NEW ROOM +');
+    var admBtn = h('button', { class: 'ux-pill adm', type: 'button', style: 'display:none', onclick: function () { mode = 'admin'; render(); } }, ico('shield'), 'Admin');
+    var util = h('div', { class: 'ux-row hx-in', style: '--i:5' }, h('button', { class: 'ux-pill', type: 'button', onclick: openFeedback }, ico('chat'), 'Send feedback'), admBtn);
+    title.addEventListener('click', function () { // 7 quick taps on the title: claim admin (only works while nobody is admin)
+      var n = Date.now(); tapN = n - tapT < 1200 ? tapN + 1 : 1; tapT = n;
+      if (tapN >= 7) { tapN = 0; if (!ADMIN) openClaim(); }
+    });
     var root = h('div', { class: 'hx' },
       h('div', { class: 'hx-top' }, tag, title, me),
       h('div', { class: 'hx-mid' },
@@ -5403,12 +5475,161 @@ window.golfMount = function (SR, API) {
         h('div', { class: 'hx-jr' }, h('div', { class: 'hx-slots' }, slots, inp), go),
         last ? h('button', { class: 'hx-rj', type: 'button', onclick: function () { joinCode(last); } }, '↩ Rejoin room ' + last) : null),
       newBtn)),
-      pick, sec, grid, roomsBox);
+      pick, util, sec, grid, roomsBox);
     var lastAsk = 0;
-    return { root: root, update: function () {}, rooms: paintRooms, tick: function () {
-      if (open && Date.now() - lastAsk > 5000) { lastAsk = Date.now(); send({ t: 'rooms' }); }
+    return { root: root, update: function () { admBtn.style.display = ADMIN ? '' : 'none'; }, rooms: paintRooms, tick: function () {
+      if (open && Date.now() - lastAsk > 5000) { lastAsk = Date.now(); send({ t: 'rooms' }); sendHello(false); }
     } };
   };
+
+  /* ---------- feedback, admin, small shared bits ---------- */
+  var ICO = {
+    mic: '<path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
+    micoff: '<path d="M15 9.3V6a3 3 0 0 0-5.9-.8"/><path d="M9 9v3a3 3 0 0 0 4.7 2.5"/><path d="M5 11a7 7 0 0 0 11.2 5.6M19 11a7 7 0 0 1-.6 2.8M12 18v3"/><path d="M4 4l16 16"/>',
+    chat: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1.1-4.6A8 8 0 1 1 21 12z"/>',
+    shield: '<path d="M12 3l8 3v6c0 5-3.4 8-8 9-4.6-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/>'
+  };
+  function ico(name, size) {
+    var s = document.createElement('span');
+    s.style.cssText = 'display:inline-flex;flex:none';
+    s.innerHTML = '<svg viewBox="0 0 24 24" width="' + (size || 18) + '" height="' + (size || 18) + '" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICO[name] + '</svg>'; // fixed icon strings only
+    return s;
+  }
+  var uxOv = null;
+  function uxClose() { if (uxOv && uxOv.parentNode) uxOv.parentNode.removeChild(uxOv); uxOv = null; }
+  function uxOpen() {
+    uxClose();
+    var sheet = h('div', { class: 'ux-sheet' });
+    for (var i = 0; i < arguments.length; i++) add(sheet, arguments[i]);
+    uxOv = h('div', { class: 'ux-ov', onclick: function (e) { if (e.target === uxOv) uxClose(); } }, sheet);
+    document.body.appendChild(uxOv);
+    return sheet;
+  }
+  function twoTap(label, cls, fn) {
+    var b = h('button', { type: 'button', class: cls || '' }, label), t = null;
+    b.addEventListener('click', function () {
+      if (b.dataset.arm) { clearTimeout(t); delete b.dataset.arm; b.textContent = label; fn(); return; }
+      b.dataset.arm = '1'; b.textContent = 'Tap again to confirm';
+      t = setTimeout(function () { delete b.dataset.arm; b.textContent = label; }, 3000);
+    });
+    return b;
+  }
+  function ago(ms) {
+    var s = Math.max(0, Math.round((Date.now() - ms) / 1000));
+    return s < 60 ? s + 's ago' : s < 3600 ? Math.floor(s / 60) + 'm ago' : s < 86400 ? Math.floor(s / 3600) + 'h ago' : Math.floor(s / 86400) + 'd ago';
+  }
+
+  /* feedback: anyone can send, anonymous or with their name */
+  var fbBusy = null;
+  function openFeedback() {
+    var anon = true;
+    var ta = h('textarea', { maxlength: 600, placeholder: 'Tell us what to fix or add. New games, bugs, ideas…', 'aria-label': 'Your feedback' });
+    var cnt = h('div', { class: 'ux-cnt' }, '0 / 600');
+    ta.addEventListener('input', function () { cnt.textContent = ta.value.length + ' / 600'; });
+    var tg = h('button', { type: 'button', class: 'ux-tg on', role: 'switch', 'aria-checked': 'true' }, h('span', { class: 'sw' }), h('span', null, 'Send anonymously'));
+    var sub = h('small', null, 'The admin will not see your name');
+    tg.lastChild.appendChild(sub);
+    tg.addEventListener('click', function () {
+      anon = !anon; tg.classList.toggle('on', anon); tg.setAttribute('aria-checked', String(anon));
+      sub.textContent = anon ? 'The admin will not see your name' : 'The admin will see your name: ' + (savedName || 'Player');
+    });
+    var go = h('button', { type: 'button', class: 'ux-b', onclick: function () {
+      var t = ta.value.trim();
+      if (t.length < 3) { toast('Write a little more'); return; }
+      go.disabled = true; go.textContent = 'Sending…'; fbBusy = go;
+      send({ t: 'fb', text: t, anon: anon, name: savedName });
+      setTimeout(function () { if (fbBusy === go) { go.disabled = false; go.textContent = 'Send feedback'; fbBusy = null; } }, 6000);
+    } }, 'Send feedback');
+    uxOpen(h('h3', null, 'Send feedback'), h('p', null, 'Want a new game or found a bug? Write it here.'), ta, cnt, tg, go, h('button', { type: 'button', class: 'ux-b gh', onclick: uxClose }, 'Cancel'));
+  }
+
+  /* admin: only the one phone that holds the secret token */
+  var ADMIN = false, ADMD = null, admTab = 'on', admTok = null, tapN = 0, tapT = 0;
+  function openClaim() {
+    uxOpen(h('h3', null, 'Make this phone the admin?'), h('p', null, 'Do this only on your own phone. The first phone to do it becomes the admin.'),
+      h('button', { type: 'button', class: 'ux-b', onclick: function () {
+        var a = new Uint8Array(12); (window.crypto || window.msCrypto).getRandomValues(a);
+        admTok = Array.prototype.map.call(a, function (x) { return ('0' + x.toString(16)).slice(-2); }).join('');
+        send({ t: 'admclaim', token: admTok }); uxClose();
+      } }, 'Yes, this is my phone'),
+      h('button', { type: 'button', class: 'ux-b gh', onclick: uxClose }, 'Cancel'));
+  }
+  function showToken(tok) {
+    var box = h('textarea', { readonly: '', style: 'min-height:56px;font-family:monospace' });
+    box.value = tok;
+    uxOpen(h('h3', null, 'You are the admin'), h('p', null, 'To keep this after the server restarts: in Render, open your service, Environment, and add ADMIN_TOKEN with this value. Then save.'), box,
+      h('button', { type: 'button', class: 'ux-b', style: 'margin-top:10px', onclick: function () { try { box.select(); document.execCommand('copy'); toast('Copied'); } catch (e) {} } }, 'Copy'),
+      h('button', { type: 'button', class: 'ux-b gh', onclick: uxClose }, 'Done'));
+  }
+  function adminMsg(m) {
+    if (m.t === 'admok') {
+      ADMIN = true;
+      if (m.claimed && admTok) { store('uc.adm', admTok); showToken(admTok); }
+      render();
+    } else if (m.t === 'admno') { ADMIN = false; store('uc.adm', null); render(); }
+    else if (m.t === 'admdata') { ADMD = m; if (cur && cur.adm) cur.adm(); }
+    else if (m.t === 'fbok') { fbBusy = null; uxClose(); toast('Thanks! Your feedback was sent'); }
+  }
+  var GN = { undercover: 'Undercover', football: 'Gully Football', race: 'Beach Buggy', uno: 'UNO', cricket: 'Gully Cricket', draw: 'Draw & Guess', golf: 'Gully Golf', bully: 'Bully Football' };
+  screens.admin = function () {
+    var body = h('div'), tabs = h('div', { class: 'adm-tabs' }), last = 0;
+    function who(o) { return o.photo ? h('span', { class: 'av toon pic sm' }, h('img', { src: o.photo, alt: '' })) : avatar(o.name || '?', 0, 'sm'); }
+    function onlineList(d) {
+      if (!d.online.length) return h('p', { class: 'adm-mute' }, 'Nobody is online.');
+      return d.online.map(function (o) {
+        return h('div', { class: 'adm-card' }, h('div', { class: 'adm-r' }, who(o),
+          h('div', null, h('b', null, (o.name || 'No name yet') + (o.admin ? '  (admin)' : '')), h('small', null, o.dev), h('small', null, o.ip + ' · online ' + ago(o.since).replace(' ago', '')),
+            h('small', null, o.code ? (GN[o.game] || 'Undercover') + ' · room ' + o.code + ' · ' + o.phase : 'On the home screen'))),
+          o.admin ? null : h('div', { class: 'adm-acts' },
+            o.code ? twoTap('Kick from room', '', function () { send({ t: 'admkick', uid: o.uid }); }) : null,
+            twoTap('Block device', 'red', function () { send({ t: 'admblock', uid: o.uid }); }),
+            twoTap('Block device + network', 'red', function () { send({ t: 'admblock', uid: o.uid, ip: true }); })));
+      });
+    }
+    function roomList(d) {
+      if (!d.rooms.length) return h('p', { class: 'adm-mute' }, 'No rooms right now.');
+      return d.rooms.map(function (r) {
+        return h('div', { class: 'adm-card' }, h('div', { class: 'adm-r' }, h('div', null, h('b', null, (GN[r.game] || 'Undercover') + ' · ' + r.code), h('small', null, r.phase + (r.paused ? ' · PAUSED' : '') + (r.open ? '' : ' · private')),
+          h('small', null, r.players.map(function (p) { return h('span', { style: 'margin-right:10px;white-space:nowrap' }, h('i', { class: 'adm-dot' + (p.on ? '' : ' off') }), p.name + (p.host ? ' ★' : '')); })))),
+          h('div', { class: 'adm-acts' }, h('button', { type: 'button', class: r.paused ? 'go' : '', onclick: function () { send({ t: 'admpause', code: r.code }); } }, r.paused ? 'Resume game' : 'Pause game')));
+      });
+    }
+    function fbList(d) {
+      if (!d.fb.length) return h('p', { class: 'adm-mute' }, 'No feedback yet.');
+      return d.fb.map(function (f) {
+        return h('div', { class: 'adm-card' }, h('div', { class: 'adm-fb' }, f.text),
+          h('small', { class: 'adm-mute' }, (f.anon ? 'Anonymous' : (f.name || 'No name') + (f.dev ? ' · ' + f.dev : '')) + ' · ' + ago(f.at)),
+          h('div', { class: 'adm-acts' }, twoTap('Delete', 'red', function () { send({ t: 'admfbdel', id: f.id }); })));
+      });
+    }
+    function blockList(d) {
+      var rows = d.blocked.map(function (b) { return h('div', { class: 'adm-card' }, h('div', { class: 'adm-r' }, h('div', null, h('b', null, b.name || 'Device'), h('small', null, 'Device · ' + b.dev + ' · ' + ago(b.at))), h('button', { type: 'button', class: 'ux-pill', onclick: function () { send({ t: 'admunblock', cid: b.cid }); } }, 'Unblock'))); })
+        .concat(d.ips.map(function (b) { return h('div', { class: 'adm-card' }, h('div', { class: 'adm-r' }, h('div', null, h('b', null, b.ip), h('small', null, 'Network of ' + (b.name || '?') + ' · ' + ago(b.at))), h('button', { type: 'button', class: 'ux-pill', onclick: function () { send({ t: 'admunblock', ip: b.ip }); } }, 'Unblock'))); }));
+      return rows.length ? rows : h('p', { class: 'adm-mute' }, 'Nobody is blocked.');
+    }
+    function paint() {
+      var d = ADMD, n = function (a) { return d ? ' (' + a + ')' : ''; };
+      fill(tabs, [['on', 'Online' + n(d && d.online.length)], ['rm', 'Rooms' + n(d && d.rooms.length)], ['fb', 'Feedback' + n(d && d.fb.length)], ['bl', 'Blocked' + n(d && (d.blocked.length + d.ips.length))]].map(function (t) {
+        return h('button', { type: 'button', class: admTab === t[0] ? 'on' : '', onclick: function () { admTab = t[0]; paint(); } }, t[1]);
+      }));
+      fill(body, !d ? h('p', { class: 'adm-mute' }, 'Loading…') : admTab === 'on' ? onlineList(d) : admTab === 'rm' ? roomList(d) : admTab === 'fb' ? fbList(d) : blockList(d));
+    }
+    var root = h('div', { class: 'adm' }, h('div', { class: 'adm-top' }, h('b', null, 'Admin'), h('button', { type: 'button', onclick: function () { send({ t: 'admget' }); } }, 'Refresh'), h('button', { type: 'button', onclick: function () { mode = 'hub'; render(); } }, 'Back')), tabs, body);
+    paint(); send({ t: 'admget' });
+    return { root: root, update: function () {}, adm: paint, tick: function () { if (Date.now() - last > 4000) { last = Date.now(); send({ t: 'admget' }); } } };
+  };
+  function syncPause() {
+    var el = document.getElementById('apause');
+    if (S && S.apaused) {
+      if (!el) document.body.appendChild(h('div', { id: 'apause' }, h('b', null, 'Game paused'), h('span', null, 'The admin paused this game. It will continue soon.')));
+    } else if (el) el.parentNode.removeChild(el);
+  }
+  var helloSig = '';
+  function sendHello(force) {
+    var sig = (savedName || '') + '|' + (myPic() || '').length;
+    if (!force && sig === helloSig) return; helloSig = sig;
+    send({ t: 'hello', cid: myCid, name: savedName || '', photo: myPic() || null });
+  }
 
   /* ---------- profile: name + photo (saved on this phone) ---------- */
   function shrinkCanvas(c) {
@@ -5595,7 +5816,7 @@ window.golfMount = function (SR, API) {
       if (!S) { s.getTracks().forEach(function (t) { t.stop(); }); return; }
       V.stream = s; V.on = true; setMic(false); watchLevel('me', s);
       V.joinAt = Date.now(); send({ t: 'vjoin' }); buzz(30);
-      toast('Voice on. Tap 🔇 to talk'); paintVoice();
+      toast('You joined voice. Tap Muted to turn your mic on'); paintVoice();
     }, function () { V.starting = false; paintVoice(); toast('Microphone is blocked. Allow it in your browser settings'); });
   }
   function voiceStop(tell) {
@@ -5687,13 +5908,17 @@ window.golfMount = function (SR, API) {
     var ids = S.voice || [], me = S.me.id;
     var talking = ids.filter(function (id) { return V.speaking[id === me ? 'me' : vKey(id)]; });
     var bad = Object.keys(V.peers).filter(function (k) { return V.peers[k].failed; });
-    var sig = [V.on, V.mic, V.starting, ids.join(','), talking.join(','), bad.join(','), S.players.length].join('|');
+    var sig = [V.on, V.mic, V.starting, !load('uc.vhint'), ids.join(','), talking.join(','), bad.join(','), S.players.length].join('|');
     if (sig === vSig) return; vSig = sig;
+    var showHint = !V.on && !V.starting && !load('uc.vhint');
+    var pill = V.starting ? h('button', { class: 'vpill', type: 'button', disabled: true }, 'Connecting…')
+      : !V.on ? h('button', { class: 'vpill', type: 'button', 'aria-label': 'Join voice chat', onclick: function () { store('uc.vhint', '1'); vSig = ''; voiceStart(); } }, ico('mic'), h('span', null, 'Join voice'), ids.length ? h('em', null, ids.length + ' in voice') : null)
+      : h('button', { class: 'vpill ' + (V.mic ? 'live' : 'muted'), type: 'button', 'aria-label': V.mic ? 'Mic on. Tap to mute' : 'Muted. Tap to turn mic on',
+        onclick: function () { setMic(!V.mic); buzz(20); vSig = ''; paintVoice(); } }, ico(V.mic ? 'mic' : 'micoff'), h('span', null, V.mic ? 'Mic on' : 'Muted'));
+    if (showHint && !paintVoice.ht) paintVoice.ht = setTimeout(function () { store('uc.vhint', '1'); vSig = ''; paintVoice(); }, 9000);
     fill(vBox,
-      V.on ? h('button', { class: 'vb vmic' + (V.mic ? ' live' : ''), type: 'button', 'aria-label': V.mic ? 'Mute microphone' : 'Talk',
-        onclick: function () { setMic(!V.mic); buzz(20); vSig = ''; paintVoice(); } }, V.mic ? '🎤' : '🔇') : null,
-      h('button', { class: 'vb' + (V.on ? ' on' : ''), type: 'button', 'aria-label': V.on ? 'Leave voice' : 'Join voice',
-        onclick: function () { if (V.on) voiceStop(true); else voiceStart(); } }, V.starting ? '…' : V.on ? '📴' : '🎧', ids.length && !V.on ? h('em', null, ids.length) : null),
+      h('span', { class: 'vwrap' }, showHint ? h('span', { class: 'vhint' }, 'Tap to talk with friends') : null, pill),
+      V.on ? h('button', { class: 'vleave', type: 'button', 'aria-label': 'Leave voice', onclick: function () { voiceStop(true); } }, 'Leave') : null,
       bad.length ? h('span', { class: 'vwarn', title: 'Some voices can’t connect' }, '⚠️') : null,
       talking.length ? h('div', { class: 'vtalk' }, talking.map(function (id) { return h('span', { class: 'vt' }, avatar(nameOf(id), pidx(id), 'sm'), h('b', null, nameOf(id))); })) : null);
   }
@@ -9154,7 +9379,7 @@ window.golfMount = function (SR, API) {
   };
   function dwOnOps(ops) { if (cur && cur.dops) cur.dops(ops); else ops.forEach(dwApply); }
   function keyFor() {
-    if (!S) return mode === 'menu' ? 'menu' : mode === 'solo' ? 'solo' : mode === 'hub' ? 'hub' : mode === 'profile' ? 'profile' : 'home';
+    if (!S) return mode === 'menu' ? 'menu' : mode === 'solo' ? 'solo' : mode === 'hub' ? 'hub' : mode === 'profile' ? 'profile' : mode === 'admin' ? 'admin' : 'home';
     if (S.game === 'football') return S.phase === 'lobby' ? 'flobby' : (S.phase === 'pkaim' || S.phase === 'pkshow') ? 'fpen' : 'fgame';
     if (S.game === 'race') return S.phase === 'lobby' ? 'rlobby' : 'rgame';
     if (S.game === 'uno') return S.phase === 'lobby' ? 'ulobby' : 'ugame';
@@ -9186,7 +9411,7 @@ window.golfMount = function (SR, API) {
     }
     if (S && S.phase !== 'lobby' && S.phase !== 'over') wakeLock();
     cur.update();
-    syncSupModal(); syncCodeBar(); syncReqModal(); syncVoice(); syncHostbar(); syncWatch(); syncWhiteTry(); syncUc(); syncReactBar(); paintChat();
+    syncSupModal(); syncCodeBar(); syncReqModal(); syncVoice(); syncPause(); syncHostbar(); syncWatch(); syncWhiteTry(); syncUc(); syncReactBar(); paintChat();
   }
   setInterval(function () { if (cur && cur.tick) cur.tick(); }, 250);
 
@@ -9200,6 +9425,18 @@ window.golfMount = function (SR, API) {
     } catch (e) {}
   }
 
+  var bootEl = document.getElementById('boot'), bootT0 = Date.now(), bootBar = document.getElementById('bootBar'), bootSub = document.getElementById('bootSub');
+  function bootTick() {
+    if (!bootEl) return;
+    var s = (Date.now() - bootT0) / 1000;
+    bootBar.style.width = (95 * (1 - Math.exp(-s / 16))).toFixed(1) + '%';
+    bootSub.textContent = s < 40 ? 'About ' + Math.max(1, Math.ceil(40 - s)) + 's left' : s < 75 ? 'Almost there… ' + Math.floor(s) + 's' : 'Taking longer than usual. Keep the app open.';
+  }
+  function bootDone() {
+    if (!bootEl) return;
+    var e = bootEl; bootEl = null; e.classList.add('out'); setTimeout(function () { if (e.parentNode) e.parentNode.removeChild(e); }, 450);
+  }
+  setInterval(bootTick, 500); bootTick();
   render();
   connect();
 })();
