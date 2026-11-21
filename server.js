@@ -2310,12 +2310,167 @@ function gfView(room) {
   return { ids: g.ids, hole: g.hole, holes: g.holes, seed: g.seed, par: g.par, wind: g.wind, round: g.round, n: g.n, endAt: g.endAt, P, last: room.phase === 'gfly' ? g.last : null, card: g.card };
 }
 
+// ---------------------------------------------------------------- friends (needs the DATABASE_URL database)
+// Accounts have no password: the phone holds a secret token, the database only keeps its hash.
+let DB = null, dbReady = null;
+function setDb(d) { DB = d; dbReady = null; }
+if (process.env.DATABASE_URL) {
+  try {
+    const { Pool } = require('pg');
+    DB = new Pool({ connectionString: process.env.DATABASE_URL, ssl: /localhost|127\.0\.0\.1/.test(process.env.DATABASE_URL) ? false : { rejectUnauthorized: false }, max: 4, idleTimeoutMillis: 20000, connectionTimeoutMillis: 8000 });
+    DB.on('error', () => {});
+  } catch (e) { console.error('friends: "pg" is not installed, friends are off'); }
+}
+function dbInit() {
+  if (!DB) return Promise.reject(new Error('nodb'));
+  if (!dbReady) {
+    dbReady = DB.query('CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, uname TEXT UNIQUE NOT NULL, token_hash TEXT UNIQUE NOT NULL, push TEXT, created_at TIMESTAMPTZ DEFAULT now())')
+      .then(() => DB.query('CREATE TABLE IF NOT EXISTS friends (a INT NOT NULL, b INT NOT NULL, req INT NOT NULL, ok BOOLEAN NOT NULL DEFAULT FALSE, PRIMARY KEY (a, b))'))
+      .then(() => DB.query('CREATE TABLE IF NOT EXISTS name_reqs (user_id INT PRIMARY KEY, wanted TEXT NOT NULL, at TIMESTAMPTZ DEFAULT now())'))
+      .catch((e) => { dbReady = null; throw e; });
+  }
+  return dbReady;
+}
+const q = (text, params) => dbInit().then(() => DB.query(text, params)).then((r) => r.rows);
+const userWs = new Map(); // user id -> sockets that are logged in
+const FR_CMDS = new Set(['fauth', 'freg', 'fadd', 'faccept', 'fremove', 'flist', 'finvite', 'fpush', 'fchname']);
+const pair = (x, y) => (x < y ? [x, y] : [y, x]);
+function frSockets(uid) { return [...(userWs.get(uid) || [])].filter((w) => w.readyState === 1); }
+function frLogin(ws, u) {
+  frLogout(ws); ws.user = { id: u.id, uname: u.uname };
+  if (!userWs.has(u.id)) userWs.set(u.id, new Set());
+  userWs.get(u.id).add(ws);
+  send(ws, { t: 'fme', uname: u.uname, vapid: webpush ? webpush.pub : null });
+}
+function frLogout(ws) {
+  if (ws.user) { const s = userWs.get(ws.user.id); if (s) { s.delete(ws); if (!s.size) userWs.delete(ws.user.id); } ws.user = null; }
+}
+async function frList(ws) {
+  const me = ws.user.id;
+  const rows = await q('SELECT f.a, f.b, f.req, f.ok, u.id AS oid, u.uname FROM friends f JOIN users u ON u.id = (CASE WHEN f.a = $1 THEN f.b ELSE f.a END) WHERE f.a = $1 OR f.b = $1', [me]);
+  const friends = [], inc = [], out = [];
+  for (const r of rows) {
+    if (!r.ok) { (r.req === me ? out : inc).push({ uname: r.uname }); continue; }
+    const socks = frSockets(r.oid), w = socks[0], room = w && w.ctx && rooms.get(w.ctx.code);
+    friends.push({ uname: r.uname, online: socks.length > 0, room: room ? { code: room.code, game: room.game, phase: room.phase } : null });
+  }
+  friends.sort((x, y) => (y.online - x.online) || x.uname.localeCompare(y.uname));
+  const rq = await q('SELECT wanted FROM name_reqs WHERE user_id = $1', [me]);
+  send(ws, { t: 'flist', friends, inc, out, rename: rq.length ? rq[0].wanted : null });
+}
+async function frCmd(ws, m) {
+  try {
+    if (m.t === 'fauth') {
+      if (typeof m.token !== 'string' || m.token.length < 16 || m.token.length > 64) return send(ws, { t: 'fnone' });
+      const r = await q('SELECT id, uname FROM users WHERE token_hash = $1', [sha(m.token)]);
+      if (!r.length) return send(ws, { t: 'fnone' });
+      return frLogin(ws, r[0]);
+    }
+    if (m.t === 'freg') {
+      if (ws.user) return;
+      const un = String(m.uname || '').toLowerCase().trim();
+      if (!/^[a-z0-9_]{2,16}$/.test(un)) return errTo(ws, 'Username: 2 to 16 letters, numbers or _');
+      if (typeof m.token !== 'string' || m.token.length < 16 || m.token.length > 64) return;
+      if (Date.now() - (ws.regAt || 0) < 3000) return;
+      ws.regAt = Date.now();
+      const ex = await q('SELECT 1 FROM users WHERE uname = $1', [un]);
+      if (ex.length) return errTo(ws, 'That username is taken');
+      let r;
+      try { r = await q('INSERT INTO users (uname, token_hash) VALUES ($1, $2) RETURNING id, uname', [un, sha(m.token)]); } catch (e) { return errTo(ws, 'That username is taken'); }
+      return frLogin(ws, r[0]);
+    }
+    if (!ws.user) return send(ws, { t: 'fnone' });
+    const me = ws.user;
+    if (m.t === 'flist') return frList(ws);
+    if (m.t === 'fpush') {
+      const sub = m.sub;
+      const ok = sub && typeof sub.endpoint === 'string' && /^https:\/\//.test(sub.endpoint) && sub.keys && typeof sub.keys.p256dh === 'string' && typeof sub.keys.auth === 'string';
+      await q('UPDATE users SET push = $2 WHERE id = $1', [me.id, ok ? JSON.stringify({ endpoint: sub.endpoint.slice(0, 800), keys: { p256dh: sub.keys.p256dh.slice(0, 200), auth: sub.keys.auth.slice(0, 100) } }) : null]);
+      return;
+    }
+    if (m.t === 'fchname') { // ask the admin for a new username (the admin approves or denies it)
+      const want = String(m.uname || '').toLowerCase().trim().replace(/^@/, '');
+      if (!want) { await q('DELETE FROM name_reqs WHERE user_id = $1', [me.id]); return frList(ws); }
+      if (!/^[a-z0-9_]{2,16}$/.test(want)) return errTo(ws, 'Username: 2 to 16 letters, numbers or _');
+      if (want === me.uname) return errTo(ws, 'That is already your username');
+      if (Date.now() - (ws.nmAt || 0) < 3000) return errTo(ws, 'Wait a few seconds');
+      ws.nmAt = Date.now();
+      if ((await q('SELECT 1 FROM users WHERE uname = $1', [want])).length) return errTo(ws, 'That username is taken');
+      await q('DELETE FROM name_reqs WHERE user_id = $1', [me.id]);
+      await q('INSERT INTO name_reqs (user_id, wanted) VALUES ($1, $2)', [me.id, want]);
+      send(ws, { t: 'fok', msg: 'Request sent. Your name changes when the admin approves it' });
+      return frList(ws);
+    }
+    const un = String(m.uname || '').toLowerCase().trim();
+    const tr = un ? await q('SELECT id, uname, push FROM users WHERE uname = $1', [un]) : [];
+    const target = tr[0];
+    if (m.t === 'fadd') {
+      if (!target) return errTo(ws, 'No player with that username');
+      if (target.id === me.id) return errTo(ws, 'That is you');
+      const [a, b] = pair(me.id, target.id);
+      const ex = (await q('SELECT req, ok FROM friends WHERE a = $1 AND b = $2', [a, b]))[0];
+      if (ex && ex.ok) return errTo(ws, 'Already friends');
+      if (ex && ex.req === me.id) return errTo(ws, 'Request already sent');
+      if (ex) { await q('UPDATE friends SET ok = TRUE WHERE a = $1 AND b = $2', [a, b]); send(ws, { t: 'fok', msg: 'You and @' + target.uname + ' are friends now' }); }
+      else {
+        const cnt = (await q('SELECT COUNT(*)::int AS n FROM friends WHERE req = $1 AND ok = FALSE', [me.id]))[0].n;
+        if (cnt >= 30) return errTo(ws, 'Too many pending requests');
+        await q('INSERT INTO friends (a, b, req, ok) VALUES ($1, $2, $3, FALSE)', [a, b, me.id]);
+        send(ws, { t: 'fok', msg: 'Request sent to @' + target.uname });
+      }
+      for (const w of frSockets(target.id)) send(w, { t: ex ? 'fchg' : 'freq', from: me.uname });
+      return frList(ws);
+    }
+    if (m.t === 'faccept') {
+      if (!target) return;
+      const [a, b] = pair(me.id, target.id);
+      await q('UPDATE friends SET ok = TRUE WHERE a = $1 AND b = $2 AND req <> $3', [a, b, me.id]);
+      for (const w of frSockets(target.id)) send(w, { t: 'fchg', from: me.uname });
+      return frList(ws);
+    }
+    if (m.t === 'fremove') {
+      if (!target) return;
+      const [a, b] = pair(me.id, target.id);
+      await q('DELETE FROM friends WHERE a = $1 AND b = $2', [a, b]);
+      for (const w of frSockets(target.id)) send(w, { t: 'fchg', from: me.uname });
+      return frList(ws);
+    }
+    if (m.t === 'finvite') {
+      if (!target) return;
+      const room = ws.ctx && rooms.get(ws.ctx.code), pl = room && room.players.get(ws.ctx.pid);
+      if (!room || !pl) return errTo(ws, 'Join or make a lobby first');
+      if (room.phase !== 'lobby') return errTo(ws, 'You can invite friends while you are in the lobby');
+      const [a, b] = pair(me.id, target.id);
+      const fr = (await q('SELECT ok FROM friends WHERE a = $1 AND b = $2', [a, b]))[0];
+      if (!fr || !fr.ok) return errTo(ws, 'You are not friends yet');
+      ws.invAt = ws.invAt || {};
+      if (Date.now() - (ws.invAt[target.id] || 0) < 8000) return errTo(ws, 'Invite already sent. Wait a few seconds');
+      ws.invAt[target.id] = Date.now();
+      const socks = frSockets(target.id), info = ws.info || {};
+      const payload = { t: 'finv', from: me.uname, name: pl.name, photo: info.photo || null, code: room.code, game: room.game };
+      for (const w of socks) send(w, payload);
+      let how = socks.length ? 'online' : 'none';
+      if (!socks.length && webpush && target.push) {
+        try {
+          await webpush.sendNotification(JSON.parse(target.push), JSON.stringify({ title: pl.name + ' invited you', body: 'Join their ' + (room.game === 'bully' ? 'Bully Football' : room.game === 'undercover' ? 'Undercover' : room.game) + ' lobby', tag: 'inv-' + room.code, vib: [200, 100, 200, 100, 300], url: '/?c=' + room.code }), { TTL: 600, urgency: 'high' });
+          how = 'push';
+        } catch (e) { if (e && (e.statusCode === 404 || e.statusCode === 410)) q('UPDATE users SET push = NULL WHERE id = $1', [target.id]).catch(() => {}); }
+      }
+      return send(ws, { t: 'finvok', uname: target.uname, how });
+    }
+  } catch (e) {
+    if (e && e.message !== 'nodb') console.error('friends error:', e.message);
+    if (m.t === 'fauth') return send(ws, { t: 'fdown' });
+    errTo(ws, 'Friends are not available right now. Try again soon');
+  }
+}
+
 // ---- admin commands (only a phone that proved it holds the admin token can reach these)
 function admView() {
   const online = [];
   for (const c of wss.clients) {
     const ctx = c.ctx, room = ctx && rooms.get(ctx.code), pl = room && room.players.get(ctx.pid), info = c.info || {};
-    online.push({ uid: c.uid, name: (pl && pl.name) || info.name || '', photo: info.photo || null, dev: deviceOf(c.ua), ip: c.ip || '', since: c.since, code: room ? room.code : '', game: room ? room.game : '', phase: room ? room.phase : '', admin: !!c.isAdmin, blocked: isBlocked(info.cid, null) });
+    online.push({ uid: c.uid, user: c.user ? c.user.uname : '', name: (pl && pl.name) || info.name || '', photo: info.photo || null, dev: deviceOf(c.ua), ip: c.ip || '', since: c.since, code: room ? room.code : '', game: room ? room.game : '', phase: room ? room.phase : '', admin: !!c.isAdmin, blocked: isBlocked(info.cid, null) });
   }
   if (online.length > 40) online.forEach((o) => { o.photo = null; });
   const rl = [];
@@ -2329,10 +2484,31 @@ function admView() {
     ips: Object.keys(ADM.blockedIps).map((ip) => Object.assign({ ip }, ADM.blockedIps[ip])),
   };
 }
+async function admSend(ws) {
+  const v = admView();
+  try { v.names = (await q('SELECT r.user_id AS id, r.wanted, u.uname FROM name_reqs r JOIN users u ON u.id = r.user_id ORDER BY r.at')).map((r) => ({ id: r.id, wanted: r.wanted, uname: r.uname })); } catch (e) { v.names = []; }
+  send(ws, v);
+}
+async function admRename(ws, m) {
+  try {
+    const id = parseInt(m.id, 10), r = (await q('SELECT wanted FROM name_reqs WHERE user_id = $1', [id]))[0];
+    if (!r) return admSend(ws);
+    if (m.ok) {
+      try { await q('UPDATE users SET uname = $2 WHERE id = $1', [id, r.wanted]); } catch (e) { await q('DELETE FROM name_reqs WHERE user_id = $1', [id]); errTo(ws, '@' + r.wanted + ' is already taken'); return admSend(ws); }
+    }
+    await q('DELETE FROM name_reqs WHERE user_id = $1', [id]);
+    for (const w of frSockets(id)) {
+      if (m.ok) { w.user.uname = r.wanted; send(w, { t: 'fme', uname: r.wanted, vapid: webpush ? webpush.pub : null }); send(w, { t: 'fok', msg: 'Your username is now @' + r.wanted }); }
+      else send(w, { t: 'fok', msg: 'The admin did not approve @' + r.wanted });
+      frList(w).catch(() => {});
+    }
+  } catch (e) { errTo(ws, 'Could not do that right now'); }
+  return admSend(ws);
+}
 function admCmd(ws, m) {
   const target = () => { for (const c of wss.clients) if (c.uid === m.uid) return c; return null; };
-  if (m.t === 'admget') return send(ws, admView());
-  if (m.t === 'admpause') { const r = rooms.get(clean(m.code, 4)); if (!r) return; r.apaused = !r.apaused; broadcast(r); return send(ws, admView()); }
+  if (m.t === 'admget') return admSend(ws);
+  if (m.t === 'admpause') { const r = rooms.get(clean(m.code, 4)); if (!r) return; r.apaused = !r.apaused; broadcast(r); return admSend(ws); }
   if (m.t === 'admkick' || m.t === 'admblock') {
     const c = target(); if (!c || c === ws || c.isAdmin) return;
     const room = c.ctx && rooms.get(c.ctx.code), pl = room && room.players.get(c.ctx.pid);
@@ -2345,14 +2521,15 @@ function admCmd(ws, m) {
       admSave();
       try { c.terminate(); } catch (e) { /* gone */ }
     }
-    return send(ws, admView());
+    return admSend(ws);
   }
   if (m.t === 'admunblock') {
     if (m.cid) delete ADM.blockedCids[String(m.cid)];
     if (m.ip) delete ADM.blockedIps[String(m.ip)];
-    admSave(); return send(ws, admView());
+    admSave(); return admSend(ws);
   }
-  if (m.t === 'admfbdel') { ADM.feedback = ADM.feedback.filter((f) => f.id !== m.id); admSave(); return send(ws, admView()); }
+  if (m.t === 'admname') return admRename(ws, m);
+  if (m.t === 'admfbdel') { ADM.feedback = ADM.feedback.filter((f) => f.id !== m.id); admSave(); return admSend(ws); }
 }
 
 function handle(ws, m) {
@@ -2409,6 +2586,7 @@ function handle(ws, m) {
     if (!p) return send(ws, { t: 'norejoin' });
     return attach(ws, room, p);
   }
+  if (FR_CMDS.has(m.t)) { frCmd(ws, m); return; }
   if (m.t === 'hello') { ws.info = { cid: clean(m.cid, 40).replace(/[^A-Za-z0-9]/g, ''), name: clean(m.name, 14), photo: okPhoto(m.photo) ? m.photo : null }; return; }
   if (m.t === 'fb') { // feedback from a player (can be anonymous)
     const text = String(m.text == null ? '' : m.text).replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, '').trim().slice(0, 600);
@@ -2420,6 +2598,18 @@ function handle(ws, m) {
     if (ADM.feedback.length > 300) ADM.feedback.shift();
     admSave();
     return send(ws, { t: 'fbok' });
+  }
+  if (m.t === 'rep') { // a player reports someone in their lobby (the admin reads it in the Feedback tab)
+    const rm = ws.ctx && rooms.get(ws.ctx.code), rp = rm && rm.players.get(ws.ctx.pid);
+    if (!rp) return;
+    if (Date.now() - (ws.fbAt || 0) < 15000) return errTo(ws, 'Wait a few seconds before sending another');
+    const who = clean(m.name, 14), why = clean(m.why, 60);
+    if (!who || !why) return;
+    ws.fbAt = Date.now();
+    ADM.feedback.push({ id: rid(), at: Date.now(), kind: 'report', text: rp.name + ' reported ' + who + ': ' + why + '  [room ' + rm.code + ', ' + rm.game + ']', anon: false, name: rp.name, dev: '' });
+    if (ADM.feedback.length > 300) ADM.feedback.shift();
+    admSave();
+    return send(ws, { t: 'fok', msg: 'Report sent to the admin' });
   }
   if (m.t === 'adm') { if (ADM.hash && typeof m.token === 'string' && sha(m.token) === ADM.hash) { ws.isAdmin = true; return send(ws, { t: 'admok' }); } return send(ws, { t: 'admno' }); }
   if (m.t === 'admclaim') { // first phone to claim becomes the admin (only while nobody is)
@@ -3071,6 +3261,7 @@ wss.on('connection', (ws, req) => {
     try { handle(ws, m); } catch (e) { console.error('handler error:', e); }
   });
   ws.on('close', () => {
+    frLogout(ws);
     const ctx = ws.ctx;
     const room = ctx && rooms.get(ctx.code);
     const p = room && room.players.get(ctx.pid);
@@ -3102,4 +3293,4 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log('');
 });
 
-module.exports = { GolfSim, server, rooms, broadcast, pickPair, cleanModes, pairKey, COOLDOWN, MEME_SHARE, pickImpostors, spreadOrder };
+module.exports = { setDb, GolfSim, server, rooms, broadcast, pickPair, cleanModes, pairKey, COOLDOWN, MEME_SHARE, pickImpostors, spreadOrder };
