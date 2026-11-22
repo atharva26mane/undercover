@@ -796,7 +796,7 @@ function ckView(room, p) {
 function makeRoom(words) {
   const room = {
     code: newCode(), hostId: null, supervisorId: null, players: new Map(),
-    game: 'undercover', dwSet: { rounds: 3, secs: 80, hints: 2 }, dw: null, gfSet: { holes: 3, secs: 8 }, gf: null, bfSet: { diff: 'normal', mode: 't2', goals: 5, head: { o: 0, b: 0 }, bots: { o: 2, b: 2 }, balls: 3 }, bf: null, unSet: { secs: 20, mode: 'classic' }, un: null, ckSet: { mode: 'team', overs: 2, building: true, onetip: true }, ck: null, ckTeam: {}, fbSet: { goals: 3, secs: 8, mode: 'match', tie: 'pens' }, fb: null, rc: null,
+    game: 'undercover', dwSet: { rounds: 3, secs: 80, hints: 2 }, dw: null, gfSet: { holes: 3, secs: 8 }, gf: null, bfSet: { diff: 'normal', mode: 't2', goals: 5, head: { o: 0, b: 0 }, bots: { o: 2, b: 2 }, balls: 3 }, bf: null, rkSet: { map: 'snow', mode: 't3', goals: 5, diff: 'normal', bots: { o: 2, b: 3 } }, rk: null, mbSet: { bots: 2, speed: 'normal', shrink: true }, mb: null, unSet: { secs: 20, mode: 'classic' }, un: null, ckSet: { mode: 'team', overs: 2, building: true, onetip: true }, ck: null, ckTeam: {}, fbSet: { goals: 3, secs: 8, mode: 'match', tie: 'pens' }, fb: null, rc: null,
     open: true, pending: new Map(), blocked: new Set(), cool: new Map(),
     phase: 'lobby', round: 0, seq: 0, timer: null, endsAt: 0,
     settings: { describeSecs: 30, autoRoles: true, undercover: 1, white: 1, whiteGuess: true, hint: false, board: true, reacts: true, modes: ['mix'], joker: false, chat: true, chatSlow: 5, reactCd: 3, ucGuess: true, whiteTries: 2, sheriff: true },
@@ -868,6 +868,7 @@ function view(room, p) {
       id: q.id, name: q.name, connected: q.connected, host: q.id === room.hostId,
       sup: q.id === room.supervisorId, alive: q.alive, left: q.left,
     };
+    if (q.ws && q.ws.user) o.fr = 1;
     if (inGame && q.role) {
       o.in = true; // takes part in this game (role itself stays private)
       if (room.phase === 'describe') o.submitted = !!room.descs[q.id];
@@ -924,6 +925,8 @@ function view(room, p) {
   if (room.game === 'draw') { v.dwSet = room.dwSet; if (room.dw) v.dw = dwView(room, p); }
   if (room.game === 'golf') { v.gfSet = room.gfSet; if (room.gf) v.gf = gfView(room); }
   if (room.game === 'bully') { v.bfSet = room.bfSet; v.bfMe = {}; for (const q of room.players.values()) if (!q.left) v.bfMe[q.id] = bfOf(room, q); if (room.bf) v.bf = { ids: room.bf.ids, seq: room.bf.seq, res: room.bf.res || null }; }
+  if (room.game === 'bomb') { v.mbSet = room.mbSet; if (room.mb) v.mb = { ids: room.mb.ids, seq: room.mb.seq, bots: room.mb.bots }; }
+  if (room.game === 'rocket') { v.rkSet = room.rkSet; v.rkMe = {}; for (const q of room.players.values()) if (!q.left) v.rkMe[q.id] = rkOf(room, q); if (room.rk) v.rk = { ids: room.rk.ids, seq: room.rk.seq, res: room.rk.res || null, teams: room.rk.teams, bots: room.rk.bots }; }
   if (room.game === 'race' && room.rc) {
     const r = room.rc;
     v.rc = { ids: r.ids, startAt: r.startAt, laps: RACE_LAPS, fin: r.fin, results: r.results, rank: raceRank(room) };
@@ -1646,6 +1649,8 @@ function afterRemoval(room) {
   if (room.game === 'draw') return dwCheck(room);
   if (room.game === 'golf') return gfCheck(room);
   if (room.game === 'bully') return bfCheck(room);
+  if (room.game === 'rocket') return rkCheck(room);
+  if (room.game === 'bomb') return mbCheck(room);
   if (!['describe', 'vote', 'whiteguess', 'elim'].includes(room.phase)) return broadcast(room);
   const win = checkWin(room);
   if (win) return endGame(room, win);
@@ -1678,7 +1683,7 @@ function removePlayer(room, p, selfLeft) {
   p.ws = null; p.connected = false;
   if (room.supervisorId === p.id && room.phase === 'lobby') { room.supervisorId = null; room.customPair = null; }
   if (room.supReq === p.id) room.supReq = null;
-  if (room.phase === 'lobby' || room.phase === 'over' || room.phase === 'dover' || room.phase === 'gover' || room.phase === 'bover') room.players.delete(p.id);
+  if (room.phase === 'lobby' || room.phase === 'over' || room.phase === 'dover' || room.phase === 'gover' || room.phase === 'bover' || room.phase === 'kover' || room.phase === 'mover') room.players.delete(p.id);
   else { p.left = true; p.alive = false; delete room.votes[p.id]; delete room.descs[p.id]; }
   if (![...room.players.values()].some((q) => !q.left)) { clearTimeout(room.timer); dwClear(room); rooms.delete(room.code); return; }
   if (wasHost && !transferHost(room)) { /* nobody connected: host stays unassigned until someone rejoins */ }
@@ -1732,6 +1737,40 @@ function bfCheck(room) { // somebody left: if the host's phone (which runs the m
   return broadcast(room);
 }
 function bfRelay(room, from, obj) { const str = JSON.stringify(obj); for (const q of room.players.values()) if (q !== from && q.ws && q.connected && q.ws.readyState === 1) q.ws.send(str); }
+
+// ================================================================ Turbo Ball (2D car football, up to 3v3, the host's phone runs the match)
+function rkOf(room, q) { // a player's team, auto-balanced the first time
+  if (!q.rk) q.rk = { team: null };
+  if (!q.rk.team) { const c = { o: 0, b: 0 }; for (const x of room.players.values()) if (x !== q && !x.left && x.rk && x.rk.team) c[x.rk.team]++; q.rk.team = c.b <= c.o ? 'b' : 'o'; }
+  return q.rk;
+}
+function rkHumans(room) { return [...room.players.values()].filter((q) => !q.left); }
+function rkStart(room) {
+  const hs = rkHumans(room), st = room.rkSet, c = { o: 0, b: 0 }, teams = {};
+  hs.forEach((q) => { const t = rkOf(room, q).team; teams[q.id] = t; c[t]++; });
+  if (c.o > 3 || c.b > 3) return 'Max 3 players per team: move someone to the other team';
+  const bots = { o: Math.max(0, Math.min(st.bots.o, 3 - c.o)), b: Math.max(0, Math.min(st.bots.b, 3 - c.b)) };
+  if (hs.length + bots.o + bots.b < 2) return 'Add a bot or another player first';
+  room.rk = { ids: hs.map((q) => q.id), seq: (room.rk ? room.rk.seq : 0) + 1, res: null, host: room.hostId, teams, bots };
+  for (const q of room.players.values()) q.watch = false;
+  setPhase(room, 'kplay'); return broadcast(room);
+}
+function mbStart(room) {
+  const hs = rkHumans(room), st = room.mbSet, bots = Math.max(0, Math.min(st.bots, 10 - hs.length));
+  if (hs.length > 10) return 'Max 10 players';
+  if (hs.length + bots < 2) return 'Add a bot or another player first';
+  room.mb = { ids: hs.map((q) => q.id), seq: (room.mb ? room.mb.seq : 0) + 1, host: room.hostId, bots };
+  for (const q of room.players.values()) q.watch = false;
+  setPhase(room, 'mplay'); return broadcast(room);
+}
+function mbCheck(room) {
+  if (room.phase === 'mplay') { const h = room.players.get(room.hostId); if (!h || h.left || !room.mb || room.mb.host !== room.hostId) { setPhase(room, 'lobby'); room.mb = null; notice(room, '⚠️ The match stopped: the host left'); } }
+  return broadcast(room);
+}
+function rkCheck(room) { // the host's phone runs the match: if it is gone, back to the lobby
+  if (room.phase === 'kplay') { const h = room.players.get(room.hostId); if (!h || h.left || !room.rk || room.rk.host !== room.hostId) { setPhase(room, 'lobby'); room.rk = null; notice(room, '⚠️ The match stopped: the host left'); } }
+  return broadcast(room);
+}
 
 // ================================================================ Draw & Guess (skribbl style)
 // Everything for this game lives in this block so only server.js needs uploading.
@@ -2333,7 +2372,7 @@ function dbInit() {
 }
 const q = (text, params) => dbInit().then(() => DB.query(text, params)).then((r) => r.rows);
 const userWs = new Map(); // user id -> sockets that are logged in
-const FR_CMDS = new Set(['fauth', 'freg', 'fadd', 'faccept', 'fremove', 'flist', 'finvite', 'fpush', 'fchname']);
+const FR_CMDS = new Set(['fauth', 'freg', 'fadd', 'faddp', 'faccept', 'fremove', 'flist', 'finvite', 'fpush', 'fchname']);
 const pair = (x, y) => (x < y ? [x, y] : [y, x]);
 function frSockets(uid) { return [...(userWs.get(uid) || [])].filter((w) => w.readyState === 1); }
 function frLogin(ws, u) {
@@ -2452,7 +2491,7 @@ async function frCmd(ws, m) {
       let how = socks.length ? 'online' : 'none';
       if (!socks.length && webpush && target.push) {
         try {
-          await webpush.sendNotification(JSON.parse(target.push), JSON.stringify({ title: pl.name + ' invited you', body: 'Join their ' + (room.game === 'bully' ? 'Bully Football' : room.game === 'undercover' ? 'Undercover' : room.game) + ' lobby', tag: 'inv-' + room.code, vib: [200, 100, 200, 100, 300], url: '/?c=' + room.code }), { TTL: 600, urgency: 'high' });
+          await webpush.sendNotification(JSON.parse(target.push), JSON.stringify({ title: pl.name + ' invited you', body: 'Join their ' + (room.game === 'bully' ? 'Bully Football' : room.game === 'rocket' ? 'Turbo Ball' : room.game === 'bomb' ? 'Bomb Pass' : room.game === 'undercover' ? 'Undercover' : room.game) + ' lobby', tag: 'inv-' + room.code, vib: [200, 100, 200, 100, 300], url: '/?c=' + room.code }), { TTL: 600, urgency: 'high' });
           how = 'push';
         } catch (e) { if (e && (e.statusCode === 404 || e.statusCode === 410)) q('UPDATE users SET push = NULL WHERE id = $1', [target.id]).catch(() => {}); }
       }
@@ -2539,7 +2578,7 @@ function handle(ws, m) {
     const name = clean(m.name, 14);
     if (!name) return errTo(ws, 'Enter your name');
     const room = makeRoom(loadWords(m));
-    if (m.game === 'football' || m.game === 'race' || m.game === 'uno' || m.game === 'cricket' || m.game === 'draw' || m.game === 'golf' || m.game === 'bully') room.game = m.game;
+    if (m.game === 'football' || m.game === 'race' || m.game === 'uno' || m.game === 'cricket' || m.game === 'draw' || m.game === 'golf' || m.game === 'bully' || m.game === 'rocket' || m.game === 'bomb') room.game = m.game;
     if (m.open === false) room.open = false;
     const p = addPlayer(room, name);
     room.hostId = room.ownerId = p.id;
@@ -2586,6 +2625,12 @@ function handle(ws, m) {
     if (!p) return send(ws, { t: 'norejoin' });
     return attach(ws, room, p);
   }
+  if (m.t === 'faddp') { // add a player in my lobby as a friend (the username stays on the server)
+    const room = ws.ctx && rooms.get(ws.ctx.code), q = room && room.players.get(String(m.id));
+    if (!ws.user) return errTo(ws, 'Pick a username in Friends first');
+    if (!q || q.left || !q.ws || !q.ws.user) return errTo(ws, 'That player has no friend username yet');
+    m = { t: 'fadd', uname: q.ws.user.uname };
+  }
   if (FR_CMDS.has(m.t)) { frCmd(ws, m); return; }
   if (m.t === 'hello') { ws.info = { cid: clean(m.cid, 40).replace(/[^A-Za-z0-9]/g, ''), name: clean(m.name, 14), photo: okPhoto(m.photo) ? m.photo : null }; return; }
   if (m.t === 'fb') { // feedback from a player (can be anonymous)
@@ -2626,7 +2671,7 @@ function handle(ws, m) {
   const room = ctx && rooms.get(ctx.code);
   const p = room && room.players.get(ctx.pid);
   if (!p) return;
-  if (room.apaused && !['leave', 'chat', 'vjoin', 'vleave', 'vsig', 'photo', 'react', 'typing'].includes(m.t)) { if (m.t !== 'bin' && m.t !== 'bst' && m.t !== 'rpos' && m.t !== 'rprog' && m.t !== 'ckpos' && m.t !== 'dop') errTo(ws, '⏸ Paused by the admin'); return; }
+  if (room.apaused && !['leave', 'chat', 'vjoin', 'vleave', 'vsig', 'photo', 'react', 'typing'].includes(m.t)) { if (m.t !== 'bin' && m.t !== 'bst' && m.t !== 'kin' && m.t !== 'kst' && m.t !== 'mbin' && m.t !== 'mbst' && m.t !== 'rpos' && m.t !== 'rprog' && m.t !== 'ckpos' && m.t !== 'dop') errTo(ws, '⏸ Paused by the admin'); return; }
   const isHost = p.id === room.hostId;
   const hostOnly = () => { if (!isHost) { errTo(ws, 'Only the host can do that'); return false; } return true; };
 
@@ -2848,16 +2893,16 @@ function handle(ws, m) {
     }
     case 'switchgame': {
       if (!hostOnly()) return;
-      const g = ['undercover', 'football', 'race', 'uno', 'cricket', 'draw', 'golf', 'bully'].includes(m.game) ? m.game : null;
+      const g = ['undercover', 'football', 'race', 'uno', 'cricket', 'draw', 'golf', 'bully', 'rocket', 'bomb'].includes(m.game) ? m.game : null;
       if (!g) return;
-      if (!['lobby', 'over', 'fover', 'rover', 'uover', 'cover', 'dover', 'gover', 'bover'].includes(room.phase)) return errTo(ws, 'Finish or end the current game first');
+      if (!['lobby', 'over', 'fover', 'rover', 'uover', 'cover', 'dover', 'gover', 'bover', 'kover', 'mover'].includes(room.phase)) return errTo(ws, 'Finish or end the current game first');
       if (g === room.game && room.phase === 'lobby') return;
-      clearTimeout(room.timer); dwClear(room); room.dw = null; room.gf = null; room.bf = null; room.seq++;
+      clearTimeout(room.timer); dwClear(room); room.dw = null; room.gf = null; room.bf = null; room.rk = null; room.mb = null; room.seq++;
       room.game = g; room.un = null; room.fb = null; room.pkPick = null; room.rc = null; room.ck = null; room.winner = null; room.guess = null; room.votes = {}; room.tie = false; room.descs = {}; room.history = [];
       for (const [qid, q] of room.players) if (q.left) room.players.delete(qid);
       for (const q of room.players.values()) { q.watch = false; q.alive = true; q.role = null; q.word = ''; q.revealed = false; }
       setPhase(room, 'lobby');
-      const gn = { undercover: '🕵️ Undercover', football: '⚽ Football', race: '🏖️ Beach Buggy', uno: '🃏 UNO', cricket: '🏏 Cricket', draw: '🎨 Draw & Guess', golf: '⛳ Golf', bully: '🤼 Bully Football' }[g];
+      const gn = { undercover: '🕵️ Undercover', football: '⚽ Football', race: '🏖️ Beach Buggy', uno: '🃏 UNO', cricket: '🏏 Cricket', draw: '🎨 Draw & Guess', golf: '⛳ Golf', bully: '🤼 Bully Football', rocket: '🚗 Turbo Ball' }[g];
       notice(room, '🎮 The host switched the game to ' + gn);
       return broadcast(room);
     }
@@ -2954,6 +2999,94 @@ function handle(ws, m) {
       if (room.game !== 'bully' || room.phase !== 'bplay' || p.id !== room.hostId || !room.bf) return;
       room.bf.res = { o: Math.max(0, Math.min(99, Number(m.o) | 0)), b: Math.max(0, Math.min(99, Number(m.b) | 0)) };
       setPhase(room, 'bover'); return broadcast(room);
+    }
+    case 'kset': {
+      if (!hostOnly() || room.game !== 'rocket' || !['lobby', 'kover'].includes(room.phase)) return;
+      const st = room.rkSet;
+      if (['snow', 'stadium'].includes(m.map)) st.map = m.map;
+      if (['t2', 't3', 't5', 'g'].includes(m.mode)) st.mode = m.mode;
+      if ([3, 5, 7, 10].includes(Number(m.goals))) st.goals = Number(m.goals);
+      if (['easy', 'normal', 'hard'].includes(m.diff)) st.diff = m.diff;
+      if (m.bots && typeof m.bots === 'object') ['o', 'b'].forEach((k) => { const v = Number(m.bots[k]); if (Number.isInteger(v) && v >= 0 && v <= 3) st.bots[k] = v; });
+      return broadcast(room);
+    }
+    case 'kme': {
+      if (room.game !== 'rocket' || !['lobby', 'kover'].includes(room.phase)) return;
+      const me = rkOf(room, p); if (m.team === 'o' || m.team === 'b') me.team = m.team;
+      return broadcast(room);
+    }
+    case 'kteam': {
+      if (!hostOnly() || room.game !== 'rocket' || !['lobby', 'kover'].includes(room.phase)) return;
+      const q = room.players.get(String(m.id)); if (!q || q.left) return; const r = rkOf(room, q); r.team = r.team === 'o' ? 'b' : 'o'; return broadcast(room);
+    }
+    case 'kshuffle': {
+      if (!hostOnly() || room.game !== 'rocket' || !['lobby', 'kover'].includes(room.phase)) return;
+      const hs = rkHumans(room).sort(() => Math.random() - 0.5), first = Math.random() < 0.5 ? ['o', 'b'] : ['b', 'o'];
+      hs.forEach((q, i) => { rkOf(room, q).team = first[i % 2]; });
+      return broadcast(room);
+    }
+    case 'kfill': { // fill every empty seat with a bot (3v3)
+      if (!hostOnly() || room.game !== 'rocket' || !['lobby', 'kover'].includes(room.phase)) return;
+      const c = { o: 0, b: 0 }; rkHumans(room).forEach((q) => { c[rkOf(room, q).team]++; });
+      room.rkSet.bots = { o: Math.max(0, 3 - c.o), b: Math.max(0, 3 - c.b) }; return broadcast(room);
+    }
+    case 'kstart': {
+      if (!hostOnly() || room.game !== 'rocket' || !['lobby', 'kover', 'kplay'].includes(room.phase)) return;
+      const e = rkStart(room); return e ? errTo(ws, e) : undefined;
+    }
+    case 'klobby': {
+      if (!hostOnly() || room.game !== 'rocket' || room.phase === 'lobby') return;
+      setPhase(room, 'lobby'); room.rk = null;
+      for (const [qid, q] of room.players) if (q.left) room.players.delete(qid);
+      return broadcast(room);
+    }
+    case 'kin': { // a player's stick + buttons, passed straight to the host's phone
+      if (room.game !== 'rocket' || room.phase !== 'kplay' || p.id === room.hostId) return;
+      const h = room.players.get(room.hostId); if (!h || !h.ws || !h.connected) return;
+      const x = Number(m.x); return send(h.ws, { t: 'kin', id: p.id, x: Number.isFinite(x) ? Math.max(-1, Math.min(1, Math.round(x * 100) / 100)) : 0, b: m.b ? 1 : 0, j: (Number(m.j) | 0) % 1e6, r: (Number(m.r) | 0) % 1e6 });
+    }
+    case 'kst': { // the host's match snapshot, sent on to everyone else
+      if (room.game !== 'rocket' || room.phase !== 'kplay' || p.id !== room.hostId) return;
+      const now = Date.now(); if (now - (room.rkAt || 0) < 20) return; room.rkAt = now;
+      m.t = 'kst'; return bfRelay(room, p, m);
+    }
+    case 'kend': {
+      if (room.game !== 'rocket' || room.phase !== 'kplay' || p.id !== room.hostId || !room.rk) return;
+      room.rk.res = { o: Math.max(0, Math.min(99, Number(m.o) | 0)), b: Math.max(0, Math.min(99, Number(m.b) | 0)) };
+      setPhase(room, 'kover'); return broadcast(room);
+    }
+    case 'mbset': {
+      if (!hostOnly() || room.game !== 'bomb' || !['lobby', 'mover'].includes(room.phase)) return;
+      const st = room.mbSet;
+      if (Number.isInteger(Number(m.bots)) && m.bots >= 0 && m.bots <= 9) st.bots = Number(m.bots);
+      if (['chill', 'normal', 'hectic'].includes(m.speed)) st.speed = m.speed;
+      if (typeof m.shrink === 'boolean') st.shrink = m.shrink;
+      return broadcast(room);
+    }
+    case 'mbstart': {
+      if (!hostOnly() || room.game !== 'bomb' || !['lobby', 'mover', 'mplay'].includes(room.phase)) return;
+      const e = mbStart(room); return e ? errTo(ws, e) : undefined;
+    }
+    case 'mblobby': {
+      if (!hostOnly() || room.game !== 'bomb' || room.phase === 'lobby') return;
+      setPhase(room, 'lobby'); room.mb = null;
+      for (const [qid, q] of room.players) if (q.left) room.players.delete(qid);
+      return broadcast(room);
+    }
+    case 'mbin': {
+      if (room.game !== 'bomb' || room.phase !== 'mplay' || p.id === room.hostId) return;
+      const h = room.players.get(room.hostId); if (!h || !h.ws || !h.connected) return;
+      const f = (v) => { v = Number(v); return Number.isFinite(v) ? Math.max(-1, Math.min(1, Math.round(v * 100) / 100)) : 0; };
+      return send(h.ws, { t: 'mbin', id: p.id, x: f(m.x), y: f(m.y), d: (Number(m.d) | 0) % 1e6 });
+    }
+    case 'mbst': {
+      if (room.game !== 'bomb' || room.phase !== 'mplay' || p.id !== room.hostId) return;
+      const now = Date.now(); if (now - (room.mbAt || 0) < 20) return; room.mbAt = now;
+      m.t = 'mbst'; return bfRelay(room, p, m);
+    }
+    case 'mbend': {
+      if (room.game !== 'bomb' || room.phase !== 'mplay' || p.id !== room.hostId || !room.mb) return;
+      setPhase(room, 'mover'); return broadcast(room);
     }
     case 'gstart': {
       if (!hostOnly() || room.game !== 'golf' || !['lobby', 'gover'].includes(room.phase)) return;
@@ -3256,7 +3389,7 @@ wss.on('connection', (ws, req) => {
     ws.isAlive = true;
     let m;
     try { m = JSON.parse(raw.toString()); } catch (e) { return; }
-    const hot = m && (m.t === 'dop' || m.t === 'dguess' || m.t === 'rpos' || m.t === 'ckpos' || m.t === 'rprog' || m.t === 'rbump' || m.t === 'vsig' || m.t === 'ping' || m.t === 'bin' || m.t === 'bst');
+    const hot = m && (m.t === 'dop' || m.t === 'dguess' || m.t === 'rpos' || m.t === 'ckpos' || m.t === 'rprog' || m.t === 'rbump' || m.t === 'vsig' || m.t === 'ping' || m.t === 'bin' || m.t === 'bst' || m.t === 'kin' || m.t === 'kst' || m.t === 'mbin' || m.t === 'mbst');
     if (hot ? ++ws.rh > 420 : ++ws.rl > 40) return; // flood guard (reset every 5s); race positions & voice setup have their own, bigger budget
     try { handle(ws, m); } catch (e) { console.error('handler error:', e); }
   });
