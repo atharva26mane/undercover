@@ -1872,7 +1872,7 @@ Sim.prototype.kickoff = function () {
   var spots = [[-9, 20], [9, 20], [0, 28]];
   this.cars.forEach(function (c) {
     var s = spots[c.slot % 3], dz = c.team === 'b' ? -1 : 1, x = c.team === 'b' ? s[0] : -s[0], z = dz * s[1];
-    c.p = [x, A.HB, z]; c.v = [0, 0, 0]; c.u = [0, 1, 0]; c.f = norm([-x, 0, -z]); c.gnd = true; c.n = [0, 1, 0]; c.boost = 34; c.dodgeT = 0; c.canDodge = false; c.dodged = false; c.pr = c.yr = c.rr = 0; c.rcd = 0; c.boosting = false; c.aerial = 0;
+    c.p = [x, A.HB, z]; c.v = [0, 0, 0]; c.u = [0, 1, 0]; c.f = norm([-x, 0, -z]); c.sp0 = c.p.slice(); c.sf0 = c.f.slice(); c.dead = 0; c.gnd = true; c.n = [0, 1, 0]; c.boost = 34; c.dodgeT = 0; c.canDodge = false; c.dodged = false; c.pr = c.yr = c.rr = 0; c.rcd = 0; c.boosting = false; c.aerial = 0;
   });
   var b = this.ball; b.p = [0, A.BR, 0]; b.v = [0, 0, 0]; b.w = [0, 0, 0];
   this.pads.forEach(function (p) { p.cd = 0; });
@@ -1880,10 +1880,11 @@ Sim.prototype.kickoff = function () {
 };
 Sim.prototype.input = function (i, m) {
   var c = this.cars[i]; if (!c) return; var s = c.inp;
-  if (m.x != null) s.x = clamp(+m.x || 0, -1, 1); if (m.y != null) s.y = clamp(+m.y || 0, -1, 1); s.b = !!m.b; if (m.j != null) s.j = m.j | 0; if (m.r != null) s.r = m.r | 0; s.i = m.i ? 1 : 0;
+  if (m.x != null) s.x = clamp(+m.x || 0, -1, 1); if (m.y != null) s.y = clamp(+m.y || 0, -1, 1); s.b = !!m.b; if (m.j != null) s.j = m.j | 0; if (m.r != null) s.r = m.r | 0; s.i = m.i ? 1 : 0; if (m.h != null) s.h = (+m.h || 0) / 1000; s.e = m.e ? 1 : 0;
 };
 
 Sim.prototype.controls = function (c, dt) {
+  if (c.dead > 0) { c.dead -= dt; c.v = [0, 0, 0]; if (c.dead <= 0) this.respawn(c); return; }
   var inp = c.inp, sx = inp.x, sy = inp.y, bw = inp.b, jp = false, rp = false;
   if (c.bot) { this.botThink(c, dt); sx = c.bx; sy = c.by; bw = c.bb; if (c.bj) { jp = true; c.bj = false; } }
   else { if (inp.j !== c.lj) { jp = true; c.lj = inp.j; } if (inp.r !== c.lr) { rp = true; c.lr = inp.r; } }
@@ -1900,11 +1901,19 @@ Sim.prototype.controls = function (c, dt) {
     var na = dot(c.u, c.n), k = Math.min(1, 16 * dt);
     c.u = norm(add(mul(c.u, 1 - k), mul(c.n, k))); ortho(c); rt = cross(c.f, c.u);
     var vf = dot(c.v, c.f), sp = Math.abs(vf);
+    // easy controls: the stick points where to go on screen; the car turns that way and drives
+    var mag = Math.hypot(sx, sy);
+    if (!c.bot && inp.e && mag > 0.15 && inp.h != null) {
+      var hx = Math.sin(inp.h), hz = Math.cos(inp.h), want = [hx * -sy + -hz * sx, 0, hz * -sy + hx * sx];
+      want = sub(want, mul(c.u, dot(want, c.u))); var wl = len(want);
+      if (wl > 1e-3) { want = mul(want, 1 / wl); var sa = Math.atan2(dot(cross(c.f, want), c.u), dot(c.f, want));
+        sx = clamp(-sa * 2.6, -1, 1); thr = Math.min(1, mag) * (Math.abs(sa) > 1.9 && sp > 6 ? 0.35 : 1); }
+    }
     // steering: tighter when slow, wider when fast
-    var curv = 0.8 - 0.66 * Math.min(1, sp / 14), yawR = Math.min(3, Math.max(sp * curv, Math.abs(thr) > 0.1 ? 0.9 : 0)) * (vf < -0.3 ? -1 : 1);
+    var curv = 0.85 - 0.68 * Math.min(1, sp / 14), yawR = Math.min(3.4, Math.max(sp * curv, Math.abs(thr) > 0.1 ? 2.1 : 0)) * (vf < -0.3 ? -1 : 1);
     if (Math.abs(sx) > 0.08) { c.f = norm(rot(c.f, c.u, -sx * yawR * dt)); }
     var acc = 0, mx = 14.1 * (c.bot ? this.df.spd : 1);
-    if (thr > 0.06) acc = vf < -0.2 ? 30 * thr : thr * 18 * Math.max(0, 1 - vf / mx);
+    if (thr > 0.06) acc = vf < -0.2 ? 32 * thr : thr * 24 * Math.max(0, 1 - vf / mx);
     else if (thr < -0.06) acc = vf > 0.2 ? 30 * thr : thr * 14 * Math.max(0, 1 + vf / mx);
     else if (!bw) { var cs = Math.min(Math.abs(vf), 5.25 * dt); acc = -(vf > 0 ? 1 : -1) * cs / dt; }
     c.v = add(c.v, mul(c.f, acc * dt));
@@ -1945,7 +1954,7 @@ Sim.prototype.controls = function (c, dt) {
   }
   var want2 = bw && c.boost > 0 && this.phase !== 'count';
   c.boosting = want2;
-  if (want2) { c.v = add(c.v, mul(c.f, 11 * dt)); c.boost = Math.max(0, c.boost - 33.3 * dt); }
+  if (want2) { c.v = add(c.v, mul(c.f, 12.5 * dt)); c.boost = Math.max(0, c.boost - 33.3 * dt); }
   if (this.phase !== 'count') c.v[1] -= A.G * dt;
   var spd = len(c.v); if (spd > 23) c.v = mul(c.v, 23 / spd);
 };
@@ -1995,6 +2004,7 @@ Sim.prototype.botThink = function (c, dt) {
 Sim.prototype.arena = function () {
   var self = this, b = this.ball, d, n;
   this.cars.forEach(function (c) {
+    if (c.dead > 0) return;
     if (c.bres) { c.bres = false; c.inp.r++; }
     d = dIn(c.p[0], c.p[1], c.p[2]); c.touch = false;
     if (d < A.HB + 0.07) {
@@ -2018,10 +2028,22 @@ Sim.prototype.arena = function () {
   this.cars.forEach(function (c) { if (!(c.p[1] > -1 && c.p[1] < A.H + 2 && Math.abs(c.p[0]) < A.X + 2 && Math.abs(c.p[2]) < A.Z + A.GD + 2) || isNaN(c.p[0])) { c.p = [0, A.HB + 0.1, c.team === 'b' ? -20 : 20]; c.v = [0, 0, 0]; c.u = [0, 1, 0]; c.f = [0, 0, c.team === 'b' ? 1 : -1]; } });
 };
 
+// a car at supersonic speed that hits an opponent with its nose blows it up (Rocket League's demolition)
+Sim.prototype.demo = function (a, v, dd, dl) {
+  if (a.team === v.team || this.phase === 'count') return false;
+  var sp = dot(a.v, a.f); if (sp < 20.5) return false;
+  var dir = mul(dd, 1 / dl); if (dot(dir, a.f) < 0.7) return false;
+  v.dead = 3; v.boosting = false; v.dodgeT = 0; this.ev.push(['x', v.idx, a.idx, Math.round(v.p[0] * 10) / 10, Math.round(v.p[1] * 10) / 10, Math.round(v.p[2] * 10) / 10]);
+  if (this.last === v) this.last = null; return true;
+};
+Sim.prototype.respawn = function (c) {
+  c.dead = 0; c.p = (c.sp0 || [0, A.HB, c.team === 'b' ? -20 : 20]).slice(); c.f = (c.sf0 || [0, 0, 1]).slice(); c.u = [0, 1, 0]; c.n = [0, 1, 0]; c.v = [0, 0, 0]; c.gnd = true; c.boost = 34; c.pr = c.yr = 0; c.canDodge = false; c.dodged = false;
+  this.ev.push(['rsp', c.idx]);
+};
 Sim.prototype.contacts = function () {
   var b = this.ball, cars = this.cars, i, j;
   for (i = 0; i < cars.length; i++) {
-    var c = cars[i], rt = cross(c.f, c.u), d = sub(b.p, c.p);
+    var c = cars[i]; if (c.dead > 0) continue; var rt = cross(c.f, c.u), d = sub(b.p, c.p);
     var lx = clamp(dot(d, rt), -A.CW, A.CW), ly = clamp(dot(d, c.u), -A.CH, A.CH), lz = clamp(dot(d, c.f), -A.CL, A.CL);
     var q = add(c.p, add(mul(rt, lx), add(mul(c.u, ly), mul(c.f, lz)))), dq = sub(b.p, q), dl = len(dq);
     if (dl < A.BR) {
@@ -2040,8 +2062,9 @@ Sim.prototype.contacts = function () {
     }
     if (c.hitT > 0) c.hitT -= 1 / 120;
     for (j = i + 1; j < cars.length; j++) {
-      var e = cars[j], dd = sub(e.p, c.p), dl2 = len(dd);
+      var e = cars[j]; if (e.dead > 0) continue; var dd = sub(e.p, c.p), dl2 = len(dd);
       if (dl2 < 1.25 && dl2 > 1e-4) {
+        if (this.demo(c, e, dd, dl2) || this.demo(e, c, mul(dd, -1), dl2)) continue;
         var nn = mul(dd, 1 / dl2), push = (1.25 - dl2) / 2; c.p = sub(c.p, mul(nn, push)); e.p = add(e.p, mul(nn, push));
         var rv = dot(sub(e.v, c.v), nn); if (rv < 0) { var jj = -(1 + 0.3) * rv / 2; c.v = sub(c.v, mul(nn, jj)); e.v = add(e.v, mul(nn, jj)); var bump = Math.min(6, -rv * 0.4); c.v = sub(c.v, mul(nn, bump)); e.v = add(e.v, mul(nn, bump)); this.ev.push(['k', c.idx, e.idx]); }
       }
@@ -2063,7 +2086,7 @@ Sim.prototype.step = function (dt) {
   // boost pads
   this.pads.forEach(function (p) {
     if (p.cd > 0) { p.cd -= dt; return; }
-    for (var i = 0; i < cars.length; i++) { var c = cars[i]; if (c.boost < 100 && c.p[1] < 1.6 && Math.hypot(c.p[0] - p.x, c.p[2] - p.z) < (p.big ? 1.6 : 1.15)) { c.boost = Math.min(100, c.boost + (p.big ? 100 : 12)); p.cd = p.big ? 10 : 4; self.ev.push(['p', i, p.big]); break; } }
+    for (var i = 0; i < cars.length; i++) { var c = cars[i]; if (c.dead > 0) continue; if (c.boost < 100 && c.p[1] < 1.6 && Math.hypot(c.p[0] - p.x, c.p[2] - p.z) < (p.big ? 1.6 : 1.15)) { c.boost = Math.min(100, c.boost + (p.big ? 100 : 12)); p.cd = p.big ? 10 : 4; self.ev.push(['p', i, p.big]); break; } }
   });
   if (this.phase === 'play') { // a ball stuck still for a while gets a little pop
     if (len(b.v) < 0.4 && b.p[1] < 1.2) { this.still = (this.still || 0) + dt; if (this.still > 4) { this.still = 0; b.v = [-b.p[0] * 0.1, 7, -b.p[2] * 0.08]; } } else this.still = 0;
@@ -2084,7 +2107,7 @@ Sim.prototype.snap = function () {
   var pm = 0; this.pads.forEach(function (p, i) { if (p.cd > 0) pm |= (1 << i); });
   var ev = this.ev, b = this.ball; this.ev = [];
   return { g: [PH.indexOf(this.phase), r2(this.count), Math.round(this.timeLeft * 10) / 10, this.score.o, this.score.b, this.ot ? 1 : 0, r2(this.celeb || 0)],
-    c: this.cars.map(function (c) { return [r2(c.p[0]), r2(c.p[1]), r2(c.p[2]), r3(c.f[0]), r3(c.f[1]), r3(c.f[2]), r3(c.u[0]), r3(c.u[1]), r3(c.u[2]), Math.round(c.boost), (c.gnd ? 1 : 0) | (c.boosting ? 2 : 0) | (c.dodgeT > 0 ? 4 : 0) | (c.rcd > 0 ? 8 : 0), r2(len(c.v))]; }),
+    c: this.cars.map(function (c) { return [r2(c.p[0]), r2(c.p[1]), r2(c.p[2]), r3(c.f[0]), r3(c.f[1]), r3(c.f[2]), r3(c.u[0]), r3(c.u[1]), r3(c.u[2]), Math.round(c.boost), (c.gnd ? 1 : 0) | (c.boosting ? 2 : 0) | (c.dodgeT > 0 ? 4 : 0) | (c.rcd > 0 ? 8 : 0) | (c.dead > 0 ? 16 : 0) | (c.dead > 0 ? 0 : 0), r2(len(c.v))]; }),
     b: [r2(b.p[0]), r2(b.p[1]), r2(b.p[2]), r2(b.v[0]), r2(b.v[1]), r2(b.v[2])], pm: pm, ev: ev };
 };
 var API = { A: A, PH: PH, PADS: PADS, DIFF: DIFF, Sim: Sim, dIn: dIn, nrm: nrm, V: { add: add, sub: sub, mul: mul, dot: dot, cross: cross, len: len, norm: norm, rot: rot } };
@@ -2127,15 +2150,19 @@ var CSS = '*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-
 '#menu.show,#end.show,#turn.show,#loading.show{display:flex}#menu h2,#end h2{margin:0 0 2px;font-size:32px;letter-spacing:2px}' +
 '.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}#menu button.on{background:#2a8f4e;border-color:#7be0a0}#menu button.red,#end button.red{background:#7a1e2a;border-color:#ff8a98}' +
 '#end .big2{font-size:58px;font-weight:800;line-height:1}#end .sc2{font-size:42px;font-weight:800}#end p{margin:0;opacity:.8;font-size:18px}#end button.pri{background:#2a8f4e;border-color:#7be0a0}' +
+'#feed{position:absolute;left:50%;top:calc(52px + env(safe-area-inset-top));transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:3px;z-index:4;pointer-events:none}#feed div{background:rgba(8,14,36,.72);border-radius:9px;padding:3px 10px;font-weight:800;font-size:15px;white-space:nowrap;animation:fin .25s ease-out}#feed .b{color:#7cc4ff}#feed .o{color:#ffb066}@keyframes fin{from{opacity:0;transform:translateY(-6px)}}' +
+'#demo{position:absolute;inset:0;z-index:6;display:none;align-items:center;justify-content:center;flex-direction:column;pointer-events:none;background:radial-gradient(circle,rgba(120,20,0,.15),rgba(60,0,0,.55))}#demo.show{display:flex}#demo b{font-size:64px;letter-spacing:3px;color:#ff6a3a;text-shadow:0 4px 0 rgba(0,0,0,.4),0 0 24px rgba(255,80,20,.7);animation:pop .35s ease-out}#demo span{font-size:22px;font-weight:800;margin-top:4px}#demo i{font-style:normal;font-size:40px;font-weight:800;margin-top:6px}' +
+'#hint{position:absolute;left:50%;bottom:calc(10px + env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(8,14,36,.75);border-radius:12px;padding:6px 14px;font-weight:800;font-size:16px;z-index:4;pointer-events:none;transition:opacity .6s;white-space:nowrap}' +
+'#sson{position:absolute;inset:0;pointer-events:none;z-index:3;opacity:0;transition:opacity .25s;box-shadow:inset 0 0 70px rgba(160,220,255,.55)}' +
 '#turn{background:#0a1020;font-size:26px;font-weight:800}#turn div{font-size:60px}#loading{background:#0a1020;font-size:24px;font-weight:700}';
 var HTML = '<style>' + CSS + '</style><div id="wrap"><div id="gl"></div>' +
 '<div id="hud"><div class="sc b"><span class="sh"></span><span id="sB">0</span></div><div id="tm"><span id="tmT">3:00</span><small id="tmS"></small></div><div class="sc o"><span id="sO">0</span><span class="sh"></span></div></div>' +
-'<button id="menuBtn" aria-label="Menu">II</button><div id="big"></div><div id="arrow"><i></i><b></b></div><div id="spd"></div>' +
+'<div id="sson"></div><button id="menuBtn" aria-label="Menu">II</button><div id="big"></div><div id="feed"></div><div id="demo"><b>DEMOLISHED</b><span id="demoBy"></span><i id="demoT">3</i></div><div id="hint">👆 Swipe the screen to look around</div><div id="arrow"><i></i><b></b></div><div id="spd"></div>' +
 '<div id="stk"><div id="knob"></div></div>' +
 '<div class="cb" id="bJump">▲<span>JUMP</span></div><div class="cb" id="bBoost"><i></i><b>🔥</b><span id="bbN">BOOST</span></div><div class="cb" id="bReset" aria-label="Put car back on its wheels">⟳</div><div class="cb" id="bCam"><b>◎</b>BALL CAM</div>' +
 '<div id="editBar"><span>Drag the buttons</span><button id="editDone">Done</button><button id="editReset">Reset</button></div>' +
 '<div id="menu"><h2>PAUSED</h2><div class="row"><button id="mRes">▶ Resume</button><button id="mEdit">✋ Move buttons</button></div>' +
-'<div class="row"><button id="mSnd">🔊 Sound on</button><button id="mCam">📷 Camera: normal</button><button id="mInv">✈ Stick up: nose up</button></div><div class="row"><button id="mLobby" class="red">Lobby</button><button id="mLeave" class="red">Leave game</button></div>' +
+'<div class="row"><button id="mSnd">🔊 Sound on</button><button id="mCam">📷 Camera: normal</button><button id="mInv">✈ Stick up: nose up</button><button id="mCtl">🕹 Controls: easy</button></div><div class="row"><button id="mLobby" class="red">Lobby</button><button id="mLeave" class="red">Leave game</button></div>' +
 '<p style="margin:4px 0 0;opacity:.7;font-size:15px;max-width:420px">The match keeps going for everyone while this menu is open.</p></div>' +
 '<div id="end"><h2>FULL TIME</h2><div class="big2" id="endW"></div><div class="sc2" id="endS"></div><p id="endP"></p><div class="row"><button id="eAgain" class="pri">Play again</button><button id="eLobby" class="red">Lobby</button></div></div>' +
 '<div id="turn"><div>↻</div>Turn your phone sideways</div><div id="loading" class="show">Building the arena…</div></div>';
@@ -2150,9 +2177,9 @@ window.rocketMount = function (sr, NET) {
   var wrap = $('wrap'), glBox = $('gl');
   var dead = false, S = null, sim = null, list = [], curSeq = -1, myIdx = -1, hosting = false, snaps = [], evq = [], R = null, lastNet = 0, acc = 0, lastT = performance.now();
   var W = 800, H = 360, endShown = false, bigT = 0, lastCount = -1, shake = 0;
-  var camMode = 1, sndOn = true, ballCam = true, inv = false, mapName = '', modeS = 't3', goalsTo = 5;
-  try { var sv = JSON.parse(localStorage.getItem('rk3.opt') || 'null'); if (sv) { camMode = sv.cam == null ? 1 : sv.cam; sndOn = sv.snd !== false; ballCam = sv.bc !== false; inv = !!sv.inv; } } catch (e) { /* ignore */ }
-  function saveOpt() { try { localStorage.setItem('rk3.opt', JSON.stringify({ cam: camMode, snd: sndOn, bc: ballCam, inv: inv })); } catch (e) { /* ignore */ } }
+  var camMode = 1, sndOn = true, ballCam = true, inv = false, easy = true, mapName = '', modeS = 't3', goalsTo = 5;
+  try { var sv = JSON.parse(localStorage.getItem('rk3.opt') || 'null'); if (sv) { camMode = sv.cam == null ? 1 : sv.cam; sndOn = sv.snd !== false; ballCam = sv.bc !== false; inv = !!sv.inv; easy = sv.ez !== false; } } catch (e) { /* ignore */ }
+  function saveOpt() { try { localStorage.setItem('rk3.opt', JSON.stringify({ cam: camMode, snd: sndOn, bc: ballCam, inv: inv, ez: easy })); } catch (e) { /* ignore */ } }
 
   /* ---------- sound ---------- */
   var AC = null;
@@ -2162,7 +2189,7 @@ window.rocketMount = function (sr, NET) {
   var SND = { tick: function () { tone(660, .12, 'square', .07); }, go: function () { tone(880, .35, 'square', .09); tone(1320, .35, 'triangle', .07, 0, .02); },
     goal: function () { noise(1.2, .5, 600); tone(392, .3, 'sawtooth', .1); tone(523, .3, 'sawtooth', .1, 0, .15); tone(659, .5, 'sawtooth', .1, 0, .3); tone(784, .7, 'square', .08, 0, .45); },
     hit: function (p) { noise(.12, .15 + .35 * p, 1400); tone(120 + p * 90, .14, 'sine', .1 + .1 * p, .5); }, bounce: function (p) { tone(95, .12, 'sine', .05 + .12 * p, .6); }, pad: function (big) { tone(big ? 600 : 900, .08, 'triangle', .07); tone(big ? 900 : 1300, .12, 'triangle', .07, 0, .06); },
-    jump: function () { tone(260, .12, 'square', .04, 1.8); }, dodge: function () { noise(.25, .12, 2500); }, bump: function () { noise(.15, .2, 400); }, end: function () { tone(523, .25, 'triangle', .1); tone(392, .25, 'triangle', .1, 0, .22); tone(523, .5, 'triangle', .1, 0, .44); } };
+    jump: function () { tone(260, .12, 'square', .04, 1.8); }, dodge: function () { noise(.25, .12, 2500); }, bump: function () { noise(.15, .2, 400); }, boom: function () { noise(1.1, .7, 380); tone(70, .8, 'sawtooth', .18, .35); tone(140, .3, 'square', .08, .4); }, end: function () { tone(523, .25, 'triangle', .1); tone(392, .25, 'triangle', .1, 0, .22); tone(523, .5, 'triangle', .1, 0, .44); } };
   var eng = null; // engine hum for my car
   function engine(sp, boosting) { if (!sndOn) { if (eng) { eng.g.gain.value = 0; } return; } var a = AC; if (!a) return; if (!eng) { try { var o = a.createOscillator(), o2 = a.createOscillator(), g = a.createGain(), f = a.createBiquadFilter(); o.type = 'sawtooth'; o2.type = 'square'; f.type = 'lowpass'; f.frequency.value = 500; o.connect(f); o2.connect(f); f.connect(g); g.connect(a.destination); g.gain.value = 0; o.start(); o2.start(); eng = { o: o, o2: o2, g: g, f: f }; } catch (e) { return; } }
     var t = a.currentTime; eng.o.frequency.setTargetAtTime(45 + sp * 5.5, t, .08); eng.o2.frequency.setTargetAtTime(22 + sp * 2.7, t, .08); eng.f.frequency.setTargetAtTime(boosting ? 1500 : 520, t, .1); eng.g.gain.setTargetAtTime(.018 + Math.min(.035, sp * .002) + (boosting ? .02 : 0), t, .1); }
@@ -2197,14 +2224,21 @@ window.rocketMount = function (sr, NET) {
   function ku(ev) { keys[ev.code] = false; kx(); }
   function kx() { if (stkId != null) return; var l = keys.KeyA || keys.ArrowLeft, r = keys.KeyD || keys.ArrowRight, u = keys.KeyW || keys.ArrowUp, d = keys.KeyS || keys.ArrowDown; inp.x = (r ? 1 : 0) - (l ? 1 : 0); inp.y = (d ? 1 : 0) - (u ? 1 : 0); inp.b = !!(keys.ShiftLeft || keys.ShiftRight || keys.KeyK) || els.boost.classList.contains('on2'); }
   window.addEventListener('keydown', kd); window.addEventListener('keyup', ku);
+  // swipe anywhere on the arena to look around (like Bully Football); it eases back behind the car after you let go
+  var look = { id: null, x: 0, y: 0, yaw: 0, pitch: 0, rel: 0 };
+  glBox.addEventListener('pointerdown', function (ev) { if (editing || look.id != null) return; look.id = ev.pointerId; look.x = ev.clientX; look.y = ev.clientY; look.rel = 0; try { glBox.setPointerCapture(ev.pointerId); } catch (e) { /* ignore */ } hideHint(); });
+  glBox.addEventListener('pointermove', function (ev) { if (ev.pointerId !== look.id) return; var dx = ev.clientX - look.x, dy = ev.clientY - look.y; look.x = ev.clientX; look.y = ev.clientY; look.yaw -= dx * 0.0075; look.pitch = clamp(look.pitch + dy * 0.004, -0.35, 0.6); });
+  function lookEnd(ev) { if (ev.pointerId !== look.id) return; look.id = null; look.rel = performance.now(); }
+  glBox.addEventListener('pointerup', lookEnd); glBox.addEventListener('pointercancel', lookEnd);
+  var hintT = setTimeout(hideHint, 9000); function hideHint() { var h = $('hint'); if (h) h.style.opacity = 0; }
   $('menuBtn').addEventListener('click', function () { $('menu').classList.add('show'); });
   $('mRes').addEventListener('click', function () { $('menu').classList.remove('show'); });
   $('mEdit').addEventListener('click', function () { $('menu').classList.remove('show'); editing = true; wrap.classList.add('edit'); });
   $('editDone').addEventListener('click', function () { editing = false; wrap.classList.remove('edit'); });
   $('editReset').addEventListener('click', function () { CTL = JSON.parse(JSON.stringify(DEF)); try { localStorage.setItem('rk3.ctl', JSON.stringify(CTL)); } catch (e) { /* ignore */ } layout(); });
-  function lbls() { $('mSnd').textContent = sndOn ? '🔊 Sound on' : '🔇 Sound off'; $('mSnd').classList.toggle('on', sndOn); $('mCam').textContent = '📷 Camera: ' + ['close', 'normal', 'far'][camMode]; $('mInv').textContent = inv ? '✈ Stick up: nose down' : '✈ Stick up: nose up'; }
+  function lbls() { $('mSnd').textContent = sndOn ? '🔊 Sound on' : '🔇 Sound off'; $('mSnd').classList.toggle('on', sndOn); $('mCam').textContent = '📷 Camera: ' + ['close', 'normal', 'far'][camMode]; $('mInv').textContent = inv ? '✈ Stick up: nose down' : '✈ Stick up: nose up'; $('mCtl').textContent = easy ? '🕹 Controls: easy' : '🕹 Controls: classic'; }
   $('mSnd').addEventListener('click', function () { sndOn = !sndOn; saveOpt(); lbls(); }); $('mCam').addEventListener('click', function () { camMode = (camMode + 1) % 3; saveOpt(); lbls(); });
-  $('mInv').addEventListener('click', function () { inv = !inv; saveOpt(); lbls(); }); lbls();
+  $('mInv').addEventListener('click', function () { inv = !inv; saveOpt(); lbls(); }); $('mCtl').addEventListener('click', function () { easy = !easy; saveOpt(); lbls(); }); lbls();
   $('mLeave').addEventListener('click', function () { $('menu').classList.remove('show'); NET.leave(); });
   $('mLobby').addEventListener('click', function () { NET.send({ t: 'klobby' }); });
   $('eAgain').addEventListener('click', function () { NET.send({ t: 'kstart' }); });
@@ -2420,24 +2454,27 @@ window.rocketMount = function (sr, NET) {
     ['o', 'b'].forEach(function (t) { for (var i = 0; i < (bots[t] || 0); i++) out.push({ pid: null, team: t, name: 'Bot ' + (++bn), bot: true }); });
     return out;
   }
-  var camPos = new T.Vector3(0, 6, -30), camLook = new T.Vector3(), heading = new T.Vector3(0, 0, 1);
+  var camPos = new T.Vector3(0, 6, -30), camLook = new T.Vector3(), heading = new T.Vector3(0, 0, 1), viewDir = new T.Vector3(0, 0, 1), demoCam = null;
   function startMatch() {
     curSeq = S.rk.seq; list = buildList(); myIdx = list.findIndex(function (c) { return c.pid === NET.me(); }); hosting = NET.isHost();
     var st = S.rkSet || {}; modeS = st.mode || 't3'; goalsTo = st.goals || 5;
     if (mapName !== (st.map || 'snow')) { mapName = st.map || 'snow'; while (world.children.length) world.remove(world.children[0]); padMeshes = []; goalLights = []; buildArena(mapName); world.add(ballM); world.add(ballGlow); world.add(ballSh); world.add(ballRing); }
     buildCars();
-    snaps = []; evq = []; R = null; parts = []; endShown = false; $('end').classList.remove('show'); lastCount = -1; $('sO').textContent = '0'; $('sB').textContent = '0';
+    snaps = []; evq = []; R = null; parts = []; endShown = false; demoUntil = 0; demoCam = null; $('demo').classList.remove('show'); $('end').classList.remove('show'); lastCount = -1; $('sO').textContent = '0'; $('sB').textContent = '0';
     sim = null;
     if (hosting) { sim = new K.Sim({ players: list, set: { mode: modeS, goals: goalsTo, diff: st.diff || 'normal' } }); sim.onEnd = function (o, b) { NET.send({ t: 'kend', o: o, b: b }); }; }
     var me = list[myIdx]; heading.set(0, 0, me && me.team === 'o' ? -1 : 1); camPos.set(0, 5, me && me.team === 'o' ? 34 : -34);
     showBig('GET READY', '', 900); lastNet = 0; acc = 0; $('loading').classList.remove('show');
   }
+  function mc0() { return R && R.c[myIdx]; }
   function showBig(txt, sub, ms, col) { var b = $('big'); b.innerHTML = txt + (sub ? '<small>' + sub + '</small>' : ''); b.style.color = col || '#fff'; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show'); bigT = performance.now() + ms; }
   function hostTakeover() { if (!sim) return; sim.cars.forEach(function (c, i) { var L = list[i]; if (!L || L.bot || c.bot) return; var p = S.players.find(function (q) { return q.id === L.pid; }); if (!p || p.left || !p.connected) { c.bot = true; c.inp.x = c.inp.y = 0; c.inp.b = false; } }); }
   var takeT = setInterval(function () { if (!dead && S && hosting) hostTakeover(); }, 1000);
 
   /* ---------- events ---------- */
   function cp(i) { return R && R.c[i]; }
+  var demoUntil = 0;
+  function feed(a, at, v, vt) { var box = $('feed'), d = sr.ownerDocument.createElement('div'); d.innerHTML = '<span class="' + at + '"></span> 💥 <span class="' + vt + '"></span>'; d.children[0].textContent = a; d.children[1].textContent = v; box.appendChild(d); while (box.children.length > 3) box.removeChild(box.firstChild); setTimeout(function () { if (d.parentNode) d.parentNode.removeChild(d); }, 4000); }
   function handleEv(e) {
     var k = e[0], c;
     if (k === 'g') { SND.goal(); shake = 1.2; var col = e[1] === 'b' ? COL.b : COL.o, nm = e[2] >= 0 && list[e[2]] ? list[e[2]].name : '';
@@ -2452,6 +2489,14 @@ window.rocketMount = function (sr, NET) {
     else if (k === 'j') { c = cp(e[1]); if (c) burst(c.p[0], 0.15, c.p[2], 8, 2, ['#e8eeff'], 0.45, 0.45, 0); if (e[1] === myIdx) SND.jump(); }
     else if (k === 'd') { if (e[1] === myIdx) SND.dodge(); c = cp(e[1]); if (c) burst(c.p[0], c.p[1], c.p[2], 12, 4, [list[e[1]] && list[e[1]].team === 'b' ? '#9fd0ff' : '#ffd08a'], 0.4, 0.3, 0); }
     else if (k === 'k') { if (e[1] === myIdx || e[2] === myIdx) { SND.bump(); shake = Math.max(shake, 0.35); } }
+    else if (k === 'x') { // demolition
+      var vi = e[1], at = e[2], X = e[3], Y = e[4], Z = e[5], vt = list[vi] ? list[vi].team : 'o', vc = vt === 'b' ? ['#2f9bff', '#9fd0ff'] : ['#ff8a1f', '#ffd08a'];
+      burst(X, Y + 0.3, Z, 160, 11, ['#ffcf6a', '#ff7a1f', '#ff3b1f', '#ffffff'].concat(vc), 1.0, 0.8, 3); burst(X, Y + 0.5, Z, 40, 3, ['#3a3a44', '#55555f'], 1.6, 1.5, -1.5); burst(X, Y + 0.2, Z, 24, 7, ['#222'], 1.2, 0.35, 9);
+      SND.boom(); var dd = camera.position.distanceTo(new T.Vector3(X, Y, Z)); shake = Math.max(shake, clamp(1.4 - dd / 25, 0.15, 1.2));
+      feed((list[at] ? list[at].name : '?'), list[at] ? list[at].team : 'o', (list[vi] ? list[vi].name : '?'), vt);
+      if (vi === myIdx) { demoCam = new T.Vector3(X, Y, Z); $('demoBy').textContent = 'by ' + (list[at] ? list[at].name : ''); $('demo').classList.add('show'); demoUntil = performance.now() + 3000; }
+      else if (at === myIdx) showBig('DEMOLITION!', list[vi] ? list[vi].name : '', 1400, '#ff7a3a'); }
+    else if (k === 'rsp') { c = cp(e[1]); if (e[1] === myIdx) { $('demo').classList.remove('show'); demoUntil = 0; demoCam = null; showBig('GO!', '', 600); } if (c) burst(c.p[0], c.p[1] + 0.3, c.p[2], 30, 4, ['#ffffff', '#bfefff'], 0.6, 0.4, 0); }
     else if (k === 'ot') showBig('OVERTIME', 'next goal wins', 2200, '#ffd23f');
     else if (k === 'end') SND.end();
   }
@@ -2459,17 +2504,17 @@ window.rocketMount = function (sr, NET) {
   /* ---------- net ---------- */
   function netSendInput(now) {
     var ix = inp.x, iy = inp.y; // the stick as sent: in the air, "stick up = nose up" unless inverted
-    var ch = sent.i !== inv || ix !== sent.x || iy !== sent.y || inp.b !== sent.b || inp.j !== sent.j || inp.r !== sent.r;
+    var hh = Math.round(Math.atan2(viewDir.x, viewDir.z) * 1000), ch = sent.e !== easy || Math.abs((sent.h || 0) - hh) > 40 || ix !== sent.x || iy !== sent.y || inp.b !== sent.b || inp.j !== sent.j || inp.r !== sent.r;
     if (!ch && now - sentAt < 250) return; if (ch && now - sentAt < 33 && inp.j === sent.j) return;
-    sentAt = now; sent = { x: ix, y: iy, b: inp.b, j: inp.j, r: inp.r, i: inv };
-    var m = { x: Math.round(ix * 100) / 100, y: Math.round(iy * 100) / 100, b: inp.b ? 1 : 0, j: inp.j, r: inp.r, i: inv ? 1 : 0 };
+    sentAt = now; sent = { x: ix, y: iy, b: inp.b, j: inp.j, r: inp.r, i: inv, h: hh, e: easy };
+    var m = { x: Math.round(ix * 100) / 100, y: Math.round(iy * 100) / 100, b: inp.b ? 1 : 0, j: inp.j, r: inp.r, i: inv ? 1 : 0, h: hh, e: easy ? 1 : 0 };
     if (hosting) { if (sim && myIdx >= 0) sim.input(myIdx, m); } else if (myIdx >= 0) { m.t = 'kin'; NET.send(m); }
   }
-  function onKin(m) { if (!sim || !hosting) return; var i = list.findIndex(function (c) { return c.pid === m.id; }); if (i >= 0 && !sim.cars[i].bot) sim.input(i, { x: m.x, y: m.y, b: !!m.b, j: m.j, r: m.r, i: m.i }); }
+  function onKin(m) { if (!sim || !hosting) return; var i = list.findIndex(function (c) { return c.pid === m.id; }); if (i >= 0 && !sim.cars[i].bot) sim.input(i, { x: m.x, y: m.y, b: !!m.b, j: m.j, r: m.r, i: m.i, h: m.h, e: m.e }); }
   function onKst(m) { if (hosting || !list.length) return; m.at = performance.now(); snaps.push(m); if (snaps.length > 12) snaps.shift(); (m.ev || []).forEach(function (e) { evq.push({ due: m.at + 80, e: e }); }); }
   function modelFromSim() {
     var b = sim.ball; return { g: [PH.indexOf(sim.phase), sim.count, sim.timeLeft, sim.score.o, sim.score.b, sim.ot ? 1 : 0, sim.celeb || 0], b: { p: b.p, v: b.v },
-      c: sim.cars.map(function (c) { return { p: c.p, f: c.f, u: c.u, boost: c.boost, fl: (c.gnd ? 1 : 0) | (c.boosting ? 2 : 0) | (c.dodgeT > 0 ? 4 : 0), sp: Math.hypot(c.v[0], c.v[1], c.v[2]) }; }), pm: padBits() };
+      c: sim.cars.map(function (c) { return { p: c.p, f: c.f, u: c.u, boost: c.boost, fl: (c.gnd ? 1 : 0) | (c.boosting ? 2 : 0) | (c.dodgeT > 0 ? 4 : 0) | (c.dead > 0 ? 16 : 0), sp: Math.hypot(c.v[0], c.v[1], c.v[2]) }; }), pm: padBits() };
   }
   function padBits() { var m = 0; sim.pads.forEach(function (p, i) { if (p.cd > 0) m |= (1 << i); }); return m; }
   function l3(a, b, t) { return [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)]; }
@@ -2485,12 +2530,13 @@ window.rocketMount = function (sr, NET) {
   /* ---------- per-frame scene update ---------- */
   var M4 = new T.Matrix4(), vF = new T.Vector3(), vU = new T.Vector3(), vR = new T.Vector3(), tmpV = new T.Vector3(), bq = new T.Quaternion(), ballQ = new T.Quaternion();
   function placeCar(i, c, dt, t) {
-    var o = cars[i]; if (!o) return; var g = o.m.g;
+    var o = cars[i]; if (!o) return; var g = o.m.g, gone = !!(c.fl & 16); g.visible = !gone; if (gone) { o.tag.visible = false; o.sh.visible = false; return; }
     vF.set(c.f[0], c.f[1], c.f[2]).normalize(); vU.set(c.u[0], c.u[1], c.u[2]); vR.crossVectors(vU, vF).normalize(); vU.crossVectors(vF, vR).normalize();
     M4.makeBasis(vR, vU, vF); g.quaternion.setFromRotationMatrix(M4); g.position.set(c.p[0], c.p[1], c.p[2]);
     o.m.spin += (c.sp || 0) * dt / 0.18; o.m.wheels.forEach(function (w) { w.rotation.x = o.m.spin; });
     var boosting = !!(c.fl & 2); o.m.flame.visible = o.m.core.visible = boosting; if (boosting) { var fl = 0.8 + Math.random() * 0.5; o.m.flame.scale.set(1, fl, 1); o.m.core.scale.set(1, fl, 1);
       if (Math.random() < 0.8) { tmpV.set(0, 0.03, -1.05).applyQuaternion(g.quaternion); part(c.p[0] + tmpV.x, c.p[1] + tmpV.y, c.p[2] + tmpV.z, -vF.x * 4 + (Math.random() - .5), -vF.y * 4 + (Math.random() - .5), -vF.z * 4 + (Math.random() - .5), 0.35, 0.35, list[i] && list[i].team === 'b' ? '#7cc8ff' : '#ffa030', 0); } }
+    if ((c.sp || 0) > 21.5 && Math.random() < 0.9) { [-0.4, 0.4].forEach(function (sx) { tmpV.set(sx, -0.25, -0.5).applyQuaternion(g.quaternion); part(c.p[0] + tmpV.x, c.p[1] + tmpV.y, c.p[2] + tmpV.z, 0, 0.2, 0, 0.45, 0.22, '#e8f6ff', 0); }); }
     o.tag.position.set(c.p[0], c.p[1] + 1.05, c.p[2]); var dCam = camera.position.distanceTo(o.tag.position), ks = clamp(dCam / 9, 0.7, 2.6); o.tag.visible = i !== myIdx && dCam > 4.5; o.tag.scale.set(1.6 * ks, 0.4 * ks, 1);
     var hgt = Math.max(0, c.p[1] - A.HB); o.sh.visible = c.p[1] < 9 && Math.abs(c.p[0]) < A.X - A.R && Math.abs(c.p[2]) < A.Z - A.R; o.sh.position.set(c.p[0], 0.02, c.p[2]); var ss = 1 + hgt * 0.15; o.sh.scale.set(ss, ss, 1); o.sh.material.opacity = clamp(1 - hgt / 8, 0.15, 1);
   }
@@ -2499,18 +2545,25 @@ window.rocketMount = function (sr, NET) {
     if (!me) { // spectator: watch the ball from behind the blue goal side
       target = new T.Vector3(b[0], b[1], b[2]); camPos.lerp(new T.Vector3(b[0] * 0.6, 9, b[2] - 22), 1 - Math.exp(-dt * 2)); camLook.lerp(target, 1 - Math.exp(-dt * 4)); camera.position.copy(camPos); camera.lookAt(camLook); return;
     }
+    if (me.fl & 16) { // demolished: watch the wreck from where the camera was
+      if (demoCam) { camLook.lerp(demoCam, 1 - Math.exp(-dt * 6)); camera.position.copy(camPos); if (shake > 0) camera.position.add(new T.Vector3((Math.random() - .5) * .3 * shake, (Math.random() - .5) * .3 * shake, 0)); camera.lookAt(camLook); }
+      return;
+    }
     var car = new T.Vector3(me.p[0], me.p[1], me.p[2]), want = new T.Vector3();
     if (ballCam) { want.set(b[0] - car.x, 0, b[2] - car.z); if (want.lengthSq() < 0.5) want.copy(heading); }
     else { if (me.fl & 1) want.set(me.f[0], 0, me.f[2]); else if (!(me.fl & 4) && Math.abs(me.f[1]) < 0.85) want.set(me.f[0], 0, me.f[2]); else want.copy(heading); if (want.lengthSq() < 0.05) want.copy(heading); }
     want.normalize(); heading.lerp(want, 1 - Math.exp(-dt * (ballCam ? 6 : 4.5))).normalize();
-    var dp = new T.Vector3(car.x - heading.x * dist, Math.max(car.y, A.HB) + hgt, car.z - heading.z * dist);
+    if (look.id == null && look.rel) { var k2 = 1 - Math.exp(-dt * 2.4); if (performance.now() - look.rel > 700) { look.yaw *= 1 - k2; look.pitch *= 1 - k2; if (Math.abs(look.yaw) < 0.01 && Math.abs(look.pitch) < 0.01) { look.yaw = look.pitch = 0; look.rel = 0; } } }
+    var cy = Math.cos(look.yaw), sy2 = Math.sin(look.yaw); viewDir.set(heading.x * cy + heading.z * sy2, 0, -heading.x * sy2 + heading.z * cy).normalize();
+    var ph2 = look.pitch, dist2 = dist * (1 - Math.max(0, ph2) * 0.15);
+    var dp = new T.Vector3(car.x - viewDir.x * dist2 * Math.cos(ph2), Math.max(car.y, A.HB) + hgt + Math.sin(ph2) * dist2, car.z - viewDir.z * dist2 * Math.cos(ph2));
     // keep the camera inside the arena
     var din = K.dIn(dp.x, dp.y, dp.z); if (din < 0.8) { var nn = K.nrm(dp.x, dp.y, dp.z); dp.x += nn[0] * (0.8 - din); dp.y += nn[1] * (0.8 - din); dp.z += nn[2] * (0.8 - din); }
     dp.y = clamp(dp.y, 0.9, A.H - 0.8);
     camPos.lerp(dp, 1 - Math.exp(-dt * 10));
-    var look = ballCam ? new T.Vector3(lerp(car.x, b[0], 0.45), lerp(car.y + 0.9, b[1], 0.42), lerp(car.z, b[2], 0.45)) : new T.Vector3(car.x + heading.x * 4, car.y + 0.9, car.z + heading.z * 4);
-    if (ballCam) { var maxUp = 0.55, v = look.clone().sub(camPos); var hl = Math.hypot(v.x, v.z), ang = Math.atan2(v.y, hl); if (ang > maxUp) look.y = camPos.y + Math.tan(maxUp) * hl; }
-    camLook.lerp(look, 1 - Math.exp(-dt * 12));
+    var lk = ballCam && Math.abs(look.yaw) < 0.25 ? new T.Vector3(lerp(car.x, b[0], 0.45), lerp(car.y + 0.9, b[1], 0.42), lerp(car.z, b[2], 0.45)) : new T.Vector3(car.x + viewDir.x * 4, car.y + 0.9, car.z + viewDir.z * 4);
+    if (ballCam) { var maxUp = 0.55, v = lk.clone().sub(camPos); var hl = Math.hypot(v.x, v.z), ang = Math.atan2(v.y, hl); if (ang > maxUp) lk.y = camPos.y + Math.tan(maxUp) * hl; }
+    camLook.lerp(lk, 1 - Math.exp(-dt * 12));
     camera.position.copy(camPos); if (shake > 0) camera.position.add(new T.Vector3((Math.random() - .5) * .25 * shake, (Math.random() - .5) * .25 * shake, 0));
     camera.lookAt(camLook);
     var fov0 = W / H > 1.9 ? 66 : 72, wantF = fov0 + ((me.fl & 2) ? 6 : 0) + Math.min(6, (me.sp || 0) * 0.15); if (Math.abs(camera.fov - wantF) > 0.05) { camera.fov = lerp(camera.fov, wantF, 1 - Math.exp(-dt * 4)); camera.updateProjectionMatrix(); }
@@ -2539,7 +2592,8 @@ window.rocketMount = function (sr, NET) {
     if ($('tmT').textContent !== tT) $('tmT').textContent = tT; if ($('tmS').textContent !== tS) $('tmS').textContent = tS;
     if (g[0] === 0) { var cn = Math.ceil(g[1]); if (cn !== lastCount && cn >= 1 && cn <= 3) { lastCount = cn; showBig(String(cn), '', 900); SND.tick(); } } else lastCount = -1;
     if (bigT && now > bigT) { $('big').classList.remove('show'); bigT = 0; }
-    var mc = R.c[myIdx]; if (mc) { var pcs = Math.round(mc.boost); els.boost.firstChild.style.setProperty('--p', pcs + '%'); $('bbN').textContent = pcs; $('spd').textContent = Math.round((mc.sp || 0) * 3.6) + ' km/h'; engine(mc.sp || 0, !!(mc.fl & 2)); }
+    if (demoUntil) { var dl = Math.max(0, Math.ceil((demoUntil - now) / 1000)); $('demoT').textContent = dl ? 'respawn in ' + dl : ''; if (now > demoUntil + 1500 || (mc0() && !(mc0().fl & 16))) { $('demo').classList.remove('show'); demoUntil = 0; demoCam = null; } }
+    var mc = R.c[myIdx]; if (mc) { var pcs = Math.round(mc.boost); els.boost.firstChild.style.setProperty('--p', pcs + '%'); $('bbN').textContent = pcs; $('spd').textContent = Math.round((mc.sp || 0) * 3.6) + ' km/h'; $('sson').style.opacity = (mc.sp || 0) > 21.5 ? 1 : 0; engine(mc.sp || 0, !!(mc.fl & 2)); }
     if (shake > 0) shake = Math.max(0, shake - dt * 1.6);
     var t = now / 1000;
     R.c.forEach(function (c, i) { placeCar(i, c, dt, t); });
