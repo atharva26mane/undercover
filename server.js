@@ -3043,7 +3043,7 @@ function handle(ws, m) {
     case 'kin': { // a player's stick + buttons, passed straight to the host's phone
       if (room.game !== 'rocket' || room.phase !== 'kplay' || p.id === room.hostId) return;
       const h = room.players.get(room.hostId); if (!h || !h.ws || !h.connected) return;
-      const x = Number(m.x); return send(h.ws, { t: 'kin', id: p.id, x: Number.isFinite(x) ? Math.max(-1, Math.min(1, Math.round(x * 100) / 100)) : 0, b: m.b ? 1 : 0, j: (Number(m.j) | 0) % 1e6, r: (Number(m.r) | 0) % 1e6 });
+      const x = Number(m.x); return send(h.ws, { t: 'kin', id: p.id, x: Number.isFinite(x) ? Math.max(-1, Math.min(1, Math.round(x * 100) / 100)) : 0, y: Number.isFinite(Number(m.y)) ? Math.max(-1, Math.min(1, Math.round(Number(m.y) * 100) / 100)) : 0, b: m.b ? 1 : 0, j: (Number(m.j) | 0) % 1e6, r: (Number(m.r) | 0) % 1e6, i: m.i ? 1 : 0 });
     }
     case 'kst': { // the host's match snapshot, sent on to everyone else
       if (room.game !== 'rocket' || room.phase !== 'kplay' || p.id !== room.hostId) return;
