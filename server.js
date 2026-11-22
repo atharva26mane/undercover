@@ -3015,6 +3015,12 @@ function handle(ws, m) {
       const me = rkOf(room, p); if (m.team === 'o' || m.team === 'b') me.team = m.team;
       return broadcast(room);
     }
+    case 'kcar': { // a player's car in the garage: body, accent colour, boost colour
+      if (room.game !== 'rocket' || !['lobby', 'kover'].includes(room.phase)) return;
+      const m2 = Number(m.m), a2 = Number(m.a), b2 = Number(m.b);
+      if (![m2, a2, b2].every(Number.isInteger) || m2 < 0 || m2 > 4 || a2 < 0 || a2 > 7 || b2 < 0 || b2 > 5) return;
+      rkOf(room, p).car = { m: m2, a: a2, b: b2 }; return broadcast(room);
+    }
     case 'kteam': {
       if (!hostOnly() || room.game !== 'rocket' || !['lobby', 'kover'].includes(room.phase)) return;
       const q = room.players.get(String(m.id)); if (!q || q.left) return; const r = rkOf(room, q); r.team = r.team === 'o' ? 'b' : 'o'; return broadcast(room);
