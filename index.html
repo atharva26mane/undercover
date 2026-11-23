@@ -6940,7 +6940,7 @@ body.hubmode header{pointer-events:none}body.hubmode header button{pointer-event
           var face = r.photo ? h('span', { class: 'av toon pic sm' }, h('img', { src: r.photo, alt: '' })) : avatar(r.host, 0, 'sm');
           return h('div', { class: 'hx-room', style: '--i:' + i }, face,
             h('span', { class: 'hx-ri' }, h('b', null, g.n), h('small', null, r.host + ' · ' + r.n + '/' + (HX_MAX[r.game] || 12))),
-            h('button', { type: 'button', onclick: function () { askJoin(r.code); } }, 'ASK →'));
+            h('button', { type: 'button', onclick: function () { askJoin(r.code); } }, r.game === 'tapri' ? 'JOIN →' : 'ASK →'));
         })) : h('div', { class: 'hx-empty' }, 'No open rooms right now. Start a game and friends nearby will see it here.'));
     }
     paintRooms();

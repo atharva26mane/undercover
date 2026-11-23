@@ -2611,6 +2611,13 @@ function handle(ws, m) {
     if (room.blocked.has(cid)) return no('The host declined your request');
     if ((room.cool.get(cid) || 0) > Date.now()) return no('Wait a minute before asking again');
     if (ws.pend) dropReq(rooms.get(ws.pend.room), ws.pend, null);
+    if (room.game === 'tapri') { // the chai tapri is open to everyone: walk straight in, no request to the host
+      const np = addPlayer(room, name);
+      if (okPhoto(m.photo)) np.photo = m.photo;
+      attach(ws, room, np);
+      if (np.photo) for (const q of room.players.values()) if (q.ws && q.connected) send(q.ws, { t: 'photo', name: np.name, data: np.photo });
+      return;
+    }
     if ([...room.pending.values()].some((r) => r.cid === cid)) return no('You already asked this room');
     if (room.pending.size >= 5) return no('The host has too many requests. Try again soon');
     const r = { id: Math.random().toString(36).slice(2, 8), ws, name, cid, photo: okPhoto(m.photo) ? m.photo : null, room: room.code };
