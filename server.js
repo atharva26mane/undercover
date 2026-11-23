@@ -2461,7 +2461,7 @@ async function frCmd(ws, m) {
       const un = String(m.uname || '').toLowerCase().trim();
       if (!/^[a-z0-9_]{2,16}$/.test(un)) return errTo(ws, 'Username: 2 to 16 letters, numbers or _');
       if (typeof m.token !== 'string' || m.token.length < 16 || m.token.length > 64) return;
-      if (Date.now() - (ws.regAt || 0) < 3000) return;
+      if (Date.now() - (ws.regAt || 0) < 3000) return errTo(ws, 'One moment, still saving. Try again in a few seconds');
       ws.regAt = Date.now();
       const ex = await q('SELECT 1 FROM users WHERE uname = $1', [un]);
       if (ex.length) return errTo(ws, 'That username is taken');

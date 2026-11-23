@@ -6999,20 +6999,22 @@ body.hubmode header{pointer-events:none}body.hubmode header button{pointer-event
     if (!ph || !S || photoMap[S.me.name.trim().toLowerCase()]) return;
     send({ t: 'photo', data: ph });
   }
-  function needName() {
+  var afterName = null, afterNameAt = 0; // what the player was trying to do when we asked for a name
+  function needName(retry) {
     if (savedName) return true;
-    toast('Set your name in Profile first');
+    afterName = retry || null; afterNameAt = Date.now();
+    toast('Set your name, then you go straight in');
     mode = 'profile'; render();
     return false;
   }
   function joinCode(code) {
     code = String(code || '').trim().toUpperCase();
     if (code.length < 4) { toast('Enter the 4-letter code'); return; }
-    if (!needName()) return;
+    if (!needName(function () { joinCode(code); })) return;
     send({ t: 'join', name: savedName, code: code });
   }
   function askJoin(code) {
-    if (!needName()) return;
+    if (!needName(function () { askJoin(code); })) return;
     send({ t: 'req', code: code, name: savedName, cid: myCid, photo: myPic() || undefined });
   }
   function showWait() {
@@ -7341,7 +7343,7 @@ body.hubmode header{pointer-events:none}body.hubmode header button{pointer-event
     function addNow() { var v = addIn.value.trim().replace(/^@/, ''); if (!v) return; send({ t: 'fadd', uname: v }); addIn.value = ''; }
     addIn.addEventListener('keydown', function (e) { if (e.key === 'Enter') addNow(); });
     function make() { var v = unIn.value.trim().toLowerCase().replace(/^@/, ''); if (!/^[a-z0-9_]{2,16}$/.test(v)) { toast('2 to 16 letters, numbers or _'); return; }
-      var a = new Uint8Array(12); (window.crypto || window.msCrypto).getRandomValues(a); frTok = Array.prototype.map.call(a, function (x) { return ('0' + x.toString(16)).slice(-2); }).join(''); send({ t: 'freg', uname: v, token: frTok }); }
+      var a = new Uint8Array(12); (window.crypto || window.msCrypto).getRandomValues(a); frTok = Array.prototype.map.call(a, function (x) { return ('0' + x.toString(16)).slice(-2); }).join(''); toast('Saving @' + v + '...'); send({ t: 'freg', uname: v, token: frTok }); }
     function paint() {
       var inLobby = S ? S.code : '';
       if (FR.down) { fill(body, h('p', null, 'Friends are not available right now. Try again in a minute.')); return; }
@@ -7390,7 +7392,7 @@ body.hubmode header{pointer-events:none}body.hubmode header button{pointer-event
       if (!/^[a-z0-9_]{2,16}$/.test(v)) { toast('2 to 16 letters, numbers or _'); return; }
       var a = new Uint8Array(12); (window.crypto || window.msCrypto).getRandomValues(a);
       frTok = Array.prototype.map.call(a, function (x) { return ('0' + x.toString(16)).slice(-2); }).join('');
-      send({ t: 'freg', uname: v, token: frTok });
+      toast('Saving @' + v + '...'); send({ t: 'freg', uname: v, token: frTok });
     }
     function paint() {
       if (FR.down) { fill(body, h('div', { class: 'adm-card' }, h('p', { class: 'adm-mute' }, 'Friends are not available right now. Try again in a minute.'))); return; }
@@ -7568,7 +7570,7 @@ body.hubmode header{pointer-events:none}body.hubmode header button{pointer-event
         var n = nameIn.value.trim();
         if (!n) { toast('Enter a name'); nameIn.focus(); return; }
         savedName = n; store('uc.name', n); store('uc.photo', draft || null);
-        toast('Saved ✓'); mode = 'hub'; render();
+        toast('Saved ✓'); mode = 'hub'; render(); if (afterName && Date.now() - afterNameAt < 120000) { var go = afterName; afterName = null; setTimeout(go, 250); }
       } }, 'Save'), h('div', { class: 'gap' }),
       h('p', { class: 'mute small center' }, 'Saved on this phone. Everyone in your room sees your name and photo.'));
     return { root: root, update: function () {} };
