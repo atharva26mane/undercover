@@ -765,6 +765,7 @@ function ckEnd(room) {
   let mom = null, best = -1;
   for (const id of c.ids) { const s = c.stats[id]; if (!s || !ckOn(room, id)) continue; const pts = s.r + s.f + 2 * s.s + 20 * s.w + 12 * (s.c + s.ro + s.st); if (pts > best) { best = pts; mom = id; } }
   c.mom = mom; c.step = null; c.ch = null;
+  { const win = c.winner.ids ? c.winner.ids : c.winner.team == null ? [] : [].concat(...c.inns.filter((x) => x.team === c.winner.team).map((x) => x.bat)); recordWins(room, 'cricket', c.ids, win); }
   setPhase(room, 'cover');
   broadcast(room);
 }
@@ -925,7 +926,7 @@ function view(room, p) {
   if (room.game === 'draw') { v.dwSet = room.dwSet; if (room.dw) v.dw = dwView(room, p); }
   if (room.game === 'golf') { v.gfSet = room.gfSet; if (room.gf) v.gf = gfView(room); }
   if (room.game === 'bully') { v.bfSet = room.bfSet; v.bfMe = {}; for (const q of room.players.values()) if (!q.left) v.bfMe[q.id] = bfOf(room, q); if (room.bf) v.bf = { ids: room.bf.ids, seq: room.bf.seq, res: room.bf.res || null }; }
-  if (room.game === 'tapri') { const t = room.tp || {}; v.tp = { votes: t.votes || {}, chai: t.chai || {}, kind: t.kind || {}, spot: t.spot || {}, av: t.av || {}, whistle: t.whistle || null, emo: t.emo || {}, sky: t.sky || 'dusk', radio: t.radio | 0, paid: t.paid | 0, score: t.score || '', notes: t.notes || [], ludo: t.ludo || null }; }
+  if (room.game === 'tapri') { const t = room.tp || {}; v.tp = { votes: t.votes || {}, chai: t.chai || {}, kind: t.kind || {}, spot: t.spot || {}, av: t.av || {}, wall: (t.wall || []).map((x) => ({ id: x.id, by: x.by })), ak: t.ak || null, td: t.td || null, mu: t.mu ? { now: t.mu.now, t: Date.now(), q: t.mu.q.map((x) => ({ id: x.id, tid: x.tid, title: x.title, artist: x.artist, img: x.img, by: x.by, v: Object.keys(x.v).length, vs: Object.keys(x.v) })), keys: !!(process.env.SPOTIFY_ID && process.env.SPOTIFY_SECRET) } : { now: null, t: Date.now(), q: [], keys: !!(process.env.SPOTIFY_ID && process.env.SPOTIFY_SECRET) }, whistle: t.whistle || null, emo: t.emo || {}, sky: t.sky || 'dusk', radio: t.radio | 0, paid: t.paid | 0, score: t.score || '', notes: t.notes || [], ludo: t.ludo || null }; }
   if (room.game === 'bomb') { v.mbSet = room.mbSet; if (room.mb) v.mb = { ids: room.mb.ids, seq: room.mb.seq, bots: room.mb.bots }; }
   if (room.game === 'rocket') { v.rkSet = room.rkSet; v.rkMe = {}; for (const q of room.players.values()) if (!q.left) v.rkMe[q.id] = rkOf(room, q); if (room.rk) v.rk = { ids: room.rk.ids, seq: room.rk.seq, res: room.rk.res || null, teams: room.rk.teams, bots: room.rk.bots }; }
   if (room.game === 'race' && room.rc) {
@@ -1130,6 +1131,7 @@ function endGame(room, winner) {
     delta[k] = { pts, won: won ? 1 : 0, imp: isImp(p) ? 1 : 0 };
   }
   room.lastDelta = delta;
+  recordWins(room, 'undercover', [...room.players.values()].filter((x) => x.role).map((x) => x.id), [...room.players.values()].filter((x) => delta[norm(x.name)] && delta[norm(x.name)].won).map((x) => x.id));
   broadcast(room);
 }
 function undoKick(room) { // host: put the last voted-out player back and vote again
@@ -1212,7 +1214,7 @@ function fbAfter(room) {
 }
 function fbEnd(room, team) {
   setPhase(room, 'fover');
-  room.fb.winner = team;
+  room.fb.winner = team; { const ids = fbPlayers(room).map((x) => x.id || x); const f = room.fb; recordWins(room, 'football', ids, ids.filter((id) => f.team && f.team[id] === team)); }
   for (const p of fbPlayers(room)) notify(room, p, '🏁 Full time', 'Final score ' + room.fb.score.join('–'), [70, 50, 70, 50, 70]);
   broadcast(room);
 }
@@ -1398,7 +1400,7 @@ function unOver(room) {
   const rest = u.ids.filter((id) => !uGone(u, id)).sort((a, b) => u.hands[a].length - u.hands[b].length);
   const w = u.fin[0] || rest[0];
   u.winner = w; u.ranks = u.fin.concat(rest).map((id) => ({ id, left: u.hands[id].length })).concat((u.out || []).map((id) => ({ id, left: 0, out: 1 })));
-  setPhase(room, 'uover');
+  setPhase(room, 'uover'); recordWins(room, 'uno', u.ids, [w]);
   for (const id of u.ids) { const q = room.players.get(id); if (q && !q.left) notify(room, q, '🏁 UNO finished', (room.players.get(w) || {}).name + ' won', [70, 50, 70]); }
   broadcast(room);
 }
@@ -2366,6 +2368,7 @@ function dbInit() {
   if (!dbReady) {
     dbReady = DB.query('CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, uname TEXT UNIQUE NOT NULL, token_hash TEXT UNIQUE NOT NULL, push TEXT, created_at TIMESTAMPTZ DEFAULT now())')
       .then(() => DB.query('CREATE TABLE IF NOT EXISTS friends (a INT NOT NULL, b INT NOT NULL, req INT NOT NULL, ok BOOLEAN NOT NULL DEFAULT FALSE, PRIMARY KEY (a, b))'))
+      .then(() => DB.query('CREATE TABLE IF NOT EXISTS wins (user_id INT NOT NULL, game TEXT NOT NULL, wins INT NOT NULL DEFAULT 0, plays INT NOT NULL DEFAULT 0, PRIMARY KEY (user_id, game))'))
       .then(() => DB.query('CREATE TABLE IF NOT EXISTS name_reqs (user_id INT PRIMARY KEY, wanted TEXT NOT NULL, at TIMESTAMPTZ DEFAULT now())'))
       .catch((e) => { dbReady = null; throw e; });
   }
@@ -2381,6 +2384,53 @@ function frLogin(ws, u) {
   if (!userWs.has(u.id)) userWs.set(u.id, new Set());
   userWs.get(u.id).add(ws);
   send(ws, { t: 'fme', uname: u.uname, vapid: webpush ? webpush.pub : null });
+}
+
+const TD_TRUTH = ['What is the most embarrassing thing in your phone gallery?', 'Who in this group would you trust with a secret?', 'What is your biggest fear that you never told us?', 'Which friend annoys you the most (be kind!)?', 'What was your worst haircut ever?', 'What is a lie you told that is still going?', 'Who was your first crush?', 'What is the weirdest food you secretly like?', 'What is the last thing you searched on Google?', 'Which game here do you secretly think you are bad at?', 'What is your most-used emoji and why?', 'If you could swap lives with one friend for a day, who?', 'What is something you pretend to like but do not?', 'What is the funniest thing you did in college?', 'Which friend would survive longest in a jungle?', 'What is the most money you wasted on something silly?', 'When did you last cry, and why?', 'What is your most embarrassing nickname?', 'What is your guilty pleasure song?', 'Whose chat do you reply to the fastest?'];
+const TD_DARE = ['Talk in a funny accent until your next turn.', 'Send "I love chai" to the last person you messaged.', 'Do your best filmy dialogue right now.', 'Sing the first line of any song, loudly.', 'Let the group pick a new nickname for you for today.', 'Do 10 pushups, we count out loud.', 'Say the alphabet backwards in 20 seconds.', 'Act like a chaiwala for one minute.', 'Imitate any friend here and let us guess.', 'Show the last photo in your gallery.', 'Speak only in questions for the next 3 turns.', 'Dance for 15 seconds on voice or camera.', 'Tell a joke. If nobody laughs, do another dare.', 'Make the funniest face you can and hold it for 10 seconds.', 'Say "wah wah" after every sentence for 2 minutes.', 'Do a news-reader voice and announce the weather.', 'Hum a song and let us guess it.', 'Describe your day like a cricket commentator.', 'Order imaginary chai from the chaiwala in Hindi, Marathi and English.', 'Give a compliment to every person here.'];
+function tdHandle(room, p, m, ws) { const t = room.tp; if (m.a === 'done') { if (t.td && (t.td.to === p.id || p.id === room.hostId || t.td.by === p.id)) t.td = null; return broadcast(room); }
+  if (Date.now() - (t.tdAt || 0) < 1500) return; t.tdAt = Date.now(); const kind = m.k === 'dare' ? 'dare' : 'truth'; let text = clean(m.text, 120);
+  if (!text) { const bank = kind === 'dare' ? TD_DARE : TD_TRUTH; text = bank[Math.floor(Math.random() * bank.length)]; }
+  const live = [...room.players.values()].filter((x) => !x.left); let to = String(m.to || ''); if (!live.some((x) => x.id === to)) { const others = live.filter((x) => x.id !== p.id); to = (others.length ? others : live)[Math.floor(Math.random() * (others.length || live.length))].id; }
+  t.td = { kind, text, to, by: p.id, at: Date.now() }; notice(room, (kind === 'dare' ? '😈 Dare for ' : '🤔 Truth for ') + (room.players.get(to) || {}).name + ': ' + text); return broadcast(room); }
+function akLetter(txt) { const ch = Array.from(String(txt).toLowerCase()).filter((c) => /\p{L}/u.test(c)); return ch; }
+function akTimer(room) { const t = room.tp, A = t.ak; clearTimeout(room.akTimer); if (!A || !A.on) return; A.ends = Date.now() + 30000; room.akTimer = setTimeout(() => { if (!t.ak || !t.ak.on) return; const A2 = t.ak, id = A2.order[A2.turn], q = room.players.get(id); A2.log = (q ? q.name : 'Someone') + ' ran out of time! −1'; A2.score[id] = (A2.score[id] | 0) - 1; akNext(room); broadcast(room); }, 30500); }
+function akNext(room) { const A = room.tp.ak; for (let i = 1; i <= A.order.length; i++) { const j = (A.turn + i) % A.order.length, q = room.players.get(A.order[j]); if (q && !q.left) { A.turn = j; break; } } akTimer(room); }
+function akHandle(room, p, m) { const t = room.tp, A = t.ak || (t.ak = { on: false, order: [], score: {}, used: [], letter: '', turn: 0, log: '', last: null, ends: 0 });
+  if (m.a === 'join') { if (A.on || A.order.includes(p.id) || A.order.length >= 8) return; A.order.push(p.id); A.score[p.id] = 0; A.log = p.name + ' joined'; }
+  else if (m.a === 'leave') { const i = A.order.indexOf(p.id); if (i < 0) return; const cur = A.order[A.turn]; A.order.splice(i, 1); delete A.score[p.id]; if (A.on && A.order.length < 2) { A.on = false; clearTimeout(room.akTimer); A.log = 'Not enough players'; } else if (A.on && cur === p.id) { A.turn = (A.turn - 1 + A.order.length) % A.order.length; akNext(room); } else if (A.turn >= A.order.length) A.turn = 0; if (!A.order.length) t.ak = null; }
+  else if (m.a === 'start') { if (A.order.length < 2 || A.on) return; if (!A.order.includes(p.id) && p.id !== room.hostId) return; A.on = true; A.used = []; A.turn = Math.floor(Math.random() * A.order.length); A.letter = 'abcdefghijklmnoprstv'[Math.floor(Math.random() * 20)]; A.log = 'Sing a song starting with “' + A.letter.toUpperCase() + '”'; A.order.forEach((id) => { A.score[id] = 0; }); akTimer(room); }
+  else if (m.a === 'stop') { if (!A.order.includes(p.id) && p.id !== room.hostId) return; A.on = false; clearTimeout(room.akTimer); A.log = 'Game over!'; }
+  else if (m.a === 'say') { if (!A.on || A.order[A.turn] !== p.id) return; const txt = clean(m.text, 60); if (!txt) return; const L = akLetter(txt); if (!L.length) return;
+    if (L[0] !== A.letter) { A.log = 'Must start with “' + A.letter.toUpperCase() + '”'; return; } const key = L.join(''); if (A.used.includes(key)) { A.log = 'Already sung! Try another'; return; }
+    A.used.push(key); A.score[p.id] = (A.score[p.id] | 0) + 1; A.letter = L[L.length - 1]; A.last = { by: p.name, text: txt }; A.log = p.name + ' sang “' + txt + '” +1. Next letter: ' + A.letter.toUpperCase(); akNext(room); } }
+
+async function tapriStats(room, p, ws) { try { const ids = new Set(); for (const x of room.players.values()) if (!x.left && x.ws && x.ws.user) ids.add(x.ws.user.id);
+    if (ws.user) { ids.add(ws.user.id); const fr = await q('SELECT CASE WHEN a = $1 THEN b ELSE a END AS oid FROM friends WHERE (a = $1 OR b = $1) AND ok', [ws.user.id]); for (const r of fr) ids.add(r.oid); }
+    if (!ids.size) return send(ws, { t: 'tstats', rows: [], login: !ws.user });
+    const rows = await q('SELECT u.uname, w.game, w.wins, w.plays FROM wins w JOIN users u ON u.id = w.user_id WHERE w.user_id = ANY($1::int[])', [[...ids]]), by = {};
+    for (const r of rows) { const o = by[r.uname] || (by[r.uname] = { uname: r.uname, g: {}, wins: 0, plays: 0 }); o.g[r.game] = [r.wins, r.plays]; o.wins += r.wins; o.plays += r.plays; }
+    send(ws, { t: 'tstats', login: !ws.user, rows: Object.values(by).sort((a, b) => b.wins - a.wins || b.plays - a.plays).slice(0, 12) }); } catch (e) { send(ws, { t: 'tstats', rows: [], login: !ws.user }); } }
+// ---- Spotify: a shared queue that everyone votes on. The top-voted song plays next. Search needs SPOTIFY_ID and SPOTIFY_SECRET; pasting a link works without keys.
+let spTok = null, spExp = 0;
+async function spToken() { if (spTok && Date.now() < spExp) return spTok; const r = await fetch('https://accounts.spotify.com/api/token', { method: 'POST', headers: { Authorization: 'Basic ' + Buffer.from(process.env.SPOTIFY_ID + ':' + process.env.SPOTIFY_SECRET).toString('base64'), 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'grant_type=client_credentials' }); const j = await r.json(); spTok = j.access_token; spExp = Date.now() + (j.expires_in - 60) * 1000; return spTok; }
+function muStart(room) { const M = room.tp.mu; if (!M.q.length) { M.now = null; return; } M.q.sort((a, b) => Object.keys(b.v).length - Object.keys(a.v).length || a.id - b.id); const x = M.q.shift(); M.now = { id: x.id, tid: x.tid, title: x.title, artist: x.artist, img: x.img, by: x.by, at: Date.now() }; }
+async function muHandle(room, p, m, ws) { const t = room.tp, M = t.mu || (t.mu = { now: null, q: [] });
+  try {
+    if (m.t === 'tmsearch') { if (!process.env.SPOTIFY_ID || !process.env.SPOTIFY_SECRET) return send(ws, { t: 'tmres', err: 'nokeys' }); const qs = clean(m.q, 60); if (!qs) return; if (Date.now() - (p.lastMs || 0) < 800) return; p.lastMs = Date.now();
+      const r = await fetch('https://api.spotify.com/v1/search?type=track&limit=10&market=IN&q=' + encodeURIComponent(qs), { headers: { Authorization: 'Bearer ' + (await spToken()) } }); const j = await r.json();
+      return send(ws, { t: 'tmres', res: ((j.tracks && j.tracks.items) || []).map((x) => ({ tid: x.id, title: x.name, artist: (x.artists || []).map((a) => a.name).join(', '), img: x.album && x.album.images && x.album.images.length ? x.album.images[x.album.images.length - 1].url : '' })) }); }
+    if (m.t === 'tmadd') { if (Date.now() - (p.lastMa || 0) < 2500) return; p.lastMa = Date.now(); let tid = String(m.tid || ''); if (!/^[A-Za-z0-9]{22}$/.test(tid)) { const u = String(m.url || ''), mm = u.match(/track[/:]([A-Za-z0-9]{22})/); if (!mm) return errTo(ws, 'Paste a Spotify song link'); tid = mm[1]; }
+      if (M.q.length >= 15) return errTo(ws, 'The queue is full'); if (M.q.some((x) => x.tid === tid) || (M.now && M.now.tid === tid)) return errTo(ws, 'That song is already in the queue');
+      let title = clean(m.title, 80), artist = clean(m.artist, 80), img = /^https:\/\/[a-z0-9.-]*scdn\.co\//.test(String(m.img || '')) ? String(m.img).slice(0, 200) : '';
+      if (!title) { try { const r = await fetch('https://open.spotify.com/oembed?url=' + encodeURIComponent('https://open.spotify.com/track/' + tid)); const j = await r.json(); title = clean(j.title, 80) || 'Spotify song'; if (/^https:\/\/[a-z0-9.-]*scdn\.co\//.test(j.thumbnail_url || '')) img = j.thumbnail_url; } catch (e) { title = 'Spotify song'; } }
+      M.q.push({ id: ++t.nid, tid, title, artist, img, by: p.name, v: { [p.id]: 1 } }); if (!M.now) muStart(room); notice(room, '🎵 ' + p.name + ' added “' + title + '”'); return broadcast(room); }
+    if (m.t === 'tmvote') { const x = M.q.find((y) => y.id === Number(m.id)); if (!x) return; if (x.v[p.id]) delete x.v[p.id]; else x.v[p.id] = 1; return broadcast(room); }
+    if (m.t === 'tmnext') { if (!M.now) return; if (p.id !== room.hostId) return; muStart(room); return broadcast(room); }
+  } catch (e) { errTo(ws, 'Spotify did not answer. Try again'); } }
+function recordWins(room, game, played, winners) { // friends with a username get their wins counted
+  try { const w = new Set(winners || []); for (const id of played || []) { const p = room.players.get(id), uid = p && p.ws && p.ws.user && p.ws.user.id; if (!uid) continue;
+    q('INSERT INTO wins (user_id, game, wins, plays) VALUES ($1, $2, $3, 1) ON CONFLICT (user_id, game) DO UPDATE SET wins = wins.wins + $3, plays = wins.plays + 1', [uid, game, w.has(id) ? 1 : 0]).catch(() => {}); } } catch (e) { /* ignore */ }
 }
 function frLogout(ws) {
   if (ws.user) { const s = userWs.get(ws.user.id); if (s) { s.delete(ws); if (!s.size) userWs.delete(ws.user.id); } ws.user = null; }
@@ -3006,6 +3056,7 @@ function handle(ws, m) {
     case 'bend': {
       if (room.game !== 'bully' || room.phase !== 'bplay' || p.id !== room.hostId || !room.bf) return;
       room.bf.res = { o: Math.max(0, Math.min(99, Number(m.o) | 0)), b: Math.max(0, Math.min(99, Number(m.b) | 0)) };
+      { const live = [...room.players.values()].filter((x) => !x.left), win = room.bf.res.o === room.bf.res.b ? null : room.bf.res.o > room.bf.res.b ? 'o' : 'b'; recordWins(room, 'bully', live.map((x) => x.id), win ? live.filter((x) => bfOf(room, x).team === win).map((x) => x.id) : []); }
       setPhase(room, 'bover'); return broadcast(room);
     }
     case 'kset': {
@@ -3067,9 +3118,10 @@ function handle(ws, m) {
     case 'kend': {
       if (room.game !== 'rocket' || room.phase !== 'kplay' || p.id !== room.hostId || !room.rk) return;
       room.rk.res = { o: Math.max(0, Math.min(99, Number(m.o) | 0)), b: Math.max(0, Math.min(99, Number(m.b) | 0)) };
+      { const live = [...room.players.values()].filter((x) => !x.left), win = room.rk.res.o === room.rk.res.b ? null : room.rk.res.o > room.rk.res.b ? 'o' : 'b'; recordWins(room, 'rocket', live.map((x) => x.id), win ? live.filter((x) => rkOf(room, x).team === win).map((x) => x.id) : []); }
       setPhase(room, 'kover'); return broadcast(room);
     }
-    case 'tvote': case 'tchai': case 'tnote': case 'tdel': case 'temo': case 'tsky': case 'tradio': case 'tpaid': case 'tscore': case 'tludo': case 'tseat': case 'tavatar': case 'twhistle': { // Chai Tapri: hang out, vote for the next game, order chai, pin ideas
+    case 'tvote': case 'tchai': case 'tnote': case 'tdel': case 'temo': case 'tsky': case 'tradio': case 'tpaid': case 'tscore': case 'tludo': case 'tseat': case 'tavatar': case 'twhistle': case 'twall': case 'twdel': case 'twget': case 'tstats': case 'tak': case 'ttd': case 'tmadd': case 'tmvote': case 'tmnext': case 'tmsearch': { // Chai Tapri: hang out, vote for the next game, order chai, pin ideas
       if (room.game !== 'tapri' || room.phase !== 'lobby') return;
       const t = room.tp || (room.tp = { votes: {}, chai: {}, notes: [], nid: 0 });
       if (m.t === 'tvote') { const g = String(m.g || ''); if (!g || t.votes[p.id] === g) delete t.votes[p.id]; else if (['undercover', 'uno', 'football', 'race', 'cricket', 'draw', 'golf', 'bully', 'rocket', 'bomb'].includes(g)) t.votes[p.id] = g; }
@@ -3081,6 +3133,13 @@ function handle(ws, m) {
       else if (m.t === 'tseat') { const i = Number(m.i); if (!Number.isInteger(i) || i < -1 || i > 19) return; const sp = t.spot || (t.spot = {}); if (i >= 0) { for (const [id, v] of Object.entries(sp)) { const q = room.players.get(id); if (v === i && id !== p.id && q && !q.left) return errTo(ws, 'Someone is sitting there'); } sp[p.id] = i; } else delete sp[p.id]; }
       else if (m.t === 'tavatar') { const n = (v, mx) => Math.max(0, Math.min(mx, Number(v) | 0)); (t.av || (t.av = {}))[p.id] = { s: n(m.s, 9), k: n(m.k, 4), h: n(m.h, 3), c: n(m.c, 5) }; }
       else if (m.t === 'twhistle') { if (Date.now() - (t.whAt || 0) < 6000) return; t.whAt = Date.now(); t.whistle = { id: p.id, at: Date.now() }; }
+      else if (m.t === 'twall') { const img = String(m.img || ''); if (!/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(img) || img.length > 70000) return errTo(ws, 'Photo is too big'); const W = t.wall || (t.wall = []); W.push({ id: ++t.nid, by: p.name, pid: p.id, img }); while (W.length > 6) W.shift(); }
+      else if (m.t === 'twdel') { const W = t.wall || []; const i = W.findIndex((x) => x.id === Number(m.id)); if (i >= 0 && (W[i].pid === p.id || p.id === room.hostId)) W.splice(i, 1); }
+      else if (m.t === 'twget') { const x = (t.wall || []).find((y) => y.id === Number(m.id)); if (x) send(ws, { t: 'twimg', id: x.id, img: x.img }); return; }
+      else if (m.t === 'tstats') { tapriStats(room, p, ws); return; }
+      else if (m.t === 'tak') { akHandle(room, p, m); }
+      else if (m.t === 'ttd') { tdHandle(room, p, m, ws); }
+      else if (m.t === 'tmadd' || m.t === 'tmvote' || m.t === 'tmnext' || m.t === 'tmsearch') { return muHandle(room, p, m, ws); }
       else if (m.t === 'tscore') { t.score = clean(m.text, 44); }
       else if (m.t === 'tludo') {
         const L = t.ludo || (t.ludo = { pl: [], pos: {}, turn: 0, dice: 0, win: null, log: '' }), WIN = 30, live = (id) => { const q = room.players.get(id); return q && !q.left; };
