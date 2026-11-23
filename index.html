@@ -1833,6 +1833,20 @@ body.tpmode .vxrow{flex-direction:row-reverse}body.tpmode .vsm{justify-content:f
 .tp-notes{max-height:46vh;overflow:auto;display:flex;flex-direction:column;gap:8px;margin-top:6px}
 .tp-note{position:relative;background:#fff6c8;color:#2a2010;border-radius:6px;padding:10px 30px 8px 12px;box-shadow:2px 3px 0 rgba(0,0,0,.35);transform:rotate(-.6deg)}.tp-note:nth-child(even){transform:rotate(.7deg);background:#d8f5ff}
 .tp-note p{margin:0;font-weight:800;font-size:15px}.tp-note small{font-weight:700;opacity:.65}.tp-note button{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(0,0,0,.12);cursor:pointer}
+
+.tp-pop{position:absolute;right:calc(82px + env(safe-area-inset-right));top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;background:rgba(20,16,32,.94);border:2px solid rgba(255,216,144,.55);border-radius:16px;padding:8px;z-index:5;max-height:80%;overflow:auto}
+.tp-pop.big{flex-direction:row;flex-wrap:wrap;justify-content:flex-end;max-width:min(62vw,330px)}
+.tp-pop button{font:800 14px 'Nunito',sans-serif;color:#fff;background:rgba(255,255,255,.1);border:0;border-radius:12px;padding:9px 12px;min-height:44px;display:flex;justify-content:space-between;align-items:center;gap:14px;cursor:pointer}
+.tp-pop.big button{font-size:26px;padding:6px 10px;min-width:46px;justify-content:center}.tp-pop button small{opacity:.7;font-size:12px}
+.tp-float{position:absolute;bottom:26%;font-size:42px;z-index:4;pointer-events:none;animation:tpup 2.5s ease-out forwards;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+@keyframes tpup{0%{transform:translateY(0) scale(.5);opacity:0}15%{opacity:1;transform:translateY(-20px) scale(1.1)}100%{transform:translateY(-220px) scale(1);opacity:0}}
+.tp-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.tp-opts.t3{grid-template-columns:repeat(3,1fr)}
+.tp-o{position:relative;font:800 14px 'Nunito',sans-serif;color:#fff;background:rgba(255,255,255,.1);border:2px solid transparent;border-radius:14px;padding:12px 6px;min-height:52px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+.tp-o.on{border-color:#ffd23f;background:rgba(255,210,63,.18)}.tp-o i{font-style:normal;font-size:26px;line-height:1}.tp-o em{position:absolute;top:4px;right:6px;background:#e0303a;border-radius:9px;font:800 11px/1 'Nunito';padding:3px 6px;font-style:normal}
+.lu-who{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}.lu-p{display:flex;align-items:center;gap:5px;font:800 12px 'Nunito';padding:3px 8px;border-radius:12px;background:rgba(255,255,255,.08)}.lu-p.on{background:#2f9e44}
+.lu-g{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}.lu-c{min-height:36px;border-radius:8px;background:rgba(255,255,255,.08);display:flex;flex-wrap:wrap;align-items:center;justify-content:center;position:relative}
+.lu-c small{position:absolute;top:1px;left:3px;font:700 8px 'Nunito';opacity:.55}.lu-c.s{background:#2a5a3a}.lu-c.g{background:#a07a10}
+.lu-log{display:flex;align-items:center;gap:10px;margin:8px 0;font:700 13px 'Nunito'}.lu-d{font-size:38px;font-weight:400}.lu-bt{display:flex;gap:8px;flex-wrap:wrap}.lu-bt .ux-b{flex:1;min-width:110px}
 </style>
 <style id="tp1">.hx .hx-img.hx-i-tp{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20464%20150%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22s%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%231b1a48%22%2F%3E%3Cstop%20offset%3D%22.55%22%20stop-color%3D%22%238a4a6e%22%2F%3E%3Cstop%20offset%3D%22.8%22%20stop-color%3D%22%23f08a4a%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%233a2a30%22%2F%3E%3C%2FlinearGradient%3E%3CradialGradient%20id%3D%22l%22%20cx%3D%22.5%22%20cy%3D%22.3%22%20r%3D%22.6%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fff3c8%22%20stop-opacity%3D%22.9%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23fff3c8%22%20stop-opacity%3D%220%22%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22464%22%20height%3D%22150%22%20fill%3D%22url%28%23s%29%22%2F%3E%3Cg%20fill%3D%22%23241c2e%22%3E%3Crect%20x%3D%220%22%20y%3D%2270%22%20width%3D%2260%22%20height%3D%2280%22%2F%3E%3Crect%20x%3D%2262%22%20y%3D%2250%22%20width%3D%2248%22%20height%3D%22100%22%2F%3E%3Crect%20x%3D%22380%22%20y%3D%2260%22%20width%3D%2284%22%20height%3D%2290%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%23ffd890%22%20opacity%3D%22.8%22%3E%3Crect%20x%3D%2212%22%20y%3D%2284%22%20width%3D%228%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2234%22%20y%3D%22104%22%20width%3D%228%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2274%22%20y%3D%2264%22%20width%3D%228%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2292%22%20y%3D%2290%22%20width%3D%228%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%22396%22%20y%3D%2276%22%20width%3D%228%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%22430%22%20y%3D%22100%22%20width%3D%228%22%20height%3D%2210%22%2F%3E%3C%2Fg%3E%3Crect%20x%3D%220%22%20y%3D%22132%22%20width%3D%22464%22%20height%3D%2218%22%20fill%3D%22%234a3d36%22%2F%3E%3Cpolygon%20points%3D%22140%2C40%20330%2C40%20350%2C58%20120%2C58%22%20fill%3D%22%239aa0a6%22%2F%3E%3Crect%20x%3D%22150%22%20y%3D%2258%22%20width%3D%226%22%20height%3D%2280%22%20fill%3D%22%239b7a45%22%2F%3E%3Crect%20x%3D%22314%22%20y%3D%2258%22%20width%3D%226%22%20height%3D%2280%22%20fill%3D%22%239b7a45%22%2F%3E%3Crect%20x%3D%22138%22%20y%3D%2222%22%20width%3D%22194%22%20height%3D%2222%22%20rx%3D%223%22%20fill%3D%22%23c81e1e%22%2F%3E%3Ctext%20x%3D%22235%22%20y%3D%2239%22%20font-family%3D%22Arial%20Black%2CArial%22%20font-weight%3D%22900%22%20font-size%3D%2215%22%20text-anchor%3D%22middle%22%20fill%3D%22%23ffd23f%22%3ECHAI%20TAPRI%3C%2Ftext%3E%3Cellipse%20cx%3D%22235%22%20cy%3D%2275%22%20rx%3D%2290%22%20ry%3D%2240%22%20fill%3D%22url%28%23l%29%22%2F%3E%3Crect%20x%3D%22150%22%20y%3D%2296%22%20width%3D%22170%22%20height%3D%2240%22%20fill%3D%22%231f8a8a%22%2F%3E%3Crect%20x%3D%22146%22%20y%3D%2292%22%20width%3D%22178%22%20height%3D%226%22%20fill%3D%22%23c9ced6%22%2F%3E%3Crect%20x%3D%22270%22%20y%3D%2274%22%20width%3D%2228%22%20height%3D%2218%22%20rx%3D%223%22%20fill%3D%22%23c8ccd2%22%2F%3E%3Cg%20fill%3D%22%23eaf6ff%22%20opacity%3D%22.9%22%3E%3Crect%20x%3D%22180%22%20y%3D%2280%22%20width%3D%229%22%20height%3D%2212%22%2F%3E%3Crect%20x%3D%22194%22%20y%3D%2280%22%20width%3D%229%22%20height%3D%2212%22%2F%3E%3Crect%20x%3D%22208%22%20y%3D%2280%22%20width%3D%229%22%20height%3D%2212%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%23a86a38%22%3E%3Crect%20x%3D%22181%22%20y%3D%2285%22%20width%3D%227%22%20height%3D%227%22%2F%3E%3Crect%20x%3D%22195%22%20y%3D%2285%22%20width%3D%227%22%20height%3D%227%22%2F%3E%3Crect%20x%3D%22209%22%20y%3D%2285%22%20width%3D%227%22%20height%3D%227%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22M282%2070%20q-8%20-12%202%20-22%20q8%20-10%20-2%20-20%22%20stroke%3D%22%23fff%22%20stroke-width%3D%224%22%20fill%3D%22none%22%20opacity%3D%22.6%22%2F%3E%3Crect%20x%3D%2240%22%20y%3D%22118%22%20width%3D%2270%22%20height%3D%226%22%20fill%3D%22%238a5a32%22%2F%3E%3Crect%20x%3D%22360%22%20y%3D%22118%22%20width%3D%2270%22%20height%3D%226%22%20fill%3D%22%238a5a32%22%2F%3E%3C%2Fsvg%3E");background-size:cover;background-position:center}.hx-card.rkwide .hx-art.k-tp{aspect-ratio:464/150!important}</style>
 <style id="mb1">.hx .hx-img.hx-i-mb{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20464%20150%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22g%22%20cx%3D%22.7%22%20cy%3D%22.5%22%20r%3D%22.9%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%236b2d9a%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23150a2c%22%2F%3E%3C%2FradialGradient%3E%3CradialGradient%20id%3D%22f%22%20cx%3D%22.5%22%20cy%3D%22.5%22%20r%3D%22.5%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fff6a0%22%2F%3E%3Cstop%20offset%3D%22.4%22%20stop-color%3D%22%23ffa51f%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23ff4a1f%22%20stop-opacity%3D%220%22%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22464%22%20height%3D%22150%22%20fill%3D%22url%28%23g%29%22%2F%3E%3Cellipse%20cx%3D%22300%22%20cy%3D%2282%22%20rx%3D%22190%22%20ry%3D%2262%22%20fill%3D%22none%22%20stroke%3D%22%23ff9a3d%22%20stroke-width%3D%225%22%20opacity%3D%22.8%22%2F%3E%3Ccircle%20cx%3D%22110%22%20cy%3D%22100%22%20r%3D%2222%22%20fill%3D%22%234dd2ff%22%2F%3E%3Ccircle%20cx%3D%22190%22%20cy%3D%2240%22%20r%3D%2222%22%20fill%3D%22%23ffd23f%22%2F%3E%3Ccircle%20cx%3D%22410%22%20cy%3D%22110%22%20r%3D%2222%22%20fill%3D%22%237be07a%22%2F%3E%3Ccircle%20cx%3D%22250%22%20cy%3D%22112%22%20r%3D%2222%22%20fill%3D%22%23ff5c8a%22%2F%3E%3Ccircle%20cx%3D%22330%22%20cy%3D%2286%22%20r%3D%2240%22%20fill%3D%22%2315151d%22%2F%3E%3Ccircle%20cx%3D%22316%22%20cy%3D%2272%22%20r%3D%2210%22%20fill%3D%22%23fff%22%20opacity%3D%22.35%22%2F%3E%3Crect%20x%3D%22322%22%20y%3D%2238%22%20width%3D%2216%22%20height%3D%2212%22%20fill%3D%22%23555%22%2F%3E%3Cpath%20d%3D%22M330%2038%20Q352%2022%20366%2030%22%20stroke%3D%22%23d9b36a%22%20stroke-width%3D%225%22%20fill%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22366%22%20cy%3D%2230%22%20r%3D%2222%22%20fill%3D%22url%28%23f%29%22%2F%3E%3C%2Fsvg%3E");background-size:cover;background-position:center}.hx-card.rkwide .hx-art.k-mb{aspect-ratio:464/150!important}body.mbmode .vbox{bottom:auto;top:calc(64px + env(safe-area-inset-top));left:auto;right:8px;z-index:70}</style>
@@ -2973,14 +2987,18 @@ window.tapriMount = function (root, API) {
   function noiseTex(w, h, base, spread, n) { var c = cnv(w, h), g = c.getContext('2d'); g.fillStyle = base; g.fillRect(0, 0, w, h); for (var i = 0; i < n; i++) { var v = Math.floor(Math.random() * spread); g.fillStyle = 'rgba(' + v + ',' + v + ',' + v + ',' + (Math.random() * 0.12) + ')'; g.fillRect(Math.random() * w, Math.random() * h, 1 + Math.random() * 3, 1 + Math.random() * 3); } return c; }
 
   /* ---------- sky at dusk ---------- */
-  (function () { var c = cnv(16, 512), g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 512);
-    gr.addColorStop(0, '#0d1030'); gr.addColorStop(0.38, '#2b2a5e'); gr.addColorStop(0.62, '#8a4a6e'); gr.addColorStop(0.76, '#e07a4a'); gr.addColorStop(0.86, '#f7b25c'); gr.addColorStop(1, '#3a2a30'); g.fillStyle = gr; g.fillRect(0, 0, 16, 512);
-    var sky = new T.Mesh(new T.SphereGeometry(120, 32, 16), new T.MeshBasicMaterial({ map: tex(c), side: T.BackSide, fog: false })); scene.add(sky);
-    var st = cnv(512, 256), sg = st.getContext('2d'); for (var i = 0; i < 70; i++) { sg.fillStyle = 'rgba(255,255,255,' + (0.3 + Math.random() * 0.6) + ')'; sg.fillRect(Math.random() * 512, Math.random() * 110, 1.5, 1.5); }
-    var stars = new T.Mesh(new T.SphereGeometry(118, 32, 16, 0, TAU, 0, Math.PI / 2.4), new T.MeshBasicMaterial({ map: tex(st), transparent: true, side: T.BackSide, fog: false, depthWrite: false })); scene.add(stars);
-  })();
+  var skyMesh, starsMesh;
+  function skyTex(stops) { var c = cnv(16, 512), g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 512); stops.forEach(function (x) { gr.addColorStop(x[0], x[1]); }); g.fillStyle = gr; g.fillRect(0, 0, 16, 512); return tex(c); }
+  var SKIES = {
+    dusk: { st: [[0, '#0d1030'], [0.38, '#2b2a5e'], [0.62, '#8a4a6e'], [0.76, '#e07a4a'], [0.86, '#f7b25c'], [1, '#3a2a30']], fog: 0x2a2440, h: [0x9a90d0, 0x5a4030, 1.0], moon: [0x8090c0, 0.35], exp: 1.45, stars: 1 },
+    day: { st: [[0, '#3f86d6'], [0.5, '#86bff0'], [0.8, '#d6ebff'], [1, '#7a6a5a']], fog: 0xbfd8ee, h: [0xdfeeff, 0x8a7a60, 1.7], moon: [0xfff0d0, 1.1], exp: 1.15, stars: 0 },
+    night: { st: [[0, '#02030c'], [0.5, '#0a0f2a'], [0.8, '#1a2146'], [1, '#12121a']], fog: 0x0a0c1c, h: [0x5a66b0, 0x2a2030, 0.8], moon: [0x7080c0, 0.4], exp: 1.7, stars: 1 },
+    rain: { st: [[0, '#38414e'], [0.5, '#56606c'], [0.8, '#7a828c'], [1, '#3a3a3e']], fog: 0x56606c, h: [0x9aa6b8, 0x4a4440, 1.15], moon: [0xaab6c8, 0.3], exp: 1.55, stars: 0 } };
+  skyMesh = new T.Mesh(new T.SphereGeometry(120, 32, 16), new T.MeshBasicMaterial({ map: skyTex(SKIES.dusk.st), side: T.BackSide, fog: false })); scene.add(skyMesh);
+  (function () { var st = cnv(512, 256), sg = st.getContext('2d'); for (var i = 0; i < 70; i++) { sg.fillStyle = 'rgba(255,255,255,' + (0.3 + Math.random() * 0.6) + ')'; sg.fillRect(Math.random() * 512, Math.random() * 110, 1.5, 1.5); }
+    starsMesh = new T.Mesh(new T.SphereGeometry(118, 32, 16, 0, TAU, 0, Math.PI / 2.4), new T.MeshBasicMaterial({ map: tex(st), transparent: true, side: T.BackSide, fog: false, depthWrite: false })); scene.add(starsMesh); })();
   /* ---------- lights ---------- */
-  scene.add(new T.HemisphereLight(0x9a90d0, 0x5a4030, 1.0)); var fill = new T.PointLight(0xffd0a0, 4, 7, 1.5); fill.position.set(0, 1.8, 0.2); scene.add(fill);
+  var hemi = new T.HemisphereLight(0x9a90d0, 0x5a4030, 1.0); scene.add(hemi); var fill = new T.PointLight(0xffd0a0, 4, 7, 1.5); fill.position.set(0, 1.8, 0.2); scene.add(fill);
   var moon = new T.DirectionalLight(0x8090c0, 0.35); moon.position.set(-10, 20, 8); scene.add(moon);
   var tube = new T.SpotLight(0xfff0d0, 60, 14, 1.15, 0.55, 1.4); tube.position.set(0, 2.25, -2.75); tube.target.position.set(0, 0, -1.2); tube.castShadow = true; tube.shadow.mapSize.set(1024, 1024); tube.shadow.bias = -0.0008; scene.add(tube); scene.add(tube.target);
   var warm = new T.PointLight(0xffb070, 10, 6, 1.6); warm.position.set(0.5, 1.4, -3.2); scene.add(warm);
@@ -3159,8 +3177,43 @@ window.tapriMount = function (root, API) {
   function honk() { if (!sndOn || !AC) return; try { var o = AC.createOscillator(), g = AC.createGain(); o.type = 'square'; o.frequency.value = 410 + Math.random() * 60; g.gain.setValueAtTime(0.0001, AC.currentTime); g.gain.exponentialRampToValueAtTime(0.012, AC.currentTime + 0.03); g.gain.exponentialRampToValueAtTime(0.0001, AC.currentTime + 0.35); o.connect(g); g.connect(AC.destination); o.start(); o.stop(AC.currentTime + 0.4); } catch (e) { /* ignore */ } }
   root.addEventListener('pointerdown', ambience, { once: false });
 
+  /* ---------- weather: dusk, day, night, rain ---------- */
+  var skyK = 'dusk', rainOn = false, flash = 0, hemiBase = 1.0, RN = 520, rx = [], ry = [], rz = [];
+  var rainGeo = new T.BufferGeometry(), rainPos = new Float32Array(RN * 6); for (var ri = 0; ri < RN; ri++) { rx.push(-7 + Math.random() * 14); ry.push(Math.random() * 9); rz.push(-14 + Math.random() * 17); }
+  rainGeo.setAttribute('position', new T.BufferAttribute(rainPos, 3)); var rain = new T.LineSegments(rainGeo, new T.LineBasicMaterial({ color: 0xcfe0ff, transparent: true, opacity: 0.5 })); rain.frustumCulled = false; rain.visible = false; scene.add(rain);
+  var rainN = null;
+  function rainSound() { if (rainN || !AC || !sndOn) return; try { var n = AC.sampleRate * 2, b = AC.createBuffer(1, n, AC.sampleRate), d = b.getChannelData(0); for (var i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; var s = AC.createBufferSource(); s.buffer = b; s.loop = true; var hp = AC.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 1400; var g = AC.createGain(); g.gain.value = 0.05; s.connect(hp); hp.connect(g); g.connect(AC.destination); s.start(); rainN = { s: s, g: g }; } catch (e) { /* ignore */ } }
+  function setSky(k) { var K = SKIES[k] || SKIES.dusk; if (k === skyK && skyMesh.userData.k) return; skyK = k; skyMesh.userData.k = 1; skyMesh.material.map = skyTex(K.st); skyMesh.material.needsUpdate = true;
+    scene.fog.color.setHex(K.fog); hemi.color.setHex(K.h[0]); hemi.groundColor.setHex(K.h[1]); hemiBase = K.h[2]; hemi.intensity = hemiBase; moon.color.setHex(K.moon[0]); moon.intensity = K.moon[1]; renderer.toneMappingExposure = K.exp; starsMesh.visible = !!K.stars;
+    rainOn = k === 'rain'; rain.visible = rainOn; if (rainOn) rainSound(); }
+  /* ---------- radio: three little synth stations ---------- */
+  var radioK = 0, rTimer = 0, rTick = 0, radioLed = mesh(new T.SphereGeometry(0.012, 8, 8), new T.MeshBasicMaterial({ color: 0x401010 }), -0.8, 1.7, -3.885);
+  function tone(f, t0, dur, type, gain, lp) { var o = AC.createOscillator(), g = AC.createGain(), fl = AC.createBiquadFilter(); o.type = type; o.frequency.value = f; fl.type = 'lowpass'; fl.frequency.value = lp || 1800; g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(gain, t0 + 0.04); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur); o.connect(fl); fl.connect(g); g.connect(AC.destination); o.start(t0); o.stop(t0 + dur + 0.05); }
+  function burst(t0, dur, gain, f, q) { var n = Math.floor(AC.sampleRate * dur), b = AC.createBuffer(1, n, AC.sampleRate), d = b.getChannelData(0); for (var i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.sin(i / n * Math.PI); var s = AC.createBufferSource(); s.buffer = b; var fl = AC.createBiquadFilter(); fl.type = 'bandpass'; fl.frequency.value = f; fl.Q.value = q || 1; var g = AC.createGain(); g.gain.value = gain; s.connect(fl); fl.connect(g); g.connect(AC.destination); s.start(t0); }
+  var RAGA = [261.6, 277.2, 311.1, 349.2, 392, 415.3, 466.2, 523.3], CHORDS = [[261.6, 329.6, 392, 493.9], [220, 261.6, 329.6, 392], [174.6, 220, 261.6, 329.6], [196, 246.9, 293.7, 349.2]], mi = 3;
+  function radioTick() { if (!AC || !sndOn) return; var t0 = AC.currentTime + 0.05, k = radioK; rTick++;
+    if (k === 1) { if (rTick % 2 === 0) { mi = clamp(mi + [-2, -1, -1, 0, 1, 1, 2][Math.floor(Math.random() * 7)], 0, 7); var f = RAGA[mi]; tone(f, t0, 0.9, 'sawtooth', 0.022, 1100); tone(f * 1.004, t0, 0.9, 'sawtooth', 0.016, 1100); } if (rTick % 16 === 1) { tone(130.8, t0, 3.5, 'triangle', 0.03, 400); tone(196, t0, 3.5, 'triangle', 0.02, 400); } if (rTick % 4 === 0) burst(t0, 0.08, 0.02, 220, 4); }
+    else if (k === 2) { var ch = CHORDS[Math.floor(rTick / 16) % 4]; if (rTick % 16 === 0) ch.forEach(function (f) { tone(f, t0, 4.1, 'sine', 0.022, 900); tone(f / 2, t0, 4.1, 'triangle', 0.012, 500); }); if (rTick % 8 === 0) { var o = AC.createOscillator(), g = AC.createGain(); o.frequency.setValueAtTime(140, t0); o.frequency.exponentialRampToValueAtTime(45, t0 + 0.25); g.gain.setValueAtTime(0.09, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.3); o.connect(g); g.connect(AC.destination); o.start(t0); o.stop(t0 + 0.35); } if (rTick % 2 === 1) burst(t0, 0.05, 0.02, 7000, 1); if (rTick % 4 === 2) tone(ch[Math.floor(Math.random() * 4)] * 2, t0, 0.6, 'sine', 0.012, 1500); }
+    else if (k === 3) { if (rTick % 3 === 0) burst(t0, 1.6, 0.03 + Math.random() * 0.02, 700 + Math.random() * 500, 0.7); if (rTick % 14 === 5) { burst(t0, 0.04, 0.12, 2500, 2); burst(t0 + 0.1, 2.4, 0.09, 900, 0.5); } if (rTick % 14 === 11) tone(520, t0, 0.5, 'square', 0.006, 900); } }
+  function setRadio(k) { if (k === radioK) return; radioK = k; clearInterval(rTimer); rTimer = 0; radioLed.material.color.setHex(k ? 0x40ff70 : 0x401010); if (!k || !sndOn) return; try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) { return; } rTick = 0; rTimer = setInterval(radioTick, 260); }
+  /* ---------- tip jar, cricket TV ---------- */
+  var tipC = cnv(256, 96), tipTex = tex(tipC); mesh(new T.PlaneGeometry(0.6, 0.225), new T.MeshBasicMaterial({ map: tipTex }), -1.22, 1.43, -3.0);
+  var jar = mesh(new T.CylinderGeometry(0.1, 0.1, 0.24, 18), glassM2(), -1.22, 1.16, -2.97), coins = [];
+  function glassM2() { return new T.MeshStandardMaterial({ color: 0xdfefff, roughness: 0.05, transparent: true, opacity: 0.3 }); }
+  for (var ci = 0; ci < 14; ci++) { var cn = mesh(new T.CylinderGeometry(0.03, 0.03, 0.008, 10), std(0xe8b020, 0.3, 0.8), -1.22 + (Math.random() - .5) * 0.1, 1.05 + ci * 0.012, -2.97 + (Math.random() - .5) * 0.1); cn.rotation.set(Math.random() * 0.5, 0, Math.random() * 0.5); cn.visible = false; coins.push(cn); }
+  function paintTip(n) { var g = tipC.getContext('2d'); g.fillStyle = '#fff3c4'; g.fillRect(0, 0, 256, 96); g.strokeStyle = '#a01818'; g.lineWidth = 6; g.strokeRect(3, 3, 250, 90); g.fillStyle = '#a01818'; g.textAlign = 'center'; g.font = '800 26px system-ui,sans-serif'; g.fillText('CHAI PAID TODAY', 128, 38); g.fillStyle = '#16676a'; g.font = '900 40px system-ui,sans-serif'; g.fillText('☕ ' + n, 128, 80); tipTex.needsUpdate = true; coins.forEach(function (c, i) { c.visible = i < n; }); }
+  paintTip(0);
+  var tvC = cnv(512, 320), tvTex = tex(tvC), tvM = new T.MeshBasicMaterial({ map: tvTex });
+  mesh(new T.BoxGeometry(0.95, 0.58, 0.12), [std(0x15151a), std(0x15151a), std(0x15151a), std(0x15151a), tvM, std(0x15151a)], 0.95, 2.1, -4.08, true);
+  function paintTV(txt) { var g = tvC.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 320); gr.addColorStop(0, '#0f5a2a'); gr.addColorStop(1, '#1d7a3a'); g.fillStyle = gr; g.fillRect(0, 0, 512, 320); g.fillStyle = '#d32020'; g.fillRect(0, 0, 512, 62); g.fillStyle = '#fff'; g.font = '900 40px system-ui,sans-serif'; g.textAlign = 'left'; g.fillText('🏏 LIVE CRICKET', 18, 46);
+    g.textAlign = 'center'; g.fillStyle = '#ffd23f'; var t = txt || 'Set the score!', sz = 58; g.font = '900 ' + sz + 'px system-ui,sans-serif'; while (g.measureText(t).width > 470 && sz > 24) { sz -= 4; g.font = '900 ' + sz + 'px system-ui,sans-serif'; } g.fillText(t, 256, 190); g.fillStyle = '#fff'; g.font = '700 28px system-ui,sans-serif'; g.fillText('tap 📺 Score to update', 256, 270); tvTex.needsUpdate = true; }
+  paintTV('');
+  /* ---------- the chaiwala calls out your name ---------- */
+  var owner = new T.Sprite(new T.SpriteMaterial({ transparent: true, depthWrite: false, depthTest: false, opacity: 0 })); owner.scale.set(1.5, 0.75, 1); owner.position.set(0, 2.05, -2.6); owner.renderOrder = 9; owner.visible = false; scene.add(owner); var ownerT = 0;
+  function ownerSay(txt) { owner.material.map = bubbleTex('Chaiwala', txt); owner.material.needsUpdate = true; owner.visible = true; ownerT = performance.now() + 4200; }
+  var CHAI_N = ['cutting chai', 'masala chai', 'bun maska'];
   /* ---------- sync with the room ---------- */
-  var myChai = 0, lastChai = {}, hostName = '';
+  var myChai = 0, lastChai = {}, hostName = '', lastPaid = -1, lastScore = null, lastEmo = {};
   function sync() {
     var S = API.state(); if (!S) return; var me = S.me.id, seen = {}, n = 0;
     var host = S.players.find(function (p) { return p.host; }) || S.players[0]; if (host && host.name !== hostName) { hostName = host.name; paintSign(hostName); }
@@ -3170,9 +3223,13 @@ window.tapriMount = function (root, API) {
     Object.keys(people).forEach(function (id) { if (!seen[id]) { scene.remove(people[id].g); delete people[id]; } });
     var ch = (S.tp && S.tp.chai) || {};
     Object.keys(ch).forEach(function (id) { if (lastChai[id] !== ch[id]) { var fresh = lastChai[id] !== undefined || Date.now() - ch[id] < 5000; lastChai[id] = ch[id]; if (!fresh) { if (people[id]) people[id].cup.visible = true; return; }
+      var kd = ((S.tp && S.tp.kind) || {})[id] | 0, nm = id === me ? S.me.name : (people[id] ? people[id].name : 'friend'); ownerSay(nm + ', ' + CHAI_N[kd] + ' ready!'); if (id === me) say2(nm + ', ' + CHAI_N[kd] + ' taiyaar hai');
       if (id === me) { myChai = performance.now(); pourSound(); } else if (people[id]) { people[id].cup.visible = true; people[id].sip = 0.01; pourSound(); } } });
     Object.keys(people).forEach(function (id) { if (ch[id]) people[id].cup.visible = true; });
+    var tp = S.tp || {}; setSky(tp.sky || 'dusk'); setRadio(tp.radio | 0); if (tp.paid !== lastPaid) { lastPaid = tp.paid | 0; paintTip(lastPaid); } if ((tp.score || '') !== lastScore) { lastScore = tp.score || ''; paintTV(lastScore); }
+    var em = tp.emo || {}; Object.keys(em).forEach(function (id) { var e = em[id]; if (!e || lastEmo[id] === e.at) return; var fresh = lastEmo[id] !== undefined || Date.now() - e.at < 4000; lastEmo[id] = e.at; if (!fresh) return; var P = people[id], who = P ? P.name : ''; if (P) say({ id: id, name: who, text: e.e }); if (API.emote) API.emote(id, e.e); });
   }
+  function say2(t) { try { if (!sndOn || !window.speechSynthesis) return; var u = new SpeechSynthesisUtterance(t); u.lang = 'hi-IN'; u.rate = 1.0; u.volume = 0.8; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) { /* ignore */ } }
   function say(m) { var P = people[m.id]; if (!P) return; P.bub.material.map = bubbleTex(m.name, m.text); P.bub.material.needsUpdate = true; P.bub.visible = true; P.bubT = performance.now() + 7000; }
 
   /* ---------- my own glass of chai (held in front of the camera) ---------- */
@@ -3200,10 +3257,17 @@ window.tapriMount = function (root, API) {
     tube.intensity = 60 + (Math.random() < 0.004 ? -25 : 0);
     packs.forEach(function (p, i) { p.rotation.z = Math.sin(t * 0.8 + i) * 0.04; p.rotation.y = Math.sin(t * 0.5 + i * 2) * 0.15; });
     cars.forEach(function (c) { c.x += c.dir * c.sp * dt; if (c.x > 40) { c.x = -40; if (Math.random() < 0.3) honk(); } if (c.x < -40) c.x = 40; c.a.position.set(c.x, 0.55, c.z); c.b.position.set(c.x - c.dir * 1.4, 0.55, c.z); });
+    if (rainOn) { for (var q = 0; q < RN; q++) { ry[q] -= 15 * dt; if (ry[q] < 0) { ry[q] = 8 + Math.random() * 2; rx[q] = -7 + Math.random() * 14; rz[q] = -14 + Math.random() * 17; } var o6 = q * 6; rainPos[o6] = rx[q]; rainPos[o6 + 1] = ry[q]; rainPos[o6 + 2] = rz[q]; rainPos[o6 + 3] = rx[q] - 0.03; rainPos[o6 + 4] = ry[q] + 0.4; rainPos[o6 + 5] = rz[q]; } rainGeo.attributes.position.needsUpdate = true;
+      if (!rainN) rainSound(); if (rainN) rainN.g.gain.value = sndOn ? 0.05 : 0; if (Math.random() < dt * 0.07) flash = 1; flash = Math.max(0, flash - dt * 3); hemi.intensity = hemiBase + flash * 2.6; } else if (rainN) rainN.g.gain.value = 0;
+    if (ownerT) { var lf = ownerT - now; owner.material.opacity = clamp(lf / 500, 0, 1); if (lf <= 0) { ownerT = 0; owner.visible = false; } }
     renderer.render(scene, camera);
   }
   requestAnimationFrame(frame);
-  return { sync: sync, say: say, sound: function (on) { sndOn = on; try { localStorage.setItem('tp.snd', on ? 'on' : 'off'); } catch (e) { /* ignore */ } if (amb) { amb.g.gain.value = on ? 0.035 : 0; amb.g2.gain.value = on ? 0.012 : 0; } else if (on) ambience(); },
+  function photo() { renderer.render(scene, camera); var src = renderer.domElement, w = src.width, h = src.height, pad = Math.round(w * 0.03), cap = Math.round(h * 0.16), c = cnv(w + pad * 2, h + pad + cap), g = c.getContext('2d');
+    g.fillStyle = '#fff8e6'; g.fillRect(0, 0, c.width, c.height); g.drawImage(src, pad, pad, w, h); var S = API.state(), names = S ? S.players.filter(function (p) { return !p.left; }).map(function (p) { return p.name; }).join(' · ') : '';
+    g.fillStyle = '#a01818'; g.textAlign = 'center'; g.font = '900 ' + Math.round(cap * 0.34) + 'px system-ui,sans-serif'; g.fillText('\u2615 CHAI TAPRI', c.width / 2, h + pad + cap * 0.42); g.fillStyle = '#16676a'; var fs = Math.round(cap * 0.24); g.font = '800 ' + fs + 'px system-ui,sans-serif'; while (g.measureText(names).width > c.width - 40 && fs > 12) { fs -= 2; g.font = '800 ' + fs + 'px system-ui,sans-serif'; } g.fillText(names, c.width / 2, h + pad + cap * 0.72);
+    g.fillStyle = '#6b3a14'; g.font = '700 ' + Math.round(cap * 0.17) + 'px system-ui,sans-serif'; g.fillText(new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }), c.width / 2, h + pad + cap * 0.92); return c.toDataURL('image/jpeg', 0.9); }
+  return { sync: sync, say: say, photo: photo, sound: function (on) { sndOn = on; try { localStorage.setItem('tp.snd', on ? 'on' : 'off'); } catch (e) { /* ignore */ } if (amb) { amb.g.gain.value = on ? 0.035 : 0; amb.g2.gain.value = on ? 0.012 : 0; } else if (on) ambience(); },
     soundOn: function () { return sndOn; },
     destroy: function () { dead = true; try { ro.disconnect(); } catch (e) { /* ignore */ } try { if (amb) { amb.a.stop(); amb.b.stop(); } if (AC) AC.close(); } catch (e) { /* ignore */ } try { renderer.dispose(); renderer.forceContextLoss(); } catch (e) { /* ignore */ } } };
 };
@@ -10847,8 +10911,9 @@ body.hubmode header{pointer-events:none}body.hubmode header button{pointer-event
   function openPay() {
     uxOpen(h('h3', null, '💸 Pay for the chai'), h('p', null, 'Scan with PhonePe or any UPI app and pay what you like for the chai. It goes straight to the tapri owner, so it can\u2019t be tracked here.'),
       h('img', { src: window.TP_QR || '', alt: 'UPI QR code', style: 'display:block;width:min(70vw,42vh,260px);margin:8px auto;border-radius:14px;background:#fff' }),
-      h('p', { class: 'adm-mute', style: 'text-align:center' }, 'Cutting chai \u20b910 \u00b7 Bun maska \u20b920 \u00b7 or just a tip'),
-      h('button', { type: 'button', class: 'ux-b gh', style: 'margin-top:10px', onclick: uxClose }, 'Close'));
+      h('p', { class: 'adm-mute', style: 'text-align:center' }, 'Cutting chai \u20b910 \u00b7 Bun maska \u20b920 \u00b7 or just a tip \u00b7 chai paid today: ' + ((S && S.tp && S.tp.paid) | 0)),
+      h('button', { type: 'button', class: 'ux-b', onclick: function () { send({ t: 'tpaid' }); uxClose(); } }, '\u2705 I paid'),
+      h('button', { type: 'button', class: 'ux-b gh', style: 'margin-top:8px', onclick: uxClose }, 'Close'));
   }
   function openIdeas() {
     var list = h('div', { class: 'tp-notes' }), inp = h('input', { type: 'text', maxlength: 90, placeholder: 'A new game, a plan, anything…', autocomplete: 'off', enterkeyhint: 'send' });
@@ -10862,25 +10927,67 @@ body.hubmode header{pointer-events:none}body.hubmode header button{pointer-event
     uxOpen(h('h3', null, '📌 Idea board'), h('p', null, 'Pin ideas for everyone: a new game to add, a plan for tonight, anything.'), h('div', { class: 'tp-add' }, inp, h('button', { type: 'button', class: 'ux-pill', onclick: pin }, 'Pin')), list,
       h('button', { type: 'button', class: 'ux-b gh', style: 'margin-top:10px', onclick: function () { ideasPaint = null; uxClose(); } }, 'Close'));
   }
+  var ludoPaint = null;
+  function tpFloat(host, e) { var d = h('span', { class: 'tp-float' }, e); d.style.left = (20 + Math.random() * 55) + '%'; host.appendChild(d); setTimeout(function () { d.remove(); }, 2600); }
+  function openWeather() { var cur = (S && S.tp && S.tp.sky) || 'dusk';
+    uxOpen(h('h3', null, '🌦️ Weather at the tapri'), h('p', null, 'Everyone at the tapri sees the same sky.'),
+      h('div', { class: 'tp-opts' }, [['dusk', '🌇 Dusk'], ['day', '☀️ Day'], ['night', '🌙 Night'], ['rain', '🌧️ Rain']].map(function (o) { return h('button', { type: 'button', class: 'tp-o' + (cur === o[0] ? ' on' : ''), onclick: function () { send({ t: 'tsky', k: o[0] }); uxClose(); } }, o[1]); })),
+      h('button', { type: 'button', class: 'ux-b gh', style: 'margin-top:10px', onclick: uxClose }, 'Close')); }
+  function openRadio() { var cur = (S && S.tp && S.tp.radio) | 0;
+    uxOpen(h('h3', null, '📻 Tapri radio'), h('p', null, 'Plays on every phone at the tapri while it is on. Needs Sound on.'),
+      h('div', { class: 'tp-opts' }, [[0, '⏹ Off'], [1, '🎻 Purane gaane'], [2, '🎧 Lo-fi chill'], [3, '🏏 Cricket crowd']].map(function (o) { return h('button', { type: 'button', class: 'tp-o' + (cur === o[0] ? ' on' : ''), onclick: function () { send({ t: 'tradio', k: o[0] }); uxClose(); } }, o[1]); })),
+      h('button', { type: 'button', class: 'ux-b gh', style: 'margin-top:10px', onclick: uxClose }, 'Close')); }
+  function openScore() { var inp = h('input', { type: 'text', maxlength: 44, placeholder: 'IND 182/4 (30.2) vs AUS', autocomplete: 'off', enterkeyhint: 'done' }); inp.value = (S && S.tp && S.tp.score) || '';
+    function go() { send({ t: 'tscore', text: inp.value.trim() }); uxClose(); } inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
+    uxOpen(h('h3', null, '📺 Cricket score'), h('p', null, 'Type the score and the TV in the tapri shows it for everyone. It does not fetch live data, so someone has to update it.'), h('div', { class: 'tp-add' }, inp, h('button', { type: 'button', class: 'ux-pill', onclick: go }, 'Show')),
+      h('button', { type: 'button', class: 'ux-b gh', style: 'margin-top:10px', onclick: uxClose }, 'Close')); }
+  function openPhoto(game) { var url = ''; try { url = game && game.photo(); } catch (e) { url = ''; }
+    if (!url) { toast('Could not take the photo'); return; }
+    function share() { try { fetch(url).then(function (r) { return r.blob(); }).then(function (b) { var f = new File([b], 'chai-tapri.jpg', { type: 'image/jpeg' }); if (navigator.canShare && navigator.canShare({ files: [f] })) return navigator.share({ files: [f], title: 'Chai Tapri' }); var a = document.createElement('a'); a.href = url; a.download = 'chai-tapri.jpg'; a.click(); }).catch(function () {}); } catch (e) { /* ignore */ } }
+    uxOpen(h('h3', null, '📸 Tapri photo'), h('img', { src: url, alt: 'Chai Tapri photo', style: 'display:block;width:100%;max-height:52vh;object-fit:contain;border-radius:10px;margin:8px 0' }),
+      h('button', { type: 'button', class: 'ux-b', onclick: share }, '⬇️ Save / Share'), h('button', { type: 'button', class: 'ux-b gh', style: 'margin-top:8px', onclick: uxClose }, 'Close')); }
+  function openLudo() { var box = h('div', { class: 'lu' });
+    function paint() { var L = S && S.tp && S.tp.ludo, me = S && S.me.id, inG = L && L.pl.indexOf(me) >= 0, myTurn = L && L.pl[L.turn] === me, cells = [], pl = {};
+      (S ? S.players : []).forEach(function (p) { pl[p.id] = p; });
+      for (var i = 0; i <= 30; i++) { (function (i) { var toks = L ? L.pl.filter(function (id) { return (L.pos[id] | 0) === i && pl[id]; }) : [];
+        cells.push(h('div', { class: 'lu-c' + (i === 0 ? ' s' : i === 30 ? ' g' : '') }, h('small', null, i === 0 ? 'START' : i === 30 ? '🏆' : i), toks.map(function (id) { return avatar(pl[id].name, pidx(id), 'xs'); }))); })(i); }
+      var who = L && L.pl.length ? L.pl.map(function (id, k) { return h('span', { class: 'lu-p' + (L.pl[L.turn] === id && !L.win ? ' on' : '') }, avatar((pl[id] || { name: '?' }).name, pidx(id), 'xs'), (pl[id] || { name: 'left' }).name + (L.win === id ? ' 🏆' : '')); }) : [h('span', { class: 'adm-mute' }, 'Nobody is playing yet. Sit down!')];
+      fill(box, h('div', { class: 'lu-who' }, who), h('div', { class: 'lu-g' }, cells),
+        h('div', { class: 'lu-log' }, h('b', { class: 'lu-d' }, L && L.dice ? ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'][L.dice - 1] : '🎲'), h('span', null, (L && L.log) || 'Race to 30. Roll a 6 to go again. Land on a friend to send them back!')),
+        h('div', { class: 'lu-bt' },
+          !inG && (!L || L.pl.length < 4) ? h('button', { type: 'button', class: 'ux-b', onclick: function () { send({ t: 'tludo', a: 'join' }); } }, '🪑 Sit down') : null,
+          inG && L.pl.length >= 2 && !L.win ? h('button', { type: 'button', class: 'ux-b', disabled: !myTurn, onclick: function () { send({ t: 'tludo', a: 'roll' }); buzz(15); } }, myTurn ? '🎲 Roll' : 'Waiting…') : null,
+          inG && L.pl.length < 2 ? h('p', { class: 'adm-mute' }, 'Need one more player') : null,
+          inG && L.win ? h('button', { type: 'button', class: 'ux-b', onclick: function () { send({ t: 'tludo', a: 'reset' }); } }, '🔁 Play again') : null,
+          inG ? h('button', { type: 'button', class: 'ux-b gh', onclick: function () { send({ t: 'tludo', a: 'leave' }); } }, 'Leave game') : null)); }
+    paint(); ludoPaint = paint;
+    uxOpen(h('h3', null, '🎲 Ludo race'), box, h('button', { type: 'button', class: 'ux-b gh', style: 'margin-top:10px', onclick: function () { ludoPaint = null; uxClose(); } }, 'Close')); }
   screens.tlobby = function () {
     var host = h('div', { class: 'tphost' }), stage = h('div', { class: 'tpstage' }, h('div', { class: 'tpload' }, '☕ Pouring the chai…')), game = null, gone = false, sig = '';
     var codeChip = h('button', { type: 'button', class: 'tp-chip', onclick: copyCode }), frBtn = h('button', { type: 'button', class: 'tp-chip', onclick: openInvite }), bar = h('div', { class: 'tp-bar' });
     var ideasBtn = h('button', { type: 'button', class: 'tp-side', onclick: openIdeas }), sndBtn = h('button', { type: 'button', class: 'tp-side', onclick: function () { if (game) { game.sound(!game.soundOn()); paintSnd(); } } });
     var payBtn = h('button', { type: 'button', class: 'tp-side', onclick: openPay }, h('b', null, '💸'), h('span', null, 'Pay'));
-    var chaiBtn = h('button', { type: 'button', class: 'tp-side tp-chai', onclick: function () { send({ t: 'tchai' }); buzz(20); } }, h('b', null, '☕'), h('span', null, 'Chai'));
+    var pop = null; function closePop() { if (pop) { pop.remove(); pop = null; } }
+    function openPop(items, big) { var again = pop && pop._k === items.k; closePop(); if (again) return; pop = h('div', { class: 'tp-pop' + (big ? ' big' : '') }, items.list.map(function (it) { return h('button', { type: 'button', onclick: function () { closePop(); it[2](); buzz(12); } }, it[0], it[1] ? h('small', null, it[1]) : null); })); pop._k = items.k; host.appendChild(pop); }
+    var chaiBtn = h('button', { type: 'button', class: 'tp-side tp-chai', onclick: function () { openPop({ k: 'c', list: [['☕ Cutting chai', '₹10', function () { send({ t: 'tchai', k: 0 }); }], ['🫖 Masala chai', '₹15', function () { send({ t: 'tchai', k: 1 }); }], ['🍞 Bun maska', '₹20', function () { send({ t: 'tchai', k: 2 }); }]] }); } }, h('b', null, '☕'), h('span', null, 'Chai'));
+    var emoBtn = h('button', { type: 'button', class: 'tp-side', onclick: function () { openPop({ k: 'e', list: ['😂', '👏', '😍', '🔥', '👋', '😮', '😢', '🎉', '🙏', '💀', 'wah!'].map(function (e) { return [e, '', function () { send({ t: 'temo', e: e }); }]; }) }, true); } }, h('b', null, '😄'), h('span', null, 'React'));
+    var moreBtn = h('button', { type: 'button', class: 'tp-side', onclick: function () { closePop(); var nI = ((S && S.tp && S.tp.notes) || []).length;
+      function tile(ico, lab, fn, badge) { return h('button', { type: 'button', class: 'tp-o', onclick: function () { uxClose(); setTimeout(fn, 60); } }, h('i', null, ico), h('span', null, lab), badge ? h('em', null, badge) : null); }
+      uxOpen(h('h3', null, '☕ More at the tapri'), h('div', { class: 'tp-opts t3' }, tile('🎲', 'Ludo', openLudo), tile('📻', 'Radio', openRadio), tile('🌦️', 'Weather', openWeather), tile('📺', 'Score', openScore), tile('📸', 'Photo', function () { openPhoto(game); }), tile('📌', 'Ideas', openIdeas, nI || ''), tile(game && !game.soundOn() ? '🔇' : '🔊', 'Sound', function () { if (game) { game.sound(!game.soundOn()); paintSnd(); } })),
+        h('button', { type: 'button', class: 'ux-b gh', style: 'margin-top:10px', onclick: uxClose }, 'Close')); } }, h('b', null, '⭐'), h('span', null, 'More'));
     function paintSnd() { fill(sndBtn, h('b', null, game && !game.soundOn() ? '🔇' : '🔊'), h('span', null, 'Sound')); }
     var hint = h('div', { class: 'tp-hint' }, '👆 Swipe to look around');
     host.appendChild(stage);
     host.appendChild(h('div', { class: 'tp-top' }, h('button', { type: 'button', class: 'tp-chip tp-x', 'aria-label': 'Leave', onclick: function () { if (confirm('Leave the tapri?')) send({ t: 'leave' }); } }, '✕'), codeChip, frBtn));
-    host.appendChild(h('div', { class: 'tp-col' }, chaiBtn, payBtn, ideasBtn, sndBtn));
+    host.appendChild(h('div', { class: 'tp-col' }, chaiBtn, emoBtn, payBtn, moreBtn));
     host.appendChild(bar); host.appendChild(hint);
     setTimeout(function () { hint.style.opacity = 0; }, 8000);
-    import('three').then(function (T) { if (gone || !host.isConnected) return; window.THREE = T; try { stage.innerHTML = ''; game = window.tapriMount(stage, { state: function () { return S; }, photo: photoOf, speaking: function (id) { return !!V.speaking[vKey(id)]; } }); game.sync(); paintSnd(); } catch (e) { stage.innerHTML = '<p class="tpload">Could not build the tapri: ' + e.message + '</p>'; } })
+    import('three').then(function (T) { if (gone || !host.isConnected) return; window.THREE = T; try { stage.innerHTML = ''; game = window.tapriMount(stage, { state: function () { return S; }, emote: function (id, e) { tpFloat(host, e); }, photo: photoOf, speaking: function (id) { return !!V.speaking[vKey(id)]; } }); game.sync(); paintSnd(); } catch (e) { stage.innerHTML = '<p class="tpload">Could not build the tapri: ' + e.message + '</p>'; } })
       .catch(function () { stage.innerHTML = '<p class="tpload">Could not load the 3D view. Check your internet.</p>'; });
     var obs = new MutationObserver(function () { if (!host.isConnected) { gone = true; obs.disconnect(); if (game) game.destroy(); } });
     obs.observe(document.getElementById('app'), { childList: true });
     function update() {
-      if (!S) return; if (game) game.sync(); if (ideasPaint) ideasPaint();
+      if (!S) return; if (game) game.sync(); if (ideasPaint) ideasPaint(); if (ludoPaint) ludoPaint();
       var ps = S.players.filter(function (p) { return !p.left; }), votes = (S.tp && S.tp.votes) || {}, cnt = {}, who = {};
       ps.forEach(function (p) { var g = votes[p.id]; if (g) { cnt[g] = (cnt[g] || 0) + 1; (who[g] = who[g] || []).push(p); } });
       var top = null; TP_GAMES.forEach(function (G) { if (cnt[G[0]] && (!top || cnt[G[0]] > cnt[top])) top = G[0]; });

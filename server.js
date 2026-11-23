@@ -925,7 +925,7 @@ function view(room, p) {
   if (room.game === 'draw') { v.dwSet = room.dwSet; if (room.dw) v.dw = dwView(room, p); }
   if (room.game === 'golf') { v.gfSet = room.gfSet; if (room.gf) v.gf = gfView(room); }
   if (room.game === 'bully') { v.bfSet = room.bfSet; v.bfMe = {}; for (const q of room.players.values()) if (!q.left) v.bfMe[q.id] = bfOf(room, q); if (room.bf) v.bf = { ids: room.bf.ids, seq: room.bf.seq, res: room.bf.res || null }; }
-  if (room.game === 'tapri') { const t = room.tp || {}; v.tp = { votes: t.votes || {}, chai: t.chai || {}, notes: t.notes || [] }; }
+  if (room.game === 'tapri') { const t = room.tp || {}; v.tp = { votes: t.votes || {}, chai: t.chai || {}, kind: t.kind || {}, emo: t.emo || {}, sky: t.sky || 'dusk', radio: t.radio | 0, paid: t.paid | 0, score: t.score || '', notes: t.notes || [], ludo: t.ludo || null }; }
   if (room.game === 'bomb') { v.mbSet = room.mbSet; if (room.mb) v.mb = { ids: room.mb.ids, seq: room.mb.seq, bots: room.mb.bots }; }
   if (room.game === 'rocket') { v.rkSet = room.rkSet; v.rkMe = {}; for (const q of room.players.values()) if (!q.left) v.rkMe[q.id] = rkOf(room, q); if (room.rk) v.rk = { ids: room.rk.ids, seq: room.rk.seq, res: room.rk.res || null, teams: room.rk.teams, bots: room.rk.bots }; }
   if (room.game === 'race' && room.rc) {
@@ -3069,11 +3069,27 @@ function handle(ws, m) {
       room.rk.res = { o: Math.max(0, Math.min(99, Number(m.o) | 0)), b: Math.max(0, Math.min(99, Number(m.b) | 0)) };
       setPhase(room, 'kover'); return broadcast(room);
     }
-    case 'tvote': case 'tchai': case 'tnote': case 'tdel': { // Chai Tapri: hang out, vote for the next game, order chai, pin ideas
+    case 'tvote': case 'tchai': case 'tnote': case 'tdel': case 'temo': case 'tsky': case 'tradio': case 'tpaid': case 'tscore': case 'tludo': { // Chai Tapri: hang out, vote for the next game, order chai, pin ideas
       if (room.game !== 'tapri' || room.phase !== 'lobby') return;
       const t = room.tp || (room.tp = { votes: {}, chai: {}, notes: [], nid: 0 });
       if (m.t === 'tvote') { const g = String(m.g || ''); if (!g || t.votes[p.id] === g) delete t.votes[p.id]; else if (['undercover', 'uno', 'football', 'race', 'cricket', 'draw', 'golf', 'bully', 'rocket', 'bomb'].includes(g)) t.votes[p.id] = g; }
-      else if (m.t === 'tchai') { if (t.chai[p.id] && Date.now() - t.chai[p.id] < 4000) return; t.chai[p.id] = Date.now(); notice(room, '☕ ' + p.name + ' ordered a cutting chai'); }
+      else if (m.t === 'tchai') { if (t.chai[p.id] && Date.now() - t.chai[p.id] < 4000) return; const k = Math.max(0, Math.min(2, Number(m.k) | 0)); t.chai[p.id] = Date.now(); (t.kind || (t.kind = {}))[p.id] = k; notice(room, '☕ ' + p.name + ' ordered ' + ['a cutting chai', 'a masala chai', 'a bun maska'][k]); }
+      else if (m.t === 'temo') { const E = ['😂', '👏', '😍', '🔥', '👋', '😮', '😢', '🎉', '🙏', '💀', 'wah!']; const e = String(m.e || ''); if (!E.includes(e) || Date.now() - ((t.emo || {})[p.id] || {}).at < 900) return; (t.emo || (t.emo = {}))[p.id] = { e, at: Date.now() }; }
+      else if (m.t === 'tsky') { if (!['dusk', 'day', 'night', 'rain'].includes(m.k) || Date.now() - (t.skyAt || 0) < 3000) return; t.sky = m.k; t.skyAt = Date.now(); notice(room, '🌦️ ' + p.name + ' changed the weather: ' + m.k); }
+      else if (m.t === 'tradio') { const k = Math.max(0, Math.min(3, Number(m.k) | 0)); if (Date.now() - (t.radioAt || 0) < 800) return; t.radio = k; t.radioAt = Date.now(); }
+      else if (m.t === 'tpaid') { if (Date.now() - (p.lastPaid || 0) < 20000) return errTo(ws, 'Thanks! You just said that'); p.lastPaid = Date.now(); t.paid = (t.paid | 0) + 1; notice(room, '💸 ' + p.name + ' paid for the chai. Thank you!'); }
+      else if (m.t === 'tscore') { t.score = clean(m.text, 44); }
+      else if (m.t === 'tludo') {
+        const L = t.ludo || (t.ludo = { pl: [], pos: {}, turn: 0, dice: 0, win: null, log: '' }), WIN = 30, live = (id) => { const q = room.players.get(id); return q && !q.left; };
+        const next = () => { for (let i = 1; i <= L.pl.length; i++) { const j = (L.turn + i) % L.pl.length; if (live(L.pl[j])) { L.turn = j; return; } } };
+        if (m.a === 'join') { if (L.pl.includes(p.id) || L.pl.length >= 4) return; if (L.win) { L.pl.forEach((id) => { L.pos[id] = 0; }); L.win = null; L.turn = 0; L.dice = 0; } L.pl.push(p.id); L.pos[p.id] = 0; L.log = p.name + ' sat down to play'; }
+        else if (m.a === 'leave') { const i = L.pl.indexOf(p.id); if (i < 0) return; L.pl.splice(i, 1); delete L.pos[p.id]; if (L.turn >= L.pl.length) L.turn = 0; if (!L.pl.length) t.ludo = null; }
+        else if (m.a === 'reset') { if (!L.pl.includes(p.id) && p.id !== room.hostId) return; L.pl.forEach((id) => { L.pos[id] = 0; }); L.turn = 0; L.dice = 0; L.win = null; L.log = 'New game!'; }
+        else if (m.a === 'roll') { if (L.win || L.pl.length < 2 || L.pl[L.turn] !== p.id) return; const d = 1 + Math.floor(Math.random() * 6); L.dice = d; let np = (L.pos[p.id] || 0) + d, msg = p.name + ' rolled ' + d;
+          if (np > WIN) np = L.pos[p.id]; else if (np === WIN) { L.win = p.id; msg += ' and WON! 🏆'; }
+          else for (const id of L.pl) if (id !== p.id && L.pos[id] === np && np > 0) { L.pos[id] = 0; const q = room.players.get(id); msg += ', sent ' + (q ? q.name : 'someone') + ' back!'; }
+          L.pos[p.id] = np; L.log = msg; if (!L.win && d !== 6) next(); }
+      }
       else if (m.t === 'tnote') { const now = Date.now(); if (now - (p.lastNote || 0) < 4000) return errTo(ws, 'Wait a moment before pinning another idea'); const text = clean(m.text, 90); if (!text) return; p.lastNote = now;
         t.notes.push({ id: ++t.nid, by: p.name, pid: p.id, text: text, at: now }); if (t.notes.length > 16) t.notes.shift(); }
       else if (m.t === 'tdel') { const i = t.notes.findIndex((n) => n.id === Number(m.id)); if (i >= 0 && (t.notes[i].pid === p.id || p.id === room.hostId)) t.notes.splice(i, 1); }
