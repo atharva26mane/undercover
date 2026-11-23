@@ -2338,6 +2338,7 @@ window.rocketMount = function (sr, NET) {
   $('eLobby').addEventListener('click', function () { if (NET.isHost()) NET.send({ t: 'klobby' }); else NET.leave(); });
 
   /* ---------- three.js set-up ---------- */
+  var aqS = 16, aqN = 0, aqPR = Math.min(1.6, window.devicePixelRatio || 1);
   var renderer = new T.WebGLRenderer({ antialias: (window.devicePixelRatio || 1) < 2.5, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(1.6, window.devicePixelRatio || 1));
   glBox.appendChild(renderer.domElement);
@@ -2679,7 +2680,7 @@ window.rocketMount = function (sr, NET) {
   }
 
   function frame(now) {
-    if (dead) return; requestAnimationFrame(frame); var dt = Math.min(.05, (now - lastT) / 1000); lastT = now;
+    if (dead) return; requestAnimationFrame(frame); var dt = Math.min(.05, (now - lastT) / 1000); aqS = aqS * .95 + Math.min(100, now - lastT) * .05; if (++aqN > 150 && aqS > 31 && aqPR > .75) { aqPR = Math.max(.75, aqPR - .3); aqN = 0; aqS = 16; renderer.setPixelRatio(aqPR); renderer.setSize(renderer.domElement.clientWidth, renderer.domElement.clientHeight, false); } lastT = now;
     S = NET.state(); if (!S) return;
     if (S.phase === 'kplay' && S.rk && S.rk.seq !== curSeq) startMatch();
     if (!list.length) return;
@@ -2872,7 +2873,8 @@ window.bombMount = function (sr, NET) {
   $('mSnd').addEventListener('click', function () { sndOn = !sndOn; try { localStorage.setItem('mb.opt', JSON.stringify({ snd: sndOn })); } catch (e) { /* ignore */ } sl(); });
   $('mLeave').addEventListener('click', function () { $('menu').classList.remove('show'); NET.leave(); }); $('mLobby').addEventListener('click', function () { NET.send({ t: 'mblobby' }); });
   $('eAgain').addEventListener('click', function () { NET.send({ t: 'mbstart' }); }); $('eLobby').addEventListener('click', function () { if (NET.isHost()) NET.send({ t: 'mblobby' }); else NET.leave(); });
-  function resize() { var r = wrap.getBoundingClientRect(); W = Math.max(200, r.width); H = Math.max(120, r.height); DPR = Math.min(2, window.devicePixelRatio || 1); cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); $('turn').classList.toggle('show', H > W * 1.05); }
+  var aqS = 16, aqN = 0, aqCap = 1.5;
+  function resize() { var r = wrap.getBoundingClientRect(); W = Math.max(200, r.width); H = Math.max(120, r.height); DPR = Math.min(aqCap, window.devicePixelRatio || 1); cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); $('turn').classList.toggle('show', H > W * 1.05); }
   var ro = new ResizeObserver(resize); ro.observe(wrap); window.addEventListener('orientationchange', function () { setTimeout(resize, 200); }); resize();
 
   /* match set-up */
@@ -2933,7 +2935,7 @@ window.bombMount = function (sr, NET) {
     if (hold) drawBomb(x, y - r - 20 * cam.s * 1.4 - 8, g[4], t);
   }
   function frame(now) {
-    if (dead) return; requestAnimationFrame(frame); var dt = Math.min(.05, (now - lastT) / 1000); lastT = now; S = NET.state(); if (!S) return;
+    if (dead) return; requestAnimationFrame(frame); var dt = Math.min(.05, (now - lastT) / 1000); aqS = aqS * .95 + Math.min(100, now - lastT) * .05; if (++aqN > 150 && aqS > 31 && aqCap > .75) { aqCap = Math.max(.75, aqCap - .35); aqN = 0; aqS = 16; resize(); } lastT = now; S = NET.state(); if (!S) return;
     if (S.phase === 'mplay' && S.mb && S.mb.seq !== curSeq) startMatch(); if (!list.length) return;
     sendInput(now);
     if (hosting && sim) { acc += dt; var n = 0; while (acc >= 1 / 120 && n < 8) { sim.step(1 / 120); acc -= 1 / 120; n++; } if (n >= 8) acc = 0; lastNet += dt; if (lastNet >= .033) { lastNet = 0; var sn = sim.snap(); NET.send(Object.assign({ t: 'mbst' }, sn)); sn.ev.forEach(handleEv); } R = modelSim(); }
@@ -4345,8 +4347,9 @@ function tryJump(p) {
   else if (!p.dive && p.jumps < 2) { p.dive = true; p.jumps = 2; const f = [Math.sin(p.yaw), Math.cos(p.yaw)]; p.v[0] = f[0] * 12; p.v[2] = f[1] * 12; p.v[1] = Math.max(p.v[1], 3.5); if (p.me) { tone(400, 0.2, 0.15, 'sine', 0, 180); vib(12); } }
 }
 function stepBall(b, dt) {
-  if (b.out > 0) { b.out -= dt; if (b.out <= 0) { b.p = [rand(-6, 6), 16, rand(-4, 4)]; b.v = [0, 0, 0]; } else return; }
+  if (b.out > 0) { b.out -= dt; if (b.out <= 0) { b.p = [rand(-6, 6), 16, rand(-4, 4)]; b.v = [0, 0, 0]; b.ing = false; } else return; }
   b.v[1] -= G * 0.7 * dt;
+  const ox = b.p[0], oy = b.p[1], oz = b.p[2];
   b.p[0] += b.v[0] * dt; b.p[1] += b.v[1] * dt; b.p[2] += b.v[2] * dt;
   const g = hAt(b.p[0], b.p[2]);
   if (b.p[1] - BALL_R <= g) {
@@ -4356,12 +4359,30 @@ function stepBall(b, dt) {
     b.v[0] -= gr[0] * 13 * dt; b.v[2] -= gr[1] * 13 * dt; // roll back down the bank
     const sp = Math.hypot(b.v[0], b.v[2]), fr = Math.max(0, 1 - 0.38 * dt); b.v[0] *= fr; b.v[2] *= fr; if (sp < 0.05) { b.v[0] = b.v[2] = 0; }
   }
+  { // solid goal frame: a ball may only enter through the front mouth, never from behind, the sides or over the roof
+    const r = BALL_R, zone = Math.abs(b.p[2]) > HL - 0.01 && Math.abs(b.p[0]) < GOAL_W / 2 + r, sz = Math.sign(b.p[2]) || 1;
+    if (Math.abs(b.p[2]) <= HL - r) b.ing = false;
+    if (zone && !b.ing) {
+      const front = Math.abs(oz) <= HL + 0.01 && Math.abs(b.p[0]) < GOAL_W / 2 - r * 0.25 && Math.abs(ox) < GOAL_W / 2 - r * 0.25 && b.p[1] + r * 0.3 < GOAL_H;
+      if (front) b.ing = true;
+      else if (Math.abs(oz) <= HL + 0.01) { // hit the post / crossbar face from the pitch side
+        b.p[2] = sz * (HL - r * 0.5); if (Math.sign(b.v[2]) === sz) b.v[2] *= -0.55;
+        if (Math.abs(b.p[0]) > GOAL_W / 2 - r * 0.25 && Math.abs(ox) > GOAL_W / 2 - r * 0.25) { b.p[0] = Math.sign(b.p[0]) * (GOAL_W / 2 + r); b.v[0] *= -0.4; }
+      } else if (oy >= GOAL_H + r * 0.3) { // lands on the roof
+        b.p[1] = GOAL_H + r; if (b.v[1] < 0) b.v[1] *= -0.35;
+      } else if (Math.abs(ox) >= GOAL_W / 2) { // from the side
+        b.p[0] = Math.sign(ox) * (GOAL_W / 2 + r); if (Math.sign(b.v[0]) !== Math.sign(ox)) b.v[0] *= -0.5;
+      } else { // from behind
+        b.p[2] = sz * (HL + GOAL_D + r); if (Math.sign(b.v[2]) !== sz) b.v[2] *= -0.5;
+      }
+    }
+  }
   if (keepIn(b, BALL_R) && Math.hypot(b.v[0], b.v[2]) > 5) SND.thud();
   // rolling look
   const sp = Math.hypot(b.v[0], b.v[2]);
   if (sp > 0.01) { const ax = new T.Vector3(b.v[2], 0, -b.v[0]).normalize(); b.q.premultiply(new T.Quaternion().setFromAxisAngle(ax, sp * dt / BALL_R)); }
   // goal?
-  if (Math.abs(b.p[2]) > HL + BALL_R * 0.55 && Math.abs(b.p[0]) < GOAL_W / 2 && Gm.phase === 'play') goal(b, b.p[2] > 0 ? 'o' : 'b');
+  if (b.ing && b.p[1] < GOAL_H && Math.abs(b.p[2]) > HL + BALL_R * 0.55 && Math.abs(b.p[0]) < GOAL_W / 2 && Gm.phase === 'play') goal(b, b.p[2] > 0 ? 'o' : 'b');
 }
 function collide(dt) {
   // player vs ball
@@ -4647,9 +4668,10 @@ function hudFrame() {
 /* ================= main loop ================= */
 function resize() { const w = view.clientWidth, h = view.clientHeight; renderer.setSize(w, h, false); if (composer) { composer.setPixelRatio(PR); composer.setSize(w, h); } camera.aspect = w / h; camera.fov = w / h < 1 ? 72 : 58; camera.updateProjectionMatrix(); stickHome(); }
 window.addEventListener('resize', resize);
-let last = performance.now(), acc = 0, lastSec = 0;
+let last = performance.now(), acc = 0, lastSec = 0, aqS = 16, aqN = 0;
 function frame(now) {
   if (DEAD) return; requestAnimationFrame(frame);
+  aqS = aqS * 0.95 + Math.min(100, now - last) * 0.05; if (++aqN > 150 && aqS > 31 && Q.name !== 'low') { aqN = 0; aqS = 16; setQuality(Q.name === 'high' ? 'medium' : 'low'); resize(); }
   let dt = Math.min(0.05, (now - last) / 1000); last = now; if (Gm.paused) dt = 0;
   const slow = now < Gm.slowUntil ? 0.35 : 1; dt *= slow;
   if (Gm.phase === 'count' && HOSTING) {

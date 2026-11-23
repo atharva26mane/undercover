@@ -2464,6 +2464,10 @@ async function frCmd(ws, m) {
       if (Date.now() - (ws.regAt || 0) < 3000) return errTo(ws, 'One moment, still saving. Try again in a few seconds');
       ws.regAt = Date.now();
       const ex = await q('SELECT 1 FROM users WHERE uname = $1', [un]);
+      if (ex.length && ws.isAdmin) { // the admin phone lost its sign-in: take the account back onto this phone
+        const rr = await q('UPDATE users SET token_hash = $2 WHERE uname = $1 RETURNING id, uname', [un, sha(m.token)]);
+        if (rr.length) return frLogin(ws, rr[0]);
+      }
       if (ex.length) return errTo(ws, 'That username is taken');
       let r;
       try { r = await q('INSERT INTO users (uname, token_hash) VALUES ($1, $2) RETURNING id, uname', [un, sha(m.token)]); } catch (e) { return errTo(ws, 'That username is taken'); }
