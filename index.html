@@ -3020,10 +3020,10 @@ var CSS = ':host{all:initial}*{box-sizing:border-box;font-family:system-ui,sans-
 '#turn{position:absolute;left:0;right:0;bottom:calc(10px + env(safe-area-inset-bottom));text-align:center;font-weight:800;font-size:18px;z-index:3;pointer-events:none;text-shadow:0 2px 6px #000;padding:0 12px}' +
 '#pw{position:absolute;right:12px;top:30%;width:26px;height:40%;border-radius:13px;background:rgba(0,0,0,.5);border:2px solid #fff6;z-index:3;display:none;overflow:hidden}#pwF{position:absolute;left:0;right:0;bottom:0;height:0;background:linear-gradient(0deg,#4be07a,#ffd83a,#ff4a3a)}' +
 '#menuBtn{position:absolute;left:calc(10px + env(safe-area-inset-left));top:calc(8px + env(safe-area-inset-top));z-index:6;width:38px;height:38px;border-radius:50%;border:2px solid #fff8;background:rgba(0,0,0,.5);color:#fff;font-weight:800}' +
-'#msg{position:absolute;left:0;right:0;top:22%;text-align:center;font-size:34px;font-weight:900;z-index:4;pointer-events:none;text-shadow:0 3px 10px #000;opacity:0;transition:opacity .25s}#msg.show{opacity:1}' +
+'#slw{position:absolute;z-index:5;display:none;flex-direction:column;align-items:center;gap:4px;background:rgba(0,0,0,.55);border:2px solid rgba(255,255,255,.25);border-radius:16px;padding:8px 12px;font-weight:800;font-size:13px}#sl{width:190px;height:34px;accent-color:#f2b92c;touch-action:none}#msg{position:absolute;left:0;right:0;top:22%;text-align:center;font-size:34px;font-weight:900;z-index:4;pointer-events:none;text-shadow:0 3px 10px #000;opacity:0;transition:opacity .25s}#msg.show{opacity:1}' +
 '#menu,#end{position:absolute;inset:0;z-index:20;display:none;align-items:center;justify-content:center;background:rgba(10,4,24,.86);flex-direction:column;gap:10px;text-align:center;padding:16px}#menu.show,#end.show{display:flex}#menu h2,#end h2{margin:0;font-size:32px}' +
 'button.cb{font:inherit;font-weight:800;font-size:18px;padding:10px 18px;border-radius:12px;border:2px solid #ffd9a0;background:#6a3b16;color:#fff}button.cb.red{background:#7a1e2a;border-color:#ff8a98}button.cb.pri{background:#2a8f4e;border-color:#7be0a0}.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}';
-var HTML = '<style>' + CSS + '</style><div id="wrap"><canvas id="cv"></canvas><div id="top"><div class="pill" id="pW"></div><div class="pill" id="pT"></div><div class="pill" id="pB"></div></div><button id="menuBtn">II</button><div id="msg"></div><div id="pw"><div id="pwF"></div></div><div id="turn"></div>' +
+var HTML = '<style>' + CSS + '</style><div id="wrap"><canvas id="cv"></canvas><div id="top"><div class="pill" id="pW"></div><div class="pill" id="pT"></div><div class="pill" id="pB"></div></div><button id="menuBtn">II</button><div id="msg"></div><div id="slw"><span>◀ SLIDE STRIKER ▶</span><input id="sl" type="range" min="-31" max="31" step="0.1" value="0"></div><div id="pw"><div id="pwF"></div></div><div id="turn"></div>' +
 '<div id="menu"><h2>PAUSED</h2><div class="row"><button class="cb" id="mRes">▶ Resume</button><button class="cb" id="mSnd">🔊 Sound on</button></div><div class="row"><button class="cb red" id="mLobby">Lobby</button><button class="cb red" id="mLeave">Leave game</button></div></div>' +
 '<div id="end"><h2 id="endH">GAME OVER</h2><div id="endW" style="font-size:44px;font-weight:900"></div><p id="endP" style="margin:0"></p><div class="row"><button class="cb pri" id="eAgain">Play again</button><button class="cb red" id="eLobby">Lobby</button></div></div></div>';
 window.carromMount = function (sr, NET) {
@@ -3034,7 +3034,7 @@ window.carromMount = function (sr, NET) {
   function tone(f, d, type, vol, slide) { if (!sndOn) return; var a = ac(); if (!a) return; var t0 = a.currentTime, o = a.createOscillator(), g = a.createGain(); o.type = type || 'sine'; o.frequency.setValueAtTime(f, t0); if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f * slide), t0 + d); g.gain.setValueAtTime(vol || .1, t0); g.gain.exponentialRampToValueAtTime(.0008, t0 + d); o.connect(g); g.connect(a.destination); o.start(t0); o.stop(t0 + d + .02); }
   var SND = { hit: function (v) { tone(1300 + Math.random() * 300, .05, 'triangle', Math.min(.2, .03 + v / 900)); }, wall: function (v) { tone(260, .06, 'sine', Math.min(.15, .03 + v / 900)); }, pocket: function () { tone(180, .22, 'sine', .22, .4); tone(90, .3, 'sine', .15, .5); }, strike: function (p) { tone(500 + p * 400, .08, 'square', .06 + p * .08, .5); }, foul: function () { tone(220, .3, 'sawtooth', .1, .5); } };
   function say(t, ms) { $('msg').textContent = t; $('msg').classList.add('show'); msgT = performance.now() + (ms || 1700); }
-  function resize() { var r = wrap.getBoundingClientRect(); W = Math.max(200, r.width); H = Math.max(200, r.height); DPR = Math.min(aqCap, window.devicePixelRatio || 1); cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); U = Math.min(W - 8, H - 96) / 114; cx = W / 2; cy = H / 2 + 2; }
+  function resize() { var r = wrap.getBoundingClientRect(); W = Math.max(200, r.width); H = Math.max(200, r.height); DPR = Math.min(aqCap, window.devicePixelRatio || 1); cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); U = Math.min(W - 8, H - 96) / 114; cx = W / 2; cy = H / 2 + 2; var sw = $('slw'); if (W > H) { sw.style.left = '12px'; sw.style.top = '50%'; sw.style.bottom = 'auto'; sw.style.transform = 'translateY(-50%)'; sw.style.right = 'auto'; } else { sw.style.left = '50%'; sw.style.transform = 'translateX(-50%)'; sw.style.top = 'auto'; sw.style.bottom = 'calc(44px + env(safe-area-inset-bottom))'; } }
   var ro = new ResizeObserver(resize); ro.observe(wrap); resize();
   /* world <-> screen (my seat at the bottom) */
   function w2s(x, y) { var v = rot(x, y, -mySeat); return [cx + v[0] * U, cy + v[1] * U]; }
@@ -3050,6 +3050,7 @@ window.carromMount = function (sr, NET) {
   function sendRest(msg) { var o = sim.snap(); var m = { t: 'crst', k: 'rest', co: o.co, turn: HS.turn, cap: [HS.cap.w.length, HS.cap.b.length], q: HS.q === 2 ? (HS.qteam === 'w' ? 2 : 3) : HS.q === 1 ? 1 : 0, n: HS.n, msg: msg || '', over: HS.over }; NET.send(m); onSt(m); lastRest = performance.now(); }
   function hostShot(seat, lx, dx, dy, p) { // lx: striker x on my baseline (local), (dx,dy) aim in seat-local coords, p: 0..1
     if (HS.over || sim.run || seat !== HS.turn) return; lx = Math.max(-BLX, Math.min(BLX, +lx || 0)); var l = Math.hypot(dx, dy) || 1; dx /= l; dy /= l; if (dy > .35) dy = .35; l = Math.hypot(dx, dy); dx /= l; dy /= l; p = Math.max(.05, Math.min(1, +p || 0));
+    for (var gg = 0; gg < 60; gg++) { var bad = sim.c.some(function (o) { return o.on && Math.hypot(o.x - rot(lx, BL, seat)[0], o.y - rot(lx, BL, seat)[1]) < SR + CR + .2; }); if (!bad) break; lx += (gg % 2 ? -1 : 1) * (gg + 1) * .6; lx = Math.max(-BLX, Math.min(BLX, lx)); }
     var pos = rot(lx, BL, seat), v = rot(dx * p * VMAX, dy * p * VMAX, seat); HS.n++; HS.shot = { seat: seat, own: 0, foul: false, qpk: false, pk: [] };
     var m = { t: 'crst', k: 'shot', n: HS.n, seat: seat, x: Math.round(pos[0] * 100) / 100, y: Math.round(pos[1] * 100) / 100, vx: Math.round(v[0] * 10) / 10, vy: Math.round(v[1] * 10) / 10, p: Math.round(p * 100) / 100 }; NET.send(m); onSt(m); }
   function freeSpot() { var c = sim.c, tries = [[0, 0], [0, -4.5], [0, 4.5], [4.5, 0], [-4.5, 0], [4.5, 4.5], [-4.5, -4.5]], i, j, ok; for (i = 0; i < tries.length; i++) { ok = true; for (j = 0; j < c.length; j++) { if (c[j].on && Math.hypot(c[j].x - tries[i][0], c[j].y - tries[i][1]) < CR * 2.05) { ok = false; break; } } if (ok) return tries[i]; } return [0, 0]; }
@@ -3111,9 +3112,10 @@ window.carromMount = function (sr, NET) {
   /* ------- my input ------- */
   var mine = { x: 0, aim: null, mode: 0, pid: null };
   function myTurn() { return !G.over && !sim.run && G.got && G.turn === my && my >= 0; }
+  $('sl').addEventListener('input', function () { mine.x = +this.value; });
   cv.addEventListener('pointerdown', function (ev) { ac(); if (!myTurn()) return; ev.preventDefault(); var r = cv.getBoundingClientRect(), l = s2l(ev.clientX - r.left, ev.clientY - r.top); mine.pid = ev.pointerId; try { cv.setPointerCapture(ev.pointerId); } catch (e) { /* ignore */ }
-    if (l[1] > BL - 9 && Math.abs(l[1] - BL) < 12 && Math.abs(l[0] - mine.x) > 6) { mine.mode = 1; mine.x = Math.max(-BLX, Math.min(BLX, l[0])); } else if (Math.hypot(l[0] - mine.x, l[1] - BL) < 12 || true) { mine.mode = 2; mine.aim = l; } });
-  cv.addEventListener('pointermove', function (ev) { if (ev.pointerId !== mine.pid) return; var r = cv.getBoundingClientRect(), l = s2l(ev.clientX - r.left, ev.clientY - r.top); if (mine.mode === 1) mine.x = Math.max(-BLX, Math.min(BLX, l[0])); else if (mine.mode === 2) mine.aim = l; });
+    if (Math.abs(l[1] - BL) < 7 && Math.abs(l[0]) <= BLX + 6 && Math.abs(l[0] - mine.x) < 9) { mine.mode = 1; mine.x = Math.max(-BLX, Math.min(BLX, l[0])); $('sl').value = mine.x; } else { mine.mode = 2; mine.aim = l; } });
+  cv.addEventListener('pointermove', function (ev) { if (ev.pointerId !== mine.pid) return; var r = cv.getBoundingClientRect(), l = s2l(ev.clientX - r.left, ev.clientY - r.top); if (mine.mode === 1) { mine.x = Math.max(-BLX, Math.min(BLX, l[0])); $('sl').value = mine.x; } else if (mine.mode === 2) mine.aim = l; });
   function up(ev) { if (ev.pointerId !== mine.pid) return; mine.pid = null; var md = mine.mode; mine.mode = 0;
     if (md === 2 && mine.aim && myTurn()) { var dx = mine.x - mine.aim[0], dy = BL - mine.aim[1], pw = Math.min(1, Math.hypot(dx, dy) / 46);
       if (pw > .09 && dy < -1.5) { var o = { t: 'crin', x: mine.x, dx: dx, dy: dy, p: pw }; if (host) onIn({ id: NET.me(), x: mine.x, dx: dx, dy: dy, p: pw }); else NET.send(o); } }
@@ -3154,6 +3156,8 @@ window.carromMount = function (sr, NET) {
       if (mine.mode === 2 && mine.aim) { var dx = mine.x - mine.aim[0], dy = BL - mine.aim[1], l = Math.hypot(dx, dy), pw = Math.min(1, l / 46);
         if (dy < -1.5 && l > 2) { var ux = dx / l, uy = dy / l, a1 = [cx + mine.x * U, cy + BL * U], pb = [cx + mine.aim[0] * U, cy + mine.aim[1] * U];
           ctx.save(); ctx.setLineDash([5, 6]); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(a1[0], a1[1]); ctx.lineTo(a1[0] + ux * 70 * U, a1[1] + uy * 70 * U); ctx.stroke(); ctx.restore();
+          var bt = 1e9; sim.c.forEach(function (o) { if (!o.on) return; var v = rot(o.x, o.y, -mySeat), px = v[0] - mine.x, py = v[1] - BL, pr = px * ux + py * uy; if (pr <= 0) return; var dd2 = px * px + py * py - pr * pr, R2 = (SR + CR) * (SR + CR); if (dd2 < R2) { var t = pr - Math.sqrt(R2 - dd2); if (t < bt) bt = t; } });
+          if (bt < 1e8) { ctx.beginPath(); ctx.arc(a1[0] + ux * bt * U, a1[1] + uy * bt * U, SR * U, 0, 6.2832); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 2; ctx.stroke(); }
           ctx.beginPath(); ctx.moveTo(a1[0], a1[1]); ctx.lineTo(pb[0], pb[1]); ctx.strokeStyle = 'rgba(255,90,60,.95)'; ctx.lineWidth = 3; ctx.stroke(); }
         $('pw').style.display = 'block'; $('pwF').style.height = Math.round(pw * 100) + '%'; } }
     else if (sim.run) striker(sim.s.x, sim.s.y); else if (!G.over && G.got) { var tp = rot(0, BL, G.turn); striker(tp[0], tp[1], .45); }
@@ -3174,8 +3178,10 @@ window.carromMount = function (sr, NET) {
       else if (now - HS.turnAt > 45000) { HS.turnAt = now; HS.botT = 0; botMove(seat); }
       if (now - lastRest > 2500) sendRest(G.msg === 'Break!' ? '' : '');
     }
+    var showS = myTurn(); if (showS !== shownS) { shownS = showS; $('slw').style.display = showS ? 'flex' : 'none'; if (showS) $('sl').value = mine.x; }
     draw();
   }
+  var shownS = false;
   requestAnimationFrame(frame);
   return { state: function () { S = NET.state(); if (S && S.phase !== 'lobby' && S.cr && S.cr.seq !== seq) startMatch(); }, st: onSt, inn: onIn, destroy: function () { dead = true; try { ro.disconnect(); } catch (e) { /* ignore */ } } };
 };
