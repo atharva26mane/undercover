@@ -925,6 +925,7 @@ function view(room, p) {
   if (room.game === 'draw') { v.dwSet = room.dwSet; if (room.dw) v.dw = dwView(room, p); }
   if (room.game === 'golf') { v.gfSet = room.gfSet; if (room.gf) v.gf = gfView(room); }
   if (room.game === 'bully') { v.bfSet = room.bfSet; v.bfMe = {}; for (const q of room.players.values()) if (!q.left) v.bfMe[q.id] = bfOf(room, q); if (room.bf) v.bf = { ids: room.bf.ids, seq: room.bf.seq, res: room.bf.res || null }; }
+  if (room.game === 'tapri') { const t = room.tp || {}; v.tp = { votes: t.votes || {}, chai: t.chai || {}, notes: t.notes || [] }; }
   if (room.game === 'bomb') { v.mbSet = room.mbSet; if (room.mb) v.mb = { ids: room.mb.ids, seq: room.mb.seq, bots: room.mb.bots }; }
   if (room.game === 'rocket') { v.rkSet = room.rkSet; v.rkMe = {}; for (const q of room.players.values()) if (!q.left) v.rkMe[q.id] = rkOf(room, q); if (room.rk) v.rk = { ids: room.rk.ids, seq: room.rk.seq, res: room.rk.res || null, teams: room.rk.teams, bots: room.rk.bots }; }
   if (room.game === 'race' && room.rc) {
@@ -2491,7 +2492,7 @@ async function frCmd(ws, m) {
       let how = socks.length ? 'online' : 'none';
       if (!socks.length && webpush && target.push) {
         try {
-          await webpush.sendNotification(JSON.parse(target.push), JSON.stringify({ title: pl.name + ' invited you', body: 'Join their ' + (room.game === 'bully' ? 'Bully Football' : room.game === 'rocket' ? 'Turbo Ball' : room.game === 'bomb' ? 'Bomb Pass' : room.game === 'undercover' ? 'Undercover' : room.game) + ' lobby', tag: 'inv-' + room.code, vib: [200, 100, 200, 100, 300], url: '/?c=' + room.code }), { TTL: 600, urgency: 'high' });
+          await webpush.sendNotification(JSON.parse(target.push), JSON.stringify({ title: pl.name + ' invited you', body: 'Join their ' + (room.game === 'bully' ? 'Bully Football' : room.game === 'rocket' ? 'Turbo Ball' : room.game === 'tapri' ? 'Chai Tapri' : room.game === 'bomb' ? 'Bomb Pass' : room.game === 'bomb' ? 'Bomb Pass' : room.game === 'undercover' ? 'Undercover' : room.game) + ' lobby', tag: 'inv-' + room.code, vib: [200, 100, 200, 100, 300], url: '/?c=' + room.code }), { TTL: 600, urgency: 'high' });
           how = 'push';
         } catch (e) { if (e && (e.statusCode === 404 || e.statusCode === 410)) q('UPDATE users SET push = NULL WHERE id = $1', [target.id]).catch(() => {}); }
       }
@@ -2578,7 +2579,7 @@ function handle(ws, m) {
     const name = clean(m.name, 14);
     if (!name) return errTo(ws, 'Enter your name');
     const room = makeRoom(loadWords(m));
-    if (m.game === 'football' || m.game === 'race' || m.game === 'uno' || m.game === 'cricket' || m.game === 'draw' || m.game === 'golf' || m.game === 'bully' || m.game === 'rocket' || m.game === 'bomb') room.game = m.game;
+    if (m.game === 'football' || m.game === 'race' || m.game === 'uno' || m.game === 'cricket' || m.game === 'draw' || m.game === 'golf' || m.game === 'bully' || m.game === 'rocket' || m.game === 'bomb' || m.game === 'tapri') room.game = m.game;
     if (m.open === false) room.open = false;
     const p = addPlayer(room, name);
     room.hostId = room.ownerId = p.id;
@@ -2893,7 +2894,7 @@ function handle(ws, m) {
     }
     case 'switchgame': {
       if (!hostOnly()) return;
-      const g = ['undercover', 'football', 'race', 'uno', 'cricket', 'draw', 'golf', 'bully', 'rocket', 'bomb'].includes(m.game) ? m.game : null;
+      const g = ['undercover', 'football', 'race', 'uno', 'cricket', 'draw', 'golf', 'bully', 'rocket', 'bomb', 'tapri'].includes(m.game) ? m.game : null;
       if (!g) return;
       if (!['lobby', 'over', 'fover', 'rover', 'uover', 'cover', 'dover', 'gover', 'bover', 'kover', 'mover'].includes(room.phase)) return errTo(ws, 'Finish or end the current game first');
       if (g === room.game && room.phase === 'lobby') return;
@@ -2902,7 +2903,7 @@ function handle(ws, m) {
       for (const [qid, q] of room.players) if (q.left) room.players.delete(qid);
       for (const q of room.players.values()) { q.watch = false; q.alive = true; q.role = null; q.word = ''; q.revealed = false; }
       setPhase(room, 'lobby');
-      const gn = { undercover: '🕵️ Undercover', football: '⚽ Football', race: '🏖️ Beach Buggy', uno: '🃏 UNO', cricket: '🏏 Cricket', draw: '🎨 Draw & Guess', golf: '⛳ Golf', bully: '🤼 Bully Football', rocket: '🚗 Turbo Ball' }[g];
+      const gn = { undercover: '🕵️ Undercover', football: '⚽ Football', race: '🏖️ Beach Buggy', uno: '🃏 UNO', cricket: '🏏 Cricket', draw: '🎨 Draw & Guess', golf: '⛳ Golf', bully: '🤼 Bully Football', rocket: '🚗 Turbo Ball', bomb: '💣 Bomb Pass', tapri: '☕ Chai Tapri' }[g];
       notice(room, '🎮 The host switched the game to ' + gn);
       return broadcast(room);
     }
@@ -3060,6 +3061,16 @@ function handle(ws, m) {
       if (room.game !== 'rocket' || room.phase !== 'kplay' || p.id !== room.hostId || !room.rk) return;
       room.rk.res = { o: Math.max(0, Math.min(99, Number(m.o) | 0)), b: Math.max(0, Math.min(99, Number(m.b) | 0)) };
       setPhase(room, 'kover'); return broadcast(room);
+    }
+    case 'tvote': case 'tchai': case 'tnote': case 'tdel': { // Chai Tapri: hang out, vote for the next game, order chai, pin ideas
+      if (room.game !== 'tapri' || room.phase !== 'lobby') return;
+      const t = room.tp || (room.tp = { votes: {}, chai: {}, notes: [], nid: 0 });
+      if (m.t === 'tvote') { const g = String(m.g || ''); if (!g || t.votes[p.id] === g) delete t.votes[p.id]; else if (['undercover', 'uno', 'football', 'race', 'cricket', 'draw', 'golf', 'bully', 'rocket', 'bomb'].includes(g)) t.votes[p.id] = g; }
+      else if (m.t === 'tchai') { if (t.chai[p.id] && Date.now() - t.chai[p.id] < 4000) return; t.chai[p.id] = Date.now(); notice(room, '☕ ' + p.name + ' ordered a cutting chai'); }
+      else if (m.t === 'tnote') { const now = Date.now(); if (now - (p.lastNote || 0) < 4000) return errTo(ws, 'Wait a moment before pinning another idea'); const text = clean(m.text, 90); if (!text) return; p.lastNote = now;
+        t.notes.push({ id: ++t.nid, by: p.name, pid: p.id, text: text, at: now }); if (t.notes.length > 16) t.notes.shift(); }
+      else if (m.t === 'tdel') { const i = t.notes.findIndex((n) => n.id === Number(m.id)); if (i >= 0 && (t.notes[i].pid === p.id || p.id === room.hostId)) t.notes.splice(i, 1); }
+      return broadcast(room);
     }
     case 'mbset': {
       if (!hostOnly() || room.game !== 'bomb' || !['lobby', 'mover'].includes(room.phase)) return;
