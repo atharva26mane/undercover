@@ -797,7 +797,7 @@ function ckView(room, p) {
 function makeRoom(words) {
   const room = {
     code: newCode(), hostId: null, supervisorId: null, players: new Map(),
-    game: 'undercover', dwSet: { rounds: 3, secs: 80, hints: 2 }, dw: null, gfSet: { holes: 3, secs: 8 }, gf: null, bfSet: { diff: 'normal', mode: 't2', goals: 5, head: { o: 0, b: 0 }, bots: { o: 2, b: 2 }, balls: 3 }, bf: null, rkSet: { map: 'snow', mode: 't3', goals: 5, diff: 'normal', bots: { o: 2, b: 3 } }, rk: null, mbSet: { bots: 2, speed: 'normal', shrink: true }, mb: null, cr: null, lz: null, unSet: { secs: 20, mode: 'classic' }, un: null, ckSet: { mode: 'team', overs: 2, building: true, onetip: true }, ck: null, ckTeam: {}, fbSet: { goals: 3, secs: 8, mode: 'match', tie: 'pens' }, fb: null, rc: null,
+    game: 'undercover', dwSet: { rounds: 3, secs: 80, hints: 2 }, dw: null, gfSet: { holes: 3, secs: 8 }, gf: null, bfSet: { diff: 'normal', mode: 't2', goals: 5, head: { o: 0, b: 0 }, bots: { o: 2, b: 2 }, balls: 3 }, bf: null, rkSet: { map: 'snow', mode: 't3', goals: 5, diff: 'normal', bots: { o: 2, b: 3 } }, rk: null, mbSet: { bots: 2, speed: 'normal', shrink: true }, mb: null, cr: null, lz: null, lzSet: { bots: 3, shrink: 'center', time: 15 }, unSet: { secs: 20, mode: 'classic' }, un: null, ckSet: { mode: 'team', overs: 2, building: true, onetip: true }, ck: null, ckTeam: {}, fbSet: { goals: 3, secs: 8, mode: 'match', tie: 'pens' }, fb: null, rc: null,
     open: true, pending: new Map(), blocked: new Set(), cool: new Map(),
     phase: 'lobby', round: 0, seq: 0, timer: null, endsAt: 0,
     settings: { describeSecs: 30, autoRoles: true, undercover: 1, white: 1, whiteGuess: true, hint: false, board: true, reacts: true, modes: ['mix'], joker: false, chat: true, chatSlow: 5, reactCd: 3, ucGuess: true, whiteTries: 2, sheriff: true },
@@ -927,7 +927,7 @@ function view(room, p) {
   if (room.game === 'golf') { v.gfSet = room.gfSet; if (room.gf) v.gf = gfView(room); }
   if (room.game === 'bully') { v.bfSet = room.bfSet; v.bfMe = {}; for (const q of room.players.values()) if (!q.left) v.bfMe[q.id] = bfOf(room, q); if (room.bf) v.bf = { ids: room.bf.ids, seq: room.bf.seq, res: room.bf.res || null }; }
   if (room.game === 'tapri') { const t = room.tp || {}; v.tp = { votes: t.votes || {}, chai: t.chai || {}, kind: t.kind || {}, spot: t.spot || {}, av: t.av || {}, wall: (t.wall || []).map((x) => ({ id: x.id, by: x.by })), ak: t.ak || null, td: t.td || null, mu: t.mu ? { now: t.mu.now, t: Date.now(), q: t.mu.q.map((x) => ({ id: x.id, tid: x.tid, title: x.title, artist: x.artist, img: x.img, by: x.by, v: Object.keys(x.v).length, vs: Object.keys(x.v) })), keys: !!(process.env.SPOTIFY_ID && process.env.SPOTIFY_SECRET) } : { now: null, t: Date.now(), q: [], keys: !!(process.env.SPOTIFY_ID && process.env.SPOTIFY_SECRET) }, whistle: t.whistle || null, emo: t.emo || {}, sky: t.sky || 'dusk', radio: t.radio | 0, paid: t.paid | 0, score: t.score || '', notes: t.notes || [], ludo: t.ludo || null }; }
-  if (room.game === 'laser') { if (room.lz) v.lz = { ids: room.lz.ids, seq: room.lz.seq, host: room.lz.host }; }
+  if (room.game === 'laser') { v.lzSet = room.lzSet; if (room.lz) v.lz = { ids: room.lz.ids, seq: room.lz.seq, host: room.lz.host, bots: room.lz.bots, shrink: room.lz.shrink, time: room.lz.time }; }
   if (room.game === 'carrom') { if (room.cr) v.cr = { ids: room.cr.ids, seq: room.cr.seq, host: room.cr.host }; }
   if (room.game === 'bomb') { v.mbSet = room.mbSet; if (room.mb) v.mb = { ids: room.mb.ids, seq: room.mb.seq, bots: room.mb.bots }; }
   if (room.game === 'rocket') { v.rkSet = room.rkSet; v.rkMe = {}; for (const q of room.players.values()) if (!q.left) v.rkMe[q.id] = rkOf(room, q); if (room.rk) v.rk = { ids: room.rk.ids, seq: room.rk.seq, res: room.rk.res || null, teams: room.rk.teams, bots: room.rk.bots }; }
@@ -1774,7 +1774,8 @@ function lzStart(room) {
   const hs = rkHumans(room);
   if (hs.length > 8) return 'Laser Arena is for up to 8 players';
   if (hs.length < 1) return 'No players';
-  room.lz = { ids: hs.map((q) => q.id), seq: (room.lz ? room.lz.seq : 0) + 1, host: room.hostId };
+  const ls = room.lzSet || { bots: 3, shrink: 'center', time: 15 };
+  room.lz = { ids: hs.map((q) => q.id), seq: (room.lz ? room.lz.seq : 0) + 1, host: room.hostId, bots: Math.max(0, Math.min(8 - hs.length, ls.bots)), shrink: ls.shrink, time: ls.time };
   for (const q of room.players.values()) q.watch = false;
   setPhase(room, 'lzplay'); return broadcast(room);
 }
@@ -3189,6 +3190,14 @@ function handle(ws, m) {
       else if (m.t === 'tdel') { const i = t.notes.findIndex((n) => n.id === Number(m.id)); if (i >= 0 && (t.notes[i].pid === p.id || p.id === room.hostId)) t.notes.splice(i, 1); }
       return broadcast(room);
     }
+    case 'lzset': {
+      if (!hostOnly() || room.game !== 'laser' || room.phase !== 'lobby') return;
+      const ls = room.lzSet || (room.lzSet = { bots: 3, shrink: 'center', time: 15 });
+      if (Number.isInteger(m.bots)) ls.bots = Math.max(0, Math.min(7, m.bots));
+      if (m.shrink === 'center' || m.shrink === 'random') ls.shrink = m.shrink;
+      if ([10, 15, 20].includes(m.time)) ls.time = m.time;
+      return broadcast(room);
+    }
     case 'lzstart': {
       if (!hostOnly() || room.game !== 'laser' || !['lobby', 'lzover', 'lzplay'].includes(room.phase)) return;
       const e = lzStart(room); return e ? errTo(ws, e) : undefined;
@@ -3203,7 +3212,7 @@ function handle(ws, m) {
       if (room.game !== 'laser' || room.phase !== 'lzplay' || p.id === room.hostId) return;
       const h = room.players.get(room.hostId); if (!h || !h.ws || !h.connected) return;
       const f = (v, a) => { v = Number(v); return Number.isFinite(v) ? Math.max(-a, Math.min(a, Math.round(v * 100) / 100)) : 0; };
-      return send(h.ws, { t: 'lzin', id: p.id, mx: f(m.mx, 1), my: f(m.my, 1), a: f(m.a, 7), f: m.f ? 1 : 0 });
+      return send(h.ws, { t: 'lzin', id: p.id, mx: f(m.mx, 1), my: f(m.my, 1), a: f(m.a, 7), r: m.r ? 1 : 0 });
     }
     case 'lzst': {
       if (room.game !== 'laser' || room.phase !== 'lzplay' || p.id !== room.hostId) return;
