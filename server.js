@@ -228,18 +228,26 @@ const GOLFER = (() => { // the 3D golfer model (optional file)
 const DATA_DIR = process.env.DATA_DIR || __dirname;
 const DATA_FILE = path.join(DATA_DIR, 'uc-admin.json');
 const sha = (s) => crypto.createHash('sha256').update(String(s)).digest('hex');
-const ADM = { hash: process.env.ADMIN_TOKEN ? sha(process.env.ADMIN_TOKEN) : '', blockedCids: {}, blockedIps: {}, feedback: [] };
+const ADM = { hash: process.env.ADMIN_TOKEN ? sha(process.env.ADMIN_TOKEN) : '', blockedCids: {}, blockedIps: {}, feedback: [], push: null };
 try { // best effort: on the free plan this file is wiped when the server restarts
   const d = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
   if (!ADM.hash && typeof d.hash === 'string') ADM.hash = d.hash;
   if (d.blockedCids) ADM.blockedCids = d.blockedCids;
   if (d.blockedIps) ADM.blockedIps = d.blockedIps;
   if (Array.isArray(d.feedback)) ADM.feedback = d.feedback.slice(-300);
+  if (d.push && typeof d.push.endpoint === 'string') ADM.push = d.push;
 } catch (e) { /* first run */ }
 let admSaveT = null;
 function admSave() {
   clearTimeout(admSaveT);
-  admSaveT = setTimeout(() => { try { fs.writeFileSync(DATA_FILE, JSON.stringify({ hash: ADM.hash, blockedCids: ADM.blockedCids, blockedIps: ADM.blockedIps, feedback: ADM.feedback })); } catch (e) { /* read-only disk: fine */ } }, 800);
+  admSaveT = setTimeout(() => { try { fs.writeFileSync(DATA_FILE, JSON.stringify({ hash: ADM.hash, blockedCids: ADM.blockedCids, blockedIps: ADM.blockedIps, feedback: ADM.feedback, push: ADM.push })); } catch (e) { /* read-only disk: fine */ } }, 800);
+}
+// phone notification for the admin (feedback, reports, username requests, new rooms)
+const admNoteAt = {};
+function admNotify(title, body, key) {
+  if (!webpush || !ADM.push) return;
+  const now = Date.now(); if (key) { if (now - (admNoteAt[key] || 0) < 60000) return; admNoteAt[key] = now; }
+  webpush.sendNotification(ADM.push, JSON.stringify({ title, body: String(body || '').slice(0, 140), tag: 'adm-' + (key || 'x'), vib: [150, 80, 150], url: '/' }), { TTL: 3600, urgency: 'normal' }).catch((e) => { if (e && (e.statusCode === 404 || e.statusCode === 410)) { ADM.push = null; admSave(); } });
 }
 const ipOf = (req) => String((req.headers['x-forwarded-for'] || req.socket.remoteAddress || '')).split(',')[0].trim();
 function cookieCid(req) { const m = /(?:^|;\s*)uc_cid=([A-Za-z0-9]{4,40})/.exec(req.headers.cookie || ''); return m ? m[1] : ''; }
@@ -2520,7 +2528,7 @@ async function frCmd(ws, m) {
       ws.nmAt = Date.now();
       if ((await q('SELECT 1 FROM users WHERE uname = $1', [want])).length) return errTo(ws, 'That username is taken');
       await q('DELETE FROM name_reqs WHERE user_id = $1', [me.id]);
-      await q('INSERT INTO name_reqs (user_id, wanted) VALUES ($1, $2)', [me.id, want]);
+      await q('INSERT INTO name_reqs (user_id, wanted) VALUES ($1, $2)', [me.id, want]); admNotify('✏️ Username change request', '@' + (me.uname || '?') + ' wants @' + want, 'nr');
       send(ws, { t: 'fok', msg: 'Request sent. Your name changes when the admin approves it' });
       return frList(ws);
     }
@@ -2631,6 +2639,11 @@ async function admRename(ws, m) {
 function admCmd(ws, m) {
   const target = () => { for (const c of wss.clients) if (c.uid === m.uid) return c; return null; };
   if (m.t === 'admget') return admSend(ws);
+  if (m.t === 'admpush') {
+    const sub = m.sub;
+    if (sub && typeof sub.endpoint === 'string' && /^https:\/\//.test(sub.endpoint) && sub.keys && typeof sub.keys.p256dh === 'string' && typeof sub.keys.auth === 'string') { ADM.push = { endpoint: sub.endpoint.slice(0, 800), keys: { p256dh: sub.keys.p256dh.slice(0, 200), auth: sub.keys.auth.slice(0, 100) } }; admSave(); admNotify('🔔 Admin alerts are on', 'You will get a notification for feedback, reports and name requests'); }
+    return;
+  }
   if (m.t === 'admpause') { const r = rooms.get(clean(m.code, 4)); if (!r) return; r.apaused = !r.apaused; broadcast(r); return admSend(ws); }
   if (m.t === 'admkick' || m.t === 'admblock') {
     const c = target(); if (!c || c === ws || c.isAdmin) return;
@@ -2732,7 +2745,7 @@ function handle(ws, m) {
     const anon = m.anon !== false, info = ws.info || {};
     ADM.feedback.push({ id: rid(), at: Date.now(), text, anon, name: anon ? '' : (clean(m.name, 14) || info.name || ''), dev: anon ? '' : deviceOf(ws.ua) });
     if (ADM.feedback.length > 300) ADM.feedback.shift();
-    admSave();
+    admSave(); admNotify('💬 New feedback', text, 'fb');
     return send(ws, { t: 'fbok' });
   }
   if (m.t === 'rep') { // a player reports someone in their lobby (the admin reads it in the Feedback tab)
@@ -2744,7 +2757,7 @@ function handle(ws, m) {
     ws.fbAt = Date.now();
     ADM.feedback.push({ id: rid(), at: Date.now(), kind: 'report', text: rp.name + ' reported ' + who + ': ' + why + '  [room ' + rm.code + ', ' + rm.game + ']', anon: false, name: rp.name, dev: '' });
     if (ADM.feedback.length > 300) ADM.feedback.shift();
-    admSave();
+    admSave(); admNotify('🚩 New report', rp.name + ' reported ' + who + ': ' + why, 'rep');
     return send(ws, { t: 'fok', msg: 'Report sent to the admin' });
   }
   if (m.t === 'adm') { if (ADM.hash && typeof m.token === 'string' && sha(m.token) === ADM.hash) { ws.isAdmin = true; return send(ws, { t: 'admok' }); } return send(ws, { t: 'admno' }); }
