@@ -805,7 +805,7 @@ function ckView(room, p) {
 function makeRoom(words) {
   const room = {
     code: newCode(), hostId: null, supervisorId: null, players: new Map(),
-    game: 'undercover', dwSet: { rounds: 3, secs: 80, hints: 2 }, dw: null, gfSet: { holes: 3, secs: 8 }, gf: null, bfSet: { diff: 'normal', mode: 't2', goals: 5, head: { o: 0, b: 0 }, bots: { o: 2, b: 2 }, balls: 3 }, bf: null, rkSet: { map: 'snow', mode: 't3', goals: 5, diff: 'normal', bots: { o: 2, b: 3 } }, rk: null, mbSet: { bots: 2, speed: 'normal', shrink: true }, mb: null, cr: null, lz: null, lzSet: { bots: 3, shrink: 'center', time: 15 }, lt: null, ltSet: { bots: 5, floors: 3, speed: 'normal', push: true }, unSet: { secs: 20, mode: 'classic' }, un: null, ckSet: { mode: 'team', overs: 2, building: true, onetip: true }, ck: null, ckTeam: {}, fbSet: { goals: 3, secs: 8, mode: 'match', tie: 'pens' }, fb: null, rc: null,
+    game: 'undercover', dwSet: { rounds: 3, secs: 80, hints: 2 }, dw: null, gfSet: { holes: 3, secs: 8 }, gf: null, bfSet: { diff: 'normal', mode: 't2', goals: 5, head: { o: 0, b: 0 }, bots: { o: 2, b: 2 }, balls: 3 }, bf: null, rkSet: { map: 'snow', mode: 't3', goals: 5, diff: 'normal', bots: { o: 2, b: 3 } }, rk: null, mbSet: { bots: 2, speed: 'normal', shrink: true }, mb: null, cr: null, lz: null, lzSet: { bots: 3, shrink: 'center', time: 15 }, lt: null, ltSet: { bots: 5, floors: 3, speed: 'normal', push: true }, z8: null, z8Set: Object.assign({}, Z8DEF), unSet: { secs: 20, mode: 'classic' }, un: null, ckSet: { mode: 'team', overs: 2, building: true, onetip: true }, ck: null, ckTeam: {}, fbSet: { goals: 3, secs: 8, mode: 'match', tie: 'pens' }, fb: null, rc: null,
     open: true, pending: new Map(), blocked: new Set(), cool: new Map(),
     phase: 'lobby', round: 0, seq: 0, timer: null, endsAt: 0,
     settings: { describeSecs: 30, autoRoles: true, undercover: 1, white: 1, whiteGuess: true, hint: false, board: true, reacts: true, modes: ['mix'], joker: false, chat: true, chatSlow: 5, reactCd: 3, ucGuess: true, whiteTries: 2, sheriff: true },
@@ -935,6 +935,7 @@ function view(room, p) {
   if (room.game === 'golf') { v.gfSet = room.gfSet; if (room.gf) v.gf = gfView(room); }
   if (room.game === 'bully') { v.bfSet = room.bfSet; v.bfMe = {}; for (const q of room.players.values()) if (!q.left) v.bfMe[q.id] = bfOf(room, q); if (room.bf) v.bf = { ids: room.bf.ids, seq: room.bf.seq, res: room.bf.res || null }; }
   if (room.game === 'tapri') { const t = room.tp || {}; v.tp = { votes: t.votes || {}, chai: t.chai || {}, kind: t.kind || {}, spot: t.spot || {}, av: t.av || {}, wall: (t.wall || []).map((x) => ({ id: x.id, by: x.by })), ak: t.ak || null, td: t.td || null, mu: t.mu ? { now: t.mu.now, t: Date.now(), q: t.mu.q.map((x) => ({ id: x.id, tid: x.tid, title: x.title, artist: x.artist, img: x.img, by: x.by, v: Object.keys(x.v).length, vs: Object.keys(x.v) })), keys: !!(process.env.SPOTIFY_ID && process.env.SPOTIFY_SECRET) } : { now: null, t: Date.now(), q: [], keys: !!(process.env.SPOTIFY_ID && process.env.SPOTIFY_SECRET) }, whistle: t.whistle || null, emo: t.emo || {}, sky: t.sky || 'dusk', radio: t.radio | 0, paid: t.paid | 0, score: t.score || '', notes: t.notes || [], ludo: t.ludo || null }; }
+  if (room.game === 'zero8') { v.z8Set = room.z8Set; if (room.z8) v.z8 = z8View(room, p); }
   if (room.game === 'lasttile') { v.ltSet = room.ltSet; if (room.lt) v.lt = { ids: room.lt.ids, seq: room.lt.seq, host: room.lt.host, bots: room.lt.bots, floors: room.lt.floors, speed: room.lt.speed, push: room.lt.push }; }
   if (room.game === 'laser') { v.lzSet = room.lzSet; if (room.lz) v.lz = { ids: room.lz.ids, seq: room.lz.seq, host: room.lz.host, bots: room.lz.bots, shrink: room.lz.shrink, time: room.lz.time }; }
   if (room.game === 'carrom') { if (room.cr) v.cr = { ids: room.cr.ids, seq: room.cr.seq, host: room.cr.host }; }
@@ -1668,6 +1669,7 @@ function afterRemoval(room) {
   if (room.game === 'carrom') return crCheck(room);
   if (room.game === 'laser') return lzCheck(room);
   if (room.game === 'lasttile') return ltCheck(room);
+  if (room.game === 'zero8') return broadcast(room);
   if (!['describe', 'vote', 'whiteguess', 'elim'].includes(room.phase)) return broadcast(room);
   const win = checkWin(room);
   if (win) return endGame(room, win);
@@ -1779,6 +1781,74 @@ function mbStart(room) {
   room.mb = { ids: hs.map((q) => q.id), seq: (room.mb ? room.mb.seq : 0) + 1, host: room.hostId, bots };
   for (const q of room.players.values()) q.watch = false;
   setPhase(room, 'mplay'); return broadcast(room);
+}
+// ---------------------------------------------------------------- The 0.8 Rule (server-authoritative, picks stay secret until the reveal)
+const Z8DEF = { lives: 5, time: 30, mult: '0.8', rules: 'stack', dup: true, exact: true, zero: true, names: true, ghosts: true, bots: 0 };
+const Z8BOT = ['Kuzuryu', 'Chishiya', 'Ann', 'Kuina', 'Niragi', 'Hatter', 'Usagi', 'Arisu', 'Banda', 'Tatta', 'Mira', 'Aguni', 'Ryohei', 'Heiya', 'Kyuma'];
+const Z8RULE_ORDER = ['dup', 'exact', 'zero'];
+const Z8MULTS = [0.5, 0.6, 2 / 3, 0.75, 0.8, 0.9];
+function z8Mult(st) { return st.mult === 'rand' ? Z8MULTS[Math.floor(Math.random() * Z8MULTS.length)] : st.mult === '0.67' ? 2 / 3 : st.mult === '0.5' ? 0.5 : 0.8; }
+function z8Alive(z) { return z.ps.filter((q) => !q.out); }
+function z8View(room, p) {
+  const z = room.z8, pick = z.stage === 'pick', me = z.ps.find((q) => q.id === p.id);
+  const o = { seq: z.seq, round: z.round, stage: z.stage, left: Math.max(0, z.ends - Date.now()), mult: z.mult, act: z.act, set: z.set, winners: z.winners || null,
+    ps: z.ps.map((q) => ({ id: q.id, name: q.name, bot: q.bot, lives: q.lives, out: q.out, locked: q.pick != null || (q.out && q.ghost != null), outR: q.outR || 0 })),
+    mine: me ? (me.out ? me.ghost : me.pick) : null, meIn: !!me, meOut: me ? me.out : true };
+  if (z.last) { const L = z.last; o.last = Object.assign({}, L); if (!z.set.names) { o.last.picks = L.picks.map((x) => (x.id === p.id ? x : Object.assign({}, x, { id: null, name: '?' }))); o.last.picks.sort((a, b) => a.n - b.n); } }
+  if (pick) o.last = z.last && z.round > 1 ? { prev: true, avg: z.last.avg, target: z.last.target, mult: z.last.mult } : null;
+  return o;
+}
+function z8Clear(z) { if (z && z.timers) { z.timers.forEach(clearTimeout); z.timers = []; } }
+function z8Later(room, z, ms, fn) { const t = setTimeout(() => { if (room.z8 !== z || !rooms.has(room.code)) return; fn(); }, ms); z.timers.push(t); }
+function z8Start(room) {
+  const hs = rkHumans(room), st = Object.assign({}, Z8DEF, room.z8Set || {});
+  const nb = Math.max(0, Math.min(16 - hs.length, st.bots | 0)); if (hs.length + nb < 2) return 'Need at least 2 players (add a bot)';
+  if (hs.length > 16) return 'The 0.8 Rule is for up to 16 players';
+  z8Clear(room.z8);
+  const ps = hs.map((q) => ({ id: q.id, name: q.name, bot: false, lives: st.lives, out: false, pick: null, ghost: null }));
+  const names = Z8BOT.slice().sort(() => Math.random() - 0.5);
+  for (let i = 0; i < nb; i++) ps.push({ id: 'bot' + i, name: '🤖 ' + names[i % names.length], bot: true, lives: st.lives, out: false, pick: null, ghost: null, k: 1 + Math.floor(Math.random() * 3) });
+  room.z8 = { seq: (room.z8 ? room.z8.seq : 0) + 1, round: 0, stage: 'pick', ends: 0, set: st, ps, ids: hs.map((q) => q.id), act: st.rules === 'all' ? Z8RULE_ORDER.filter((r) => st[r]) : [], last: null, timers: [], winners: null, elims: 0 };
+  for (const q of room.players.values()) q.watch = false;
+  setPhase(room, 'z8play'); z8Round(room); return null;
+}
+function z8Round(room) {
+  const z = room.z8; z8Clear(z); z.round++; z.stage = 'pick'; z.mult = z8Mult(z.set); z.ends = Date.now() + z.set.time * 1000;
+  z.ps.forEach((q) => { q.pick = null; q.ghost = null; });
+  const prevT = z.last ? z.last.target : null;
+  z.ps.forEach((q) => { if (!q.bot || q.out) return; z8Later(room, z, 1500 + Math.random() * z.set.time * 550, () => { if (z.stage !== 'pick' || q.out) return;
+    let n = prevT != null ? prevT * z.mult * (0.75 + Math.random() * 0.5) : 50 * Math.pow(z.mult, q.k) * (0.8 + Math.random() * 0.45);
+    if (z8Alive(z).length === 2 && z.act.includes('zero') && Math.random() < 0.25) n = Math.random() < 0.5 ? 0 : 100;
+    q.pick = Math.max(0, Math.min(100, Math.round(n))); z8Check(room); broadcast(room); }); });
+  z8Later(room, z, z.set.time * 1000 + 250, () => z8Resolve(room));
+  broadcast(room);
+}
+function z8Check(room) { const z = room.z8; if (z.stage !== 'pick') return; if (z8Alive(z).every((q) => q.pick != null)) { z8Clear(z); z.ends = Date.now() + 900; z8Later(room, z, 900, () => z8Resolve(room)); } }
+function z8Resolve(room) {
+  const z = room.z8; if (z.stage !== 'pick') return; z8Clear(z);
+  const alive = z8Alive(z), valid = alive.filter((q) => q.pick != null), notes = [], act = z.act.slice();
+  const avg = valid.length ? valid.reduce((a, q) => a + q.pick, 0) / valid.length : 0, target = avg * z.mult;
+  const busted = new Set();
+  if (act.includes('dup')) { const c = {}; valid.forEach((q) => { c[q.pick] = (c[q.pick] || 0) + 1; }); valid.forEach((q) => { if (c[q.pick] > 1) busted.add(q.id); });
+    const dn = [...new Set(valid.filter((q) => busted.has(q.id)).map((q) => q.pick))]; dn.forEach((n) => notes.push({ k: 'dup', n, who: valid.filter((q) => q.pick === n).map((q) => q.name) })); }
+  let cand = valid.filter((q) => !busted.has(q.id)), winners = [];
+  if (act.includes('zero') && alive.length === 2 && valid.length === 2) { const a = valid.find((q) => q.pick === 0), b = valid.find((q) => q.pick === 100); if (a && b && !busted.has(b.id)) { winners = [b]; notes.push({ k: 'zero', who: [b.name, a.name] }); } }
+  if (!winners.length && cand.length) { let best = Infinity; cand.forEach((q) => { best = Math.min(best, Math.abs(q.pick - target)); }); winners = cand.filter((q) => Math.abs(q.pick - target) - best < 1e-9); }
+  let pen = 1; if (act.includes('exact') && winners.length && winners.some((q) => q.pick === Math.round(target))) { pen = 2; notes.push({ k: 'exact', n: Math.round(target), who: winners.map((q) => q.name) }); }
+  if (!valid.length) notes.push({ k: 'none' });
+  const wid = new Set(winners.map((q) => q.id)), lost = {};
+  alive.forEach((q) => { if (wid.has(q.id)) return; const d = q.pick == null ? Math.max(1, pen) : pen; q.lives = Math.max(0, q.lives - d); lost[q.id] = d; if (q.pick == null) notes.push({ k: 'nopick', who: [q.name] }); });
+  const newOut = []; alive.forEach((q) => { if (q.lives <= 0 && !q.out) { q.out = true; q.outR = z.round; newOut.push(q.name); } });
+  if (newOut.length) notes.push({ k: 'out', who: newOut });
+  if (z.set.rules === 'stack' && newOut.length) { const want = Z8RULE_ORDER.filter((r) => z.set[r] && !z.act.includes(r)); const unlock = want.slice(0, newOut.length); unlock.forEach((r) => { z.act.push(r); notes.push({ k: 'rule', r }); }); }
+  const picks = z.ps.filter((q) => (!q.out || newOut.includes(q.name)) && q.pick != null).map((q) => ({ id: q.id, name: q.name, n: q.pick, w: wid.has(q.id), b: busted.has(q.id), lost: lost[q.id] || 0 }));
+  const ghosts = z.set.ghosts ? z.ps.filter((q) => q.out && q.ghost != null && !newOut.includes(q.name)).map((q) => ({ id: q.id, name: q.name, n: q.ghost, near: Math.abs(q.ghost - target) <= Math.min(...[100].concat(winners.map((w) => Math.abs(w.pick - target)))) })) : [];
+  z.last = { round: z.round, avg, target, mult: z.mult, picks, ghosts, winners: winners.map((q) => q.name), notes, act, lost };
+  const left = z8Alive(z); z.stage = 'reveal'; const rv = 9000 + Math.min(4000, notes.length * 700); z.ends = Date.now() + rv;
+  if (left.length <= 1) { z.winners = left.length ? [left[0].name] : winners.map((q) => q.name);
+    z8Later(room, z, rv, () => { z.stage = 'over'; const ids = z.ids, wi = (left.length ? left : winners).filter((q) => !q.bot).map((q) => q.id).filter((id) => ids.includes(id)); recordWins(room, 'zero8', ids, wi); setPhase(room, 'z8over'); broadcast(room); }); }
+  else z8Later(room, z, rv, () => z8Round(room));
+  broadcast(room);
 }
 function ltStart(room) {
   const hs = rkHumans(room);
@@ -2598,7 +2668,7 @@ async function frCmd(ws, m) {
       let how = socks.length ? 'online' : 'none';
       if (!socks.length && webpush && target.push) {
         try {
-          await webpush.sendNotification(JSON.parse(target.push), JSON.stringify({ title: pl.name + ' invited you', body: 'Join their ' + (room.game === 'bully' ? 'Bully Football' : room.game === 'rocket' ? 'Turbo Ball' : room.game === 'tapri' ? 'Chai Tapri' : room.game === 'bomb' ? 'Bomb Pass' : room.game === 'carrom' ? 'Carrom' : room.game === 'laser' ? 'Laser Arena' : room.game === 'lasttile' ? 'Last Tile' : room.game === 'undercover' ? 'Undercover' : room.game) + ' lobby', tag: 'inv-' + room.code, vib: [200, 100, 200, 100, 300], url: '/?c=' + room.code }), { TTL: 600, urgency: 'high' });
+          await webpush.sendNotification(JSON.parse(target.push), JSON.stringify({ title: pl.name + ' invited you', body: 'Join their ' + (room.game === 'bully' ? 'Bully Football' : room.game === 'rocket' ? 'Turbo Ball' : room.game === 'tapri' ? 'Chai Tapri' : room.game === 'bomb' ? 'Bomb Pass' : room.game === 'carrom' ? 'Carrom' : room.game === 'laser' ? 'Laser Arena' : room.game === 'lasttile' ? 'Last Tile' : room.game === 'zero8' ? 'The 0.8 Rule' : room.game === 'undercover' ? 'Undercover' : room.game) + ' lobby', tag: 'inv-' + room.code, vib: [200, 100, 200, 100, 300], url: '/?c=' + room.code }), { TTL: 600, urgency: 'high' });
           how = 'push';
         } catch (e) { if (e && (e.statusCode === 404 || e.statusCode === 410)) q('UPDATE users SET push = NULL WHERE id = $1', [target.id]).catch(() => {}); }
       }
@@ -2690,7 +2760,7 @@ function handle(ws, m) {
     const name = clean(m.name, 14);
     if (!name) return errTo(ws, 'Enter your name');
     const room = makeRoom(loadWords(m));
-    if (m.game === 'football' || m.game === 'race' || m.game === 'uno' || m.game === 'cricket' || m.game === 'draw' || m.game === 'golf' || m.game === 'bully' || m.game === 'rocket' || m.game === 'bomb' || m.game === 'carrom' || m.game === 'laser' || m.game === 'lasttile' || m.game === 'tapri') room.game = m.game;
+    if (m.game === 'football' || m.game === 'race' || m.game === 'uno' || m.game === 'cricket' || m.game === 'draw' || m.game === 'golf' || m.game === 'bully' || m.game === 'rocket' || m.game === 'bomb' || m.game === 'carrom' || m.game === 'laser' || m.game === 'lasttile' || m.game === 'zero8' || m.game === 'tapri') room.game = m.game;
     if (m.open === false) room.open = false;
     const p = addPlayer(room, name);
     room.hostId = room.ownerId = p.id;
@@ -3012,7 +3082,7 @@ function handle(ws, m) {
     }
     case 'switchgame': {
       if (!hostOnly()) return;
-      const g = ['undercover', 'football', 'race', 'uno', 'cricket', 'draw', 'golf', 'bully', 'rocket', 'bomb', 'carrom', 'laser', 'lasttile', 'tapri'].includes(m.game) ? m.game : null;
+      const g = ['undercover', 'football', 'race', 'uno', 'cricket', 'draw', 'golf', 'bully', 'rocket', 'bomb', 'carrom', 'laser', 'lasttile', 'zero8', 'tapri'].includes(m.game) ? m.game : null;
       if (!g) return;
       if (!['lobby', 'over', 'fover', 'rover', 'uover', 'cover', 'dover', 'gover', 'bover', 'kover', 'mover'].includes(room.phase)) return errTo(ws, 'Finish or end the current game first');
       if (g === room.game && room.phase === 'lobby') return;
@@ -3021,7 +3091,7 @@ function handle(ws, m) {
       for (const [qid, q] of room.players) if (q.left) room.players.delete(qid);
       for (const q of room.players.values()) { q.watch = false; q.alive = true; q.role = null; q.word = ''; q.revealed = false; }
       setPhase(room, 'lobby');
-      const gn = { undercover: '🕵️ Undercover', football: '⚽ Football', race: '🏖️ Beach Buggy', uno: '🃏 UNO', cricket: '🏏 Cricket', draw: '🎨 Draw & Guess', golf: '⛳ Golf', bully: '🤼 Bully Football', rocket: '🚗 Turbo Ball', bomb: '💣 Bomb Pass', carrom: '🎯 Carrom', laser: '🔫 Laser Arena', lasttile: '🔷 Last Tile', tapri: '☕ Chai Tapri' }[g];
+      const gn = { undercover: '🕵️ Undercover', football: '⚽ Football', race: '🏖️ Beach Buggy', uno: '🃏 UNO', cricket: '🏏 Cricket', draw: '🎨 Draw & Guess', golf: '⛳ Golf', bully: '🤼 Bully Football', rocket: '🚗 Turbo Ball', bomb: '💣 Bomb Pass', carrom: '🎯 Carrom', laser: '🔫 Laser Arena', lasttile: '🔷 Last Tile', zero8: '🎯 The 0.8 Rule', tapri: '☕ Chai Tapri' }[g];
       notice(room, '🎮 The host switched the game to ' + gn);
       return broadcast(room);
     }
@@ -3185,7 +3255,7 @@ function handle(ws, m) {
     case 'tvote': case 'tchai': case 'tnote': case 'tdel': case 'temo': case 'tsky': case 'tradio': case 'tpaid': case 'tscore': case 'tludo': case 'tseat': case 'tavatar': case 'twhistle': case 'twall': case 'twdel': case 'twget': case 'tstats': case 'tak': case 'ttd': case 'tmadd': case 'tmvote': case 'tmnext': case 'tmsearch': { // Chai Tapri: hang out, vote for the next game, order chai, pin ideas
       if (room.game !== 'tapri' || room.phase !== 'lobby') return;
       const t = room.tp || (room.tp = { votes: {}, chai: {}, notes: [], nid: 0 });
-      if (m.t === 'tvote') { const g = String(m.g || ''); if (!g || t.votes[p.id] === g) delete t.votes[p.id]; else if (['undercover', 'uno', 'football', 'race', 'cricket', 'draw', 'golf', 'bully', 'rocket', 'bomb', 'carrom', 'laser', 'lasttile'].includes(g)) t.votes[p.id] = g; }
+      if (m.t === 'tvote') { const g = String(m.g || ''); if (!g || t.votes[p.id] === g) delete t.votes[p.id]; else if (['undercover', 'uno', 'football', 'race', 'cricket', 'draw', 'golf', 'bully', 'rocket', 'bomb', 'carrom', 'laser', 'lasttile', 'zero8'].includes(g)) t.votes[p.id] = g; }
       else if (m.t === 'tchai') { if (t.chai[p.id] && Date.now() - t.chai[p.id] < 4000) return; const k = Math.max(0, Math.min(2, Number(m.k) | 0)); t.chai[p.id] = Date.now(); (t.kind || (t.kind = {}))[p.id] = k; notice(room, '☕ ' + p.name + ' ordered ' + ['a cutting chai', 'a masala chai', 'a bun maska'][k]); }
       else if (m.t === 'temo') { const E = ['😂', '👏', '😍', '🔥', '👋', '😮', '😢', '🎉', '🙏', '💀', 'wah!']; const e = String(m.e || ''); if (!E.includes(e) || Date.now() - ((t.emo || {})[p.id] || {}).at < 900) return; (t.emo || (t.emo = {}))[p.id] = { e, at: Date.now() }; }
       else if (m.t === 'tsky') { if (!['dusk', 'day', 'night', 'rain'].includes(m.k) || Date.now() - (t.skyAt || 0) < 3000) return; t.sky = m.k; t.skyAt = Date.now(); notice(room, '🌦️ ' + p.name + ' changed the weather: ' + m.k); }
@@ -3217,6 +3287,35 @@ function handle(ws, m) {
         t.notes.push({ id: ++t.nid, by: p.name, pid: p.id, text: text, at: now }); if (t.notes.length > 16) t.notes.shift(); }
       else if (m.t === 'tdel') { const i = t.notes.findIndex((n) => n.id === Number(m.id)); if (i >= 0 && (t.notes[i].pid === p.id || p.id === room.hostId)) t.notes.splice(i, 1); }
       return broadcast(room);
+    }
+    case 'z8set': {
+      if (!hostOnly() || room.game !== 'zero8' || room.phase !== 'lobby') return;
+      const zs = room.z8Set || (room.z8Set = Object.assign({}, Z8DEF));
+      if ([1, 3, 5, 7, 10].includes(m.lives)) zs.lives = m.lives;
+      if ([15, 20, 30, 45, 60].includes(m.time)) zs.time = m.time;
+      if (['0.8', '0.67', '0.5', 'rand'].includes(m.mult)) zs.mult = m.mult;
+      if (['stack', 'all', 'off'].includes(m.rules)) zs.rules = m.rules;
+      for (const k of ['dup', 'exact', 'zero', 'names', 'ghosts']) if (typeof m[k] === 'boolean') zs[k] = m[k];
+      if (Number.isInteger(m.bots)) zs.bots = Math.max(0, Math.min(15, m.bots));
+      if (zs.rules === 'off') { zs.dup = zs.exact = zs.zero = false; zs.rules = 'stack'; }
+      return broadcast(room);
+    }
+    case 'z8start': {
+      if (!hostOnly() || room.game !== 'zero8' || !['lobby', 'z8over', 'z8play'].includes(room.phase)) return;
+      const e = z8Start(room); return e ? errTo(ws, e) : undefined;
+    }
+    case 'z8lobby': {
+      if (!hostOnly() || room.game !== 'zero8' || room.phase === 'lobby') return;
+      z8Clear(room.z8); room.z8 = null; setPhase(room, 'lobby');
+      for (const [qid, q] of room.players) if (q.left) room.players.delete(qid);
+      return broadcast(room);
+    }
+    case 'z8pick': {
+      const z = room.z8; if (room.game !== 'zero8' || room.phase !== 'z8play' || !z || z.stage !== 'pick') return;
+      const q = z.ps.find((x) => x.id === p.id); if (!q) return;
+      const n = Math.round(Number(m.n)); if (!Number.isFinite(n) || n < 0 || n > 100) return;
+      if (q.out) { if (z.set.ghosts) q.ghost = n; } else q.pick = n;
+      z8Check(room); return broadcast(room);
     }
     case 'ltset': {
       if (!hostOnly() || room.game !== 'lasttile' || room.phase !== 'lobby') return;
