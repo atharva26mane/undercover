@@ -6482,6 +6482,86 @@ body.hubmode header{pointer-events:none}body.hubmode header button{pointer-event
 #namechip{position:fixed;top:calc(3px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:40;max-width:46vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:3px 9px;border-radius:999px;border:2px solid #14123a;background:rgba(255,210,63,.92);color:#14123a;font:800 11px/14px 'Nunito',system-ui,sans-serif}
 body.hubmode #namechip{left:68px;transform:none;top:calc(24px + env(safe-area-inset-top))}
 body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #namechip,body.rkmode #namechip,body.mbmode #namechip,body.bfmode #namechip,body.gfmode #namechip,body.dwmode #namechip,body.tpmode #namechip{pointer-events:none;opacity:.75}
+.md{max-width:560px;margin:0 auto;padding:0 2px 24px;color:#1d1147}
+.md h1{font:900 30px 'Lilita One','Nunito',system-ui,sans-serif;margin:6px 0 2px}
+.md .card{background:#fff;color:#1d1147;border:3px solid #1d1147}
+.md h2{font:900 18px 'Nunito',system-ui,sans-serif;margin:0 0 8px}
+.mdmute{color:#6b6394;font-size:13px;margin:4px 0}
+.md .center{text-align:center}
+.mdseg{display:flex;flex-wrap:wrap;gap:8px}
+.mdb{flex:1 1 auto;min-width:64px;padding:11px 10px;border-radius:14px;border:3px solid #1d1147;background:#fff;color:#1d1147;font:800 14px 'Nunito',system-ui,sans-serif}
+.mdb.on{background:#ffd23f;box-shadow:0 3px 0 #1d1147}
+.mdb:disabled{opacity:.75}
+.mdrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;font-weight:800;font-size:14px}
+.mdstep{display:flex;align-items:center;gap:10px}
+.mdstep button{width:38px;height:38px;border-radius:12px;border:3px solid #1d1147;background:#fff;color:#1d1147;font:900 20px system-ui}
+.mdstep b{min-width:34px;text-align:center;font-size:20px}
+.mdmems{display:flex;flex-wrap:wrap;gap:6px}
+.mdchip{display:inline-flex;align-items:center;gap:4px;padding:6px 11px;border-radius:999px;border:2px solid #1d1147;background:#fff6d6;color:#1d1147;font:800 13px 'Nunito',system-ui,sans-serif}
+.mdchip.pk{background:#fff}
+.mdchip.sel{background:#ffd23f;box-shadow:0 0 0 3px #7c4dff}
+.mdx{border:0;background:none;color:#e8384f;font-weight:900;padding:0 0 0 4px;font-size:14px}
+.mdadd{display:flex;gap:8px;margin-top:10px}
+.mdadd .btn{flex:none;width:auto;padding:10px 20px;font-size:15px}
+.md .z8tog{display:flex;align-items:center;gap:12px;padding:10px 0}
+.md .z8tog div{flex:1;min-width:0}
+.md .z8tog b{display:block;font-size:15px}
+.md .z8tog small{display:block;opacity:.7;font-size:12.5px;line-height:1.35;margin-top:2px}
+.md .mdtop{padding-left:46px}
+.mdteam{border:3px solid var(--tc,#1d1147);border-radius:16px;padding:8px 10px;margin-bottom:8px;background:#fff}
+.mdteam.warn{--tc:#e8384f;background:#fff0f0}
+.mdth{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.mdth b{flex:1;font-size:15px}
+.mdmini{border:2px solid #1d1147;background:#fff;color:#1d1147;border-radius:10px;padding:4px 10px;font:800 12px 'Nunito',system-ui,sans-serif}
+.mdmini.go{background:#ffd23f}
+.mdtop{display:flex;justify-content:space-between;align-items:center;margin:4px 2px 10px;font-weight:900}
+.mdtop span{font-size:13px;opacity:.7}
+.mdlist{display:grid;gap:8px}
+.mdm{display:block;width:100%;text-align:left;background:#fff;color:#1d1147;border:3px solid #1d1147;border-radius:14px;padding:8px 10px;font-family:'Nunito',system-ui,sans-serif}
+.mdm.live{border-color:#e8384f;box-shadow:0 0 0 3px #e8384f33}
+.mdm.ready{border-color:#12b5a0}
+.mdm.wait,.mdm.bye{opacity:.55}
+.mdm.done .w{font-weight:900}
+.mdmr{display:flex;justify-content:space-between;gap:8px;font-weight:700;font-size:14px;padding:2px 0}
+.mdmr b{font-size:16px}
+.mdms{display:block;font-size:11px;font-weight:800;opacity:.7;margin-top:2px}
+.mdcols2{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x proximity}
+.mdround{min-width:190px;flex:none;display:grid;gap:8px;align-content:start;scroll-snap-align:start}
+.mdrn{font:900 13px 'Nunito',system-ui,sans-serif;text-transform:uppercase;letter-spacing:.04em;color:#6b6394}
+.mdsbh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.mdsbh b{flex:1}
+.mdsbh span{font-size:12px;color:#6b6394;width:100%}
+.mdcols{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:start}
+.mdvs{align-self:center;font:900 16px 'Nunito',system-ui,sans-serif;opacity:.5}
+.mdcol{text-align:center;border:3px solid var(--tc);border-radius:18px;padding:8px 6px;background:#fff}
+.mdcol.win{background:#fff3b8}
+.mdcn{font:900 17px 'Nunito',system-ui,sans-serif;word-break:break-word}
+.mdcm{font-size:11px;color:#6b6394;min-height:14px}
+.mdsc{font:900 64px/1.05 'Lilita One','Nunito',system-ui,sans-serif;margin:4px 0}
+.mdsv{font-size:12px;font-weight:800;min-height:16px;color:#e8384f}
+.mdpips{display:flex;gap:5px;justify-content:center;margin:4px 0 8px}
+.mdpips i{width:14px;height:14px;border-radius:50%;border:2px solid #1d1147;background:#fff}
+.mdpips i.on{background:#12b5a0}
+.mdplus{width:100%;padding:16px 0;border-radius:16px;border:3px solid #1d1147;background:#ffd23f;color:#1d1147;font:900 30px 'Lilita One','Nunito',system-ui,sans-serif;box-shadow:0 4px 0 #1d1147;touch-action:manipulation}
+.mdplus:active{transform:translateY(3px);box-shadow:0 1px 0 #1d1147}
+.mdflag{margin:8px 0 0;padding:8px 10px;border-radius:12px;text-align:center;font:900 14px 'Nunito',system-ui,sans-serif;border:2px solid #1d1147;background:#e8f7ff;color:#1d1147}
+.mdflag.mp{background:#ff4d5e;color:#fff}
+.mdflag.gp{background:#ffd23f}
+.mdflag.dc{background:#e9ddff}
+.mdflag.ad{background:#c8f7dc}
+.mdflag.ends{background:#d6ecff}
+.mdflag.win{background:#fff3b8}
+.mdacts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.mdacts .btn{flex:1 1 40%}
+.mdgames{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:10px}
+.mdg{border:2px solid #1d1147;border-radius:999px;padding:3px 10px;font-size:13px;background:#fff;color:#1d1147}
+.mdsel{width:100%;padding:12px;border-radius:12px;border:3px solid #1d1147;font:800 15px 'Nunito',system-ui,sans-serif;background:#fff;color:#1d1147}
+.mdchamp{text-align:center}
+.mdtrophy{font-size:64px;line-height:1.1}
+.hx-art.k-md{aspect-ratio:464/150}
+.hx-card.rkwide .hx-art.k-md{aspect-ratio:464/150!important}
+.hx-i-md{background:linear-gradient(135deg,#12b5a0,#0b5d73)!important}
+.hx-i-md::after{content:'🏓 🏆 🏸';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:44px;letter-spacing:6px;filter:drop-shadow(0 3px 0 #0006)}
 #apause{position:fixed;inset:0;z-index:8500;background:rgba(10,9,24,.82);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-family:'Nunito',system-ui,sans-serif;text-align:center;padding:20px}
 #apause b{font:900 28px 'Lilita One','Nunito',system-ui,sans-serif}
 </style>
@@ -6863,16 +6943,16 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
 
   screens.home = function () {
     var wakeCard = h('div', { class: 'card wake', style: 'display:none' }, h('div', { class: 'shim' }), h('div', null, h('b', null, 'Waking up the server…'), h('div', { class: 'mute small' }, 'The free server sleeps when nobody plays. This can take up to a minute.'), h('div', { class: 'shim-line', style: 'width:70%' })));
-    var since = Date.now(), fbm = wantGame === 'football', rcm = wantGame === 'race', unm = wantGame === 'uno', ckm = wantGame === 'cricket', dwm = wantGame === 'draw', gfm = wantGame === 'golf', bfm = wantGame === 'bully', rkm = wantGame === 'rocket', mbm = wantGame === 'bomb', crm = wantGame === 'carrom', lzm = wantGame === 'laser', ltm = wantGame === 'lasttile', z8m = wantGame === 'zero8', tpm = wantGame === 'tapri';
+    var since = Date.now(), fbm = wantGame === 'football', rcm = wantGame === 'race', unm = wantGame === 'uno', ckm = wantGame === 'cricket', dwm = wantGame === 'draw', gfm = wantGame === 'golf', bfm = wantGame === 'bully', rkm = wantGame === 'rocket', mbm = wantGame === 'bomb', crm = wantGame === 'carrom', lzm = wantGame === 'laser', ltm = wantGame === 'lasttile', z8m = wantGame === 'zero8', mdm = wantGame === 'matchday', tpm = wantGame === 'tapri';
     var nameIn = h('input', { type: 'text', maxlength: 14, placeholder: 'Your name', value: savedName, autocomplete: 'off' });
     var codeIn = h('input', { type: 'text', class: 'code', maxlength: 4, placeholder: 'CODE', autocomplete: 'off', autocapitalize: 'characters', value: (new URLSearchParams(location.search).get('c') || '').toUpperCase().slice(0, 4) });
     function nm() { var n = nameIn.value.trim(); if (!n) { toast('Enter your name first'); nameIn.focus(); return null; } savedName = n; store('uc.name', n); return n; }
     var root = h('div', null,
-      h('h1', null, tpm ? '☕ Chai Tapri' : z8m ? '🎯 The 0.8 Rule' : ltm ? '🔷 Last Tile' : lzm ? '🔫 Laser Arena' : crm ? '🎯 Carrom' : mbm ? '💣 Bomb Pass' : rkm ? '🚗 Turbo Ball' : bfm ? '🤼 Bully Football' : gfm ? '⛳ Gully Golf' : dwm ? '🎨 Draw & Guess' : ckm ? '🏏 Gully Cricket' : unm ? '🃏 UNO' : rcm ? '🏖️ Beach Buggy' : fbm ? '⚽ Gully Football' : 'Undercover'),
-      h('p', { class: 'sub' }, tpm ? 'Sit at the tea stall with friends: chat, talk, pin ideas and vote for the next game.' : z8m ? 'Pick a secret number. Closest to 80% of the average wins. Bluff your friends!' : ltm ? 'Hex floors crack under your feet. Jump, push, survive. Last bean standing wins!' : lzm ? 'Secret laser aims, all fire at once, the zone shrinks. Last one standing!' : crm ? 'Real carrom for 4: white vs black, the queen, power shots!' : mbm ? 'Run, dodge and pass the bomb. Last one alive wins!' : rkm ? '3D car football! Boost, jump and flip. 3 vs 3 with bots.' : bfm ? 'Giant balls, jelly friends, total chaos. 6 vs 6!' : gfm ? 'Everyone tees off at once. Lowest score wins!' : dwm ? 'Draw it, guess it. Fast guesses win!' : ckm ? 'Bat, bowl and field. Gully rules apply!' : unm ? 'Shuffle, stack, and shout UNO!' : rcm ? 'Race round the beach: jumps, bridges, turbo and shields!' : fbm ? 'Flick your disc. Everyone shoots at the same time!' : 'Everyone gets a word. Find who has a different one.'),
+      h('h1', null, tpm ? '☕ Chai Tapri' : mdm ? '🏆 Match Day' : z8m ? '🎯 The 0.8 Rule' : ltm ? '🔷 Last Tile' : lzm ? '🔫 Laser Arena' : crm ? '🎯 Carrom' : mbm ? '💣 Bomb Pass' : rkm ? '🚗 Turbo Ball' : bfm ? '🤼 Bully Football' : gfm ? '⛳ Gully Golf' : dwm ? '🎨 Draw & Guess' : ckm ? '🏏 Gully Cricket' : unm ? '🃏 UNO' : rcm ? '🏖️ Beach Buggy' : fbm ? '⚽ Gully Football' : 'Undercover'),
+      h('p', { class: 'sub' }, tpm ? 'Sit at the tea stall with friends: chat, talk, pin ideas and vote for the next game.' : mdm ? 'Table tennis, badminton and more, for real. Make teams, run a knockout, keep score.' : z8m ? 'Pick a secret number. Closest to 80% of the average wins. Bluff your friends!' : ltm ? 'Hex floors crack under your feet. Jump, push, survive. Last bean standing wins!' : lzm ? 'Secret laser aims, all fire at once, the zone shrinks. Last one standing!' : crm ? 'Real carrom for 4: white vs black, the queen, power shots!' : mbm ? 'Run, dodge and pass the bomb. Last one alive wins!' : rkm ? '3D car football! Boost, jump and flip. 3 vs 3 with bots.' : bfm ? 'Giant balls, jelly friends, total chaos. 6 vs 6!' : gfm ? 'Everyone tees off at once. Lowest score wins!' : dwm ? 'Draw it, guess it. Fast guesses win!' : ckm ? 'Bat, bowl and field. Gully rules apply!' : unm ? 'Shuffle, stack, and shout UNO!' : rcm ? 'Race round the beach: jumps, bridges, turbo and shields!' : fbm ? 'Flick your disc. Everyone shoots at the same time!' : 'Everyone gets a word. Find who has a different one.'),
       wakeCard,
       h('div', { class: 'card' }, nameIn, h('div', { class: 'gap' }),
-        h('button', { class: 'btn primary', type: 'button', onclick: function () { var n = nm(); if (n) send({ t: 'create', name: n, game: tpm ? 'tapri' : z8m ? 'zero8' : ltm ? 'lasttile' : lzm ? 'laser' : crm ? 'carrom' : mbm ? 'bomb' : rkm ? 'rocket' : bfm ? 'bully' : gfm ? 'golf' : dwm ? 'draw' : ckm ? 'cricket' : unm ? 'uno' : rcm ? 'race' : fbm ? 'football' : undefined, used: loadList('uc.used'), recent: loadList('uc.recent') }); } }, 'Create lobby')),
+        h('button', { class: 'btn primary', type: 'button', onclick: function () { var n = nm(); if (n) send({ t: 'create', name: n, game: tpm ? 'tapri' : mdm ? 'matchday' : z8m ? 'zero8' : ltm ? 'lasttile' : lzm ? 'laser' : crm ? 'carrom' : mbm ? 'bomb' : rkm ? 'rocket' : bfm ? 'bully' : gfm ? 'golf' : dwm ? 'draw' : ckm ? 'cricket' : unm ? 'uno' : rcm ? 'race' : fbm ? 'football' : undefined, used: loadList('uc.used'), recent: loadList('uc.recent') }); } }, 'Create lobby')),
       h('div', { class: 'card' }, h('h2', null, 'Join a lobby'), codeIn, h('div', { class: 'gap' }),
         h('button', { class: 'btn', type: 'button', onclick: function () { var n = nm(); if (!n) return; if (codeIn.value.trim().length < 4) { toast('Enter the 4-letter code'); return; } send({ t: 'join', name: n, code: codeIn.value.trim() }); } }, 'Join')),
       fbm || rcm || unm || ckm ? null : h('details', { class: 'card' }, h('summary', null, 'How to play'),
@@ -7642,7 +7722,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
   }
 
   /* ================= Main hub, join, open rooms, profile ================= */
-  var GAMES = { cricket: { n: 'Gully Cricket', i: '🏏' }, undercover: { n: 'Undercover', i: '🕵️' }, football: { n: 'Gully Football', i: '⚽' }, race: { n: 'Beach Buggy', i: '🏎️' }, uno: { n: 'UNO', i: '🃏' }, draw: { n: 'Draw & Guess', i: '🎨' }, golf: { n: 'Gully Golf', i: '⛳' }, bully: { n: 'Bully Football', i: '🤼' }, rocket: { n: 'Turbo Ball', i: '🚗' }, bomb: { n: 'Bomb Pass', i: '💣' }, carrom: { n: 'Carrom', i: '🎯' }, laser: { n: 'Laser Arena', i: '🔫' }, lasttile: { n: 'Last Tile', i: '🔷' }, zero8: { n: 'The 0.8 Rule', i: '🎯' }, tapri: { n: 'Chai Tapri', i: '☕' } };
+  var GAMES = { cricket: { n: 'Gully Cricket', i: '🏏' }, undercover: { n: 'Undercover', i: '🕵️' }, football: { n: 'Gully Football', i: '⚽' }, race: { n: 'Beach Buggy', i: '🏎️' }, uno: { n: 'UNO', i: '🃏' }, draw: { n: 'Draw & Guess', i: '🎨' }, golf: { n: 'Gully Golf', i: '⛳' }, bully: { n: 'Bully Football', i: '🤼' }, rocket: { n: 'Turbo Ball', i: '🚗' }, bomb: { n: 'Bomb Pass', i: '💣' }, carrom: { n: 'Carrom', i: '🎯' }, laser: { n: 'Laser Arena', i: '🔫' }, lasttile: { n: 'Last Tile', i: '🔷' }, zero8: { n: 'The 0.8 Rule', i: '🎯' }, matchday: { n: 'Match Day', i: '🏆' }, tapri: { n: 'Chai Tapri', i: '☕' } };
   var openRooms = [], waitEl = null, onlineN = 0;
   var myCid = load('uc.cid');
   if (!myCid) { myCid = Math.random().toString(36).slice(2, 12); store('uc.cid', myCid); }
@@ -7716,7 +7796,153 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
   }
 
   /* ---------- new home: BADSHAH arcade ---------- */
-  var HX_MAX = { undercover: 20, uno: 12, football: 10, race: 12, cricket: 8, draw: 20, golf: 8, bully: 12, rocket: 6, bomb: 10, carrom: 4, laser: 8, lasttile: 16, zero8: 16, tapri: 20 };
+  var HX_MAX = { undercover: 20, uno: 12, football: 10, race: 12, cricket: 8, draw: 20, golf: 8, bully: 12, rocket: 6, bomb: 10, carrom: 4, laser: 8, lasttile: 16, zero8: 16, matchday: 32, tapri: 20 };
+  /* ===== Match Day: real-life scorer + tournament ===== */
+  var MD_SPORTS = [['tt', '🏓', 'Table tennis', '11 pts · win by 2'], ['bd', '🏸', 'Badminton', '21 pts · cap 30'], ['vb', '🏐', 'Volleyball', '25 pts · win by 2'], ['custom', '🎯', 'Custom', 'your rules']];
+  var MD_COL = ['#3de0c0', '#ff7a5a', '#a77bff', '#f5c84c', '#54a0ff', '#ff6fb5', '#5ff07a', '#ff9f43'];
+  function mdTeam(id) { var T = (S.md && S.md.teams) || []; for (var i = 0; i < T.length; i++) if (T[i].id === id) return T[i]; return null; }
+  function mdTn(id) { var t = mdTeam(id); return t ? t.name : '—'; }
+  function mdTc(id) { var T = (S.md && S.md.teams) || []; for (var i = 0; i < T.length; i++) if (T[i].id === id) return MD_COL[i % MD_COL.length]; return '#999'; }
+  function mdMem(t) { return t ? t.members.map(function (q) { return q.name; }).join(' & ') : ''; }
+  function mdCanScore(mt) { return !!(S && S.me && (S.me.host || mt.sup === S.me.id)); }
+  screens.mdlobby = function () {
+    var root = h('div', { class: 'md' }), box = h('div'), sel = null;
+    root.appendChild(h('h1', null, '🏆 Match Day'));
+    root.appendChild(h('p', { class: 'sub' }, 'Table tennis, badminton and more, for real. Make teams, run a knockout and keep score on your phone.'));
+    root.appendChild(box);
+    function seg(label, sub, opts, cur, fn) { var host = S.me.host; return h('div', { class: 'card' }, h('h2', null, label), sub ? h('p', { class: 'mdmute' }, sub) : null, h('div', { class: 'mdseg' }, opts.map(function (o) { return h('button', { type: 'button', class: 'mdb' + (String(o[0]) === String(cur) ? ' on' : ''), disabled: !host, onclick: function () { fn(o[0]); } }, o[1]); }))); }
+    function tog(label, desc, on, fn) { return h('div', { class: 'z8tog' }, h('div', null, h('b', null, label), h('small', null, desc)), h('button', { class: 'z8sw' + (on ? ' on' : ''), type: 'button', 'aria-label': label, 'aria-pressed': String(!!on), disabled: !S.me.host, onclick: fn })); }
+    function renameTeam(t) { var ni = h('input', { type: 'text', maxlength: 16, value: t.name, style: 'width:100%;padding:12px;border-radius:12px;border:3px solid #1d1147;font:800 18px Nunito,system-ui,sans-serif;box-sizing:border-box' }); uxOpen(h('h3', null, 'Team name'), ni, h('button', { type: 'button', class: 'ux-b', style: 'margin-top:10px', onclick: function () { var v = ni.value.trim(); if (v) send({ t: 'mdteams', op: 'rename', tid: t.id, name: v }); uxClose(); } }, 'Save'), h('button', { type: 'button', class: 'ux-b gh', style: 'margin-top:8px', onclick: uxClose }, 'Cancel')); }
+    function inTeam(x) { var T = S.md.teams; for (var i = 0; i < T.length; i++) for (var j = 0; j < T[i].members.length; j++) if (T[i].members[j].id === x) return T[i].id; return null; }
+    function pick(id) {
+      if (!S.me.host) return;
+      if (!sel) { sel = id; paint(); return; }
+      if (sel === id) { sel = null; paint(); return; }
+      var ta = inTeam(sel), tb = inTeam(id);
+      if (ta && tb) send({ t: 'mdteams', op: 'swap', a: sel, b: id });
+      else if (tb && !ta) send({ t: 'mdteams', op: 'move', a: sel, tid: tb });
+      else if (ta && !tb) send({ t: 'mdteams', op: 'move', a: id, tid: ta });
+      sel = null; paint();
+    }
+    function paint() {
+      var M = S.md || { set: {}, people: [], teams: [], free: [] }, st = M.set, host = S.me.host, nTeams = M.teams.length;
+      var R = 1; while (Math.pow(2, R) < nTeams) R++;
+      var upOpts = [], keys = ['final', 'semi', 'quarter', 'r16'], nm = ['Final', 'Semi-finals', 'Quarter-finals', 'Round of 16'];
+      for (var k = 0; k < 4 && k < R; k++) upOpts.push([keys[k], k === 0 ? (R === 1 ? '🏆 Single match' : '🏆 Full (final)') : nm[k]]);
+      var upCur = st.upTo; if (!upOpts.some(function (o) { return o[0] === upCur; })) upCur = 'final';
+      var ppl = M.people.map(function (q) { return h('span', { class: 'mdchip' }, q.g ? '✍️ ' : '📱 ', q.name, host && q.g ? h('button', { type: 'button', class: 'mdx', 'aria-label': 'Remove ' + q.name, onclick: function () { send({ t: 'mddel', id: q.id }); } }, '✕') : null); });
+      var addIn = h('input', { type: 'text', maxlength: 14, placeholder: 'Add a name (friend without a phone)', 'aria-label': 'Add a name', autocomplete: 'off', style: 'flex:1;min-width:0;padding:10px 12px;border-radius:12px;border:3px solid #1d1147;font:700 15px Nunito,system-ui,sans-serif' });
+      function doAdd() { var v = addIn.value.trim(); if (v) { send({ t: 'mdadd', name: v }); addIn.value = ''; } }
+      addIn.addEventListener('keydown', function (e) { if (e.key === 'Enter') doAdd(); });
+      var teamEls = M.teams.map(function (t, i) {
+        return h('div', { class: 'mdteam', style: '--tc:' + MD_COL[i % MD_COL.length] },
+          h('div', { class: 'mdth' }, h('b', null, t.name), host ? h('button', { type: 'button', class: 'mdmini', 'aria-label': 'Rename team', onclick: function () { renameTeam(t); } }, '✎') : null, sel && host ? h('button', { type: 'button', class: 'mdmini go', onclick: function () { send({ t: 'mdteams', op: 'move', a: sel, tid: t.id }); sel = null; paint(); } }, 'Move here') : null),
+          h('div', { class: 'mdmems' }, t.members.map(function (q) { return h('button', { type: 'button', class: 'mdchip pk' + (sel === q.id ? ' sel' : ''), disabled: !host, onclick: function () { pick(q.id); } }, q.name); })));
+      });
+      var freeEls = M.free.length ? h('div', { class: 'mdteam warn' }, h('div', { class: 'mdth' }, h('b', null, '⚠️ Not in a team yet')), h('div', { class: 'mdmems' }, M.free.map(function (id) { var q = M.people.filter(function (x) { return x.id === id; })[0]; return h('button', { type: 'button', class: 'mdchip pk' + (sel === id ? ' sel' : ''), disabled: !host, onclick: function () { pick(id); } }, q ? q.name : '?'); })), host ? h('p', { class: 'mdmute' }, 'Tap Shuffle, or tap a name and then a team.') : null) : null;
+      var big = M.people.length >= 2;
+      fill(box,
+        seg('🏅 Sport', 'Sets the points to win, then you can tweak.', MD_SPORTS.map(function (s) { return [s[0], s[1] + ' ' + s[2]]; }), st.sport, function (v) { send({ t: 'mdset', sport: v }); }),
+        h('div', { class: 'card' }, h('h2', null, '📏 Rules'),
+          h('div', { class: 'mdrow' }, h('span', null, 'Points to win a game'), h('div', { class: 'mdstep' }, h('button', { type: 'button', disabled: !host, onclick: function () { send({ t: 'mdset', target: Math.max(3, st.target - 1) }); } }, '−'), h('b', null, String(st.target)), h('button', { type: 'button', disabled: !host, onclick: function () { send({ t: 'mdset', target: Math.min(99, st.target + 1) }); } }, '+'))),
+          tog('Win by 2 (deuce & advantage)', 'At 10–10 you need a 2-point lead. Off = first to the target wins.', st.winBy2, function () { send({ t: 'mdset', winBy2: !st.winBy2 }); }),
+          h('div', { class: 'mdrow' }, h('span', null, 'Cap (first to this wins)'), h('div', { class: 'mdstep' }, h('button', { type: 'button', disabled: !host, onclick: function () { send({ t: 'mdset', cap: Math.max(0, (st.cap | 0) - 1) }); } }, '−'), h('b', null, st.cap ? String(st.cap) : 'off'), h('button', { type: 'button', disabled: !host, onclick: function () { send({ t: 'mdset', cap: Math.min(150, Math.max(st.target + 1, (st.cap | 0) + 1)) }); } }, '+')))),
+        seg('🎮 Games per match', 'Best of …', [[1, '1'], [3, '3'], [5, '5'], [7, '7']], st.bestOf, function (v) { send({ t: 'mdset', bestOf: v }); }),
+        h('div', { class: 'card' }, h('h2', null, '👥 Players (' + M.people.length + ')'), h('div', { class: 'mdmems' }, ppl),
+          host ? h('div', { class: 'mdadd' }, addIn, h('button', { type: 'button', class: 'btn', onclick: doAdd }, 'Add')) : h('p', { class: 'mdmute' }, 'The host adds friends who do not have a phone.'),
+          h('p', { class: 'mdmute' }, '📱 on a phone · ✍️ added by the host')),
+        seg('🧑‍🤝‍🧑 People per team', '1 = singles, 2 = doubles. Odd numbers are shared out as evenly as possible.', [[1, '1'], [2, '2'], [3, '3'], [4, '4'], [5, '5'], [6, '6']], st.size, function (v) { send({ t: 'mdset', size: v }); }),
+        h('div', { class: 'card' }, h('h2', null, '🎲 Teams (' + nTeams + ')'), teamEls, freeEls,
+          host ? h('button', { type: 'button', class: 'btn', style: 'width:100%;margin-top:8px', onclick: function () { sel = null; send({ t: 'mdteams', op: 'shuffle' }); } }, '🎲 Shuffle teams') : null,
+          host && nTeams > 1 ? h('p', { class: 'mdmute' }, 'Tap two names to swap them, or tap a name then “Move here”.') : null),
+        nTeams > 1 ? seg('🏆 How far to play', R + ' round' + (R > 1 ? 's' : '') + ' for ' + nTeams + ' teams. Stop early if you are short on time.', upOpts, upCur, function (v) { send({ t: 'mdset', upTo: v }); }) : null,
+        h('div', { class: 'card' }, tog('🪙 Toss before each match', 'A coin flip decides who serves first.', st.toss, function () { send({ t: 'mdset', toss: !st.toss }); })),
+        host ? h('button', { class: 'btn primary', type: 'button', disabled: !big || nTeams < 2 || M.free.length > 0, onclick: function () { send({ t: 'mdstart' }); } }, nTeams < 2 ? 'Need 2 or more teams' : '🏆 Start tournament') : h('p', { class: 'mdmute center' }, 'Waiting for the host to start…'));
+    }
+    return { root: root, update: paint };
+  };
+  screens.mdgame = function () {
+    var root = h('div', { class: 'md' }), top = h('div'), live = h('div'), br = h('div', { class: 'mdbr' }), foot = h('div');
+    root.appendChild(top); root.appendChild(live); root.appendChild(br); root.appendChild(foot);
+    var open = null, auto = {};
+    function allMatches() { var T = S.md.tour, out = []; T.rounds.forEach(function (r, ri) { r.ms.forEach(function (m) { m.rn = r.name; m.ri = ri; out.push(m); }); }); return out; }
+    function findM(id) { var a = allMatches(); for (var i = 0; i < a.length; i++) if (a[i].id === id) return a[i]; return null; }
+    function card(m) {
+      var cls = 'mdm ' + m.st + (m.bye ? ' bye' : '');
+      var sa = m.st === 'live' ? String(m.cur.a) : m.st === 'done' && !m.bye ? String(m.wins.a) : '', sb = m.st === 'live' ? String(m.cur.b) : m.st === 'done' && !m.bye ? String(m.wins.b) : '';
+      return h('button', { type: 'button', class: cls, disabled: m.st === 'wait' || m.bye, onclick: function () { open = m.id; paint(); } },
+        h('span', { class: 'mdmr' }, h('span', { class: m.ws === 'a' ? 'w' : '' }, m.a ? mdTn(m.a) : (m.st === 'wait' ? 'TBD' : 'BYE')), h('b', null, sa)),
+        h('span', { class: 'mdmr' }, h('span', { class: m.ws === 'b' ? 'w' : '' }, m.b ? mdTn(m.b) : (m.st === 'wait' ? 'TBD' : 'BYE')), h('b', null, sb)),
+        h('span', { class: 'mdms' }, m.st === 'live' ? '🔴 LIVE' : m.st === 'ready' ? (S.me.host ? '▶ Tap to start' : '⏳ Up next') : m.st === 'done' ? (m.bye ? 'bye' : '✔ done') : ''));
+    }
+    function banner(m) {
+      var f = m.fl || {}, out = [];
+      if (f.ends) out.push(['🔄 Change ends', 'ends']);
+      if (f.mp) out.push(['🔥 MATCH POINT' + (f.mp === 'both' ? '' : ' · ' + mdTn(f.mp === 'a' ? m.a : m.b)), 'mp']);
+      else if (f.gp) out.push(['⚡ Game point' + (f.gp === 'both' ? '' : ' · ' + mdTn(f.gp === 'a' ? m.a : m.b)), 'gp']);
+      if (f.deuce) out.push(['🤝 DEUCE', 'dc']);
+      if (f.adv) out.push(['➕ ADVANTAGE · ' + mdTn(f.adv === 'a' ? m.a : m.b), 'ad']);
+      return out.map(function (o) { return h('div', { class: 'mdflag ' + o[1] }, o[0]); });
+    }
+    function supPicker(m) {
+      var ps = S.players.filter(function (q) { return !q.left; });
+      uxOpen(h('h3', null, 'Who adds the points?'), ps.map(function (q) { return h('button', { type: 'button', class: 'ux-b gh', style: 'margin-top:6px', onclick: function () { send({ t: 'mdsup', mid: m.id, sup: q.id }); uxClose(); } }, q.name + (q.id === m.sup ? ' ✔' : '')); }), h('button', { type: 'button', class: 'ux-b gh', style: 'margin-top:10px', onclick: uxClose }, 'Cancel'));
+    }
+    function detail(m) {
+      var can = mdCanScore(m), ta = mdTeam(m.a), tb = mdTeam(m.b), need = Math.floor(m.rule.bestOf / 2) + 1;
+      var wrap = h('div', { class: 'card mdsb' });
+      wrap.appendChild(h('div', { class: 'mdsbh' }, h('button', { type: 'button', class: 'mdmini', onclick: function () { open = null; paint(); } }, '← Back'), h('b', null, m.rn), h('span', null, 'Best of ' + m.rule.bestOf + ' · to ' + m.rule.target + (m.rule.winBy2 ? ' (win by 2)' : '') + (m.rule.cap ? ' · cap ' + m.rule.cap : ''))));
+      var pips = function (n) { var a = []; for (var i = 0; i < need; i++) a.push(h('i', { class: i < n ? 'on' : '' })); return h('span', { class: 'mdpips' }, a); };
+      function col(s) {
+        var t = s === 'a' ? ta : tb, id = s === 'a' ? m.a : m.b, sc = m.st === 'live' ? m.cur[s] : m.st === 'done' ? (m.games.length ? m.games[m.games.length - 1][s === 'a' ? 0 : 1] : 0) : 0;
+        var srv = m.serve === s;
+        return h('div', { class: 'mdcol' + (m.ws === s ? ' win' : ''), style: '--tc:' + mdTc(id) },
+          h('div', { class: 'mdcn' }, mdTn(id)), h('div', { class: 'mdcm' }, mdMem(t)),
+          h('div', { class: 'mdsc' }, String(sc)), h('div', { class: 'mdsv' }, srv ? '🏓 serving' : ' '),
+          pips(m.wins[s]),
+          m.st === 'live' && can ? h('button', { type: 'button', class: 'mdplus', 'aria-label': 'Add a point to ' + mdTn(id), onclick: function () { send({ t: 'mdpt', mid: m.id, s: s }); } }, '+1') : null);
+      }
+      wrap.appendChild(h('div', { class: 'mdcols' }, col('a'), h('div', { class: 'mdvs' }, 'VS'), col('b')));
+      if (m.st === 'live') {
+        banner(m).forEach(function (b) { wrap.appendChild(b); });
+        if (m.toss) wrap.appendChild(h('p', { class: 'mdmute center' }, '🪙 ' + mdTn(m.toss.win === 'a' ? m.a : m.b) + ' won the toss and serves first'));
+        wrap.appendChild(h('p', { class: 'mdmute center' }, '📋 Supervisor: ' + (m.supName || '—') + (can ? ' (you can add points)' : '')));
+        var acts = h('div', { class: 'mdacts' });
+        if (can) { acts.appendChild(h('button', { type: 'button', class: 'btn', onclick: function () { send({ t: 'mdundo', mid: m.id }); } }, '↩ Undo last point')); if (!m.n && m.rule.serve !== 'none') acts.appendChild(h('button', { type: 'button', class: 'btn', onclick: function () { send({ t: 'mdserve', mid: m.id }); } }, '🔁 Swap who serves')); acts.appendChild(h('button', { type: 'button', class: 'btn', onclick: function () { supPicker(m); } }, '👤 Change supervisor')); }
+        wrap.appendChild(acts);
+        if (!can) wrap.appendChild(h('p', { class: 'mdmute center' }, 'Only the supervisor can add points. Ask them, or the host.'));
+      }
+      if (m.st === 'ready') {
+        if (S.me.host) {
+          var ps = S.players.filter(function (q) { return !q.left; }), onT = {}; [ta, tb].forEach(function (t) { if (t) t.members.forEach(function (q) { onT[q.id] = 1; }); });
+          var sl = h('select', { class: 'mdsel', 'aria-label': 'Supervisor' }, h('option', { value: '' }, 'Supervisor: auto'), ps.map(function (q) { return h('option', { value: q.id }, q.name + (onT[q.id] ? ' (playing)' : '')); }));
+          wrap.appendChild(h('p', { class: 'mdmute center' }, 'The supervisor is the person who adds the points. Anyone with a phone can do it.'));
+          wrap.appendChild(sl);
+          wrap.appendChild(h('button', { type: 'button', class: 'btn primary', style: 'width:100%;margin-top:10px', onclick: function () { send({ t: 'mdbegin', mid: m.id, sup: sl.value || undefined }); } }, S.md.set.toss ? '🪙 Toss & start match' : '▶ Start match'));
+        } else wrap.appendChild(h('p', { class: 'mdmute center' }, '⏳ Waiting for the host to start this match.'));
+      }
+      if (m.games.length) wrap.appendChild(h('div', { class: 'mdgames' }, m.games.map(function (g, i) { return h('span', { class: 'mdg' }, 'G' + (i + 1) + ' ', h('b', null, g[0] + '–' + g[1])); })));
+      if (m.st === 'done' && !m.bye) { wrap.appendChild(h('div', { class: 'mdflag win' }, '🏆 ' + mdTn(m.win) + ' won ' + m.wins.a + '–' + m.wins.b)); if (can) wrap.appendChild(h('button', { type: 'button', class: 'btn', style: 'width:100%;margin-top:8px', onclick: function () { send({ t: 'mdundo', mid: m.id }); } }, '↩ Undo last point (wrong result?)')); }
+      return wrap;
+    }
+    function paint() {
+      var M = S.md, T = M.tour; if (!T) return;
+      var all = allMatches(), om = open ? findM(open) : null;
+      all.forEach(function (m) { if (m.st === 'live' && m.sup === S.me.id && !auto[m.id]) { auto[m.id] = 1; if (!open) { open = m.id; om = m; } } });
+      fill(top, h('div', { class: 'mdtop' }, h('b', null, M.set.sport === 'bd' ? '🏸 Badminton' : M.set.sport === 'tt' ? '🏓 Table tennis' : M.set.sport === 'vb' ? '🏐 Volleyball' : '🎯 Match Day'), h('span', null, M.teams.length + ' teams · ' + T.play + ' round' + (T.play > 1 ? 's' : ''))));
+      if (S.phase === 'mdover' && !om) {
+        var ch = T.champ ? mdTeam(T.champ) : null;
+        fill(live, h('div', { class: 'card mdchamp' }, ch ? h('div', null, h('div', { class: 'mdtrophy' }, '🏆'), h('h2', null, ch.name), h('p', null, mdMem(ch)), h('p', { class: 'mdmute' }, 'Champions!')) : h('div', null, h('div', { class: 'mdtrophy' }, '🎖️'), h('h2', null, 'Qualified'), T.quals.map(function (id) { var t = mdTeam(id); return h('p', null, h('b', null, t ? t.name : '?'), ' · ', mdMem(t)); }), h('p', { class: 'mdmute' }, 'These teams go through to the next stage.'))));
+      } else if (om) { fill(live, detail(om)); } else {
+        var lv = all.filter(function (m) { return m.st === 'live'; }), rd = all.filter(function (m) { return m.st === 'ready' && !m.bye; }).slice(0, 4);
+        fill(live, lv.length ? h('div', { class: 'card' }, h('h2', null, '🔴 Live now'), h('div', { class: 'mdlist' }, lv.map(card))) : null, rd.length ? h('div', { class: 'card' }, h('h2', null, '⏭ Up next'), h('div', { class: 'mdlist' }, rd.map(card))) : null);
+      }
+      if (om) fill(br); else fill(br, h('div', { class: 'card' }, h('h2', null, '🗂 Bracket'), h('div', { class: 'mdcols2' }, T.rounds.map(function (r) { return h('div', { class: 'mdround' }, h('div', { class: 'mdrn' }, r.name), r.ms.map(card)); }))));
+      fill(foot, S.me.host ? h('button', { type: 'button', class: 'btn', style: 'width:100%', onclick: function () { if (S.phase === 'mdover' || confirm('End the tournament and go back to the lobby?')) send({ t: 'mdlobby' }); } }, S.phase === 'mdover' ? '🔁 New tournament' : '🏁 End tournament') : null);
+    }
+    return { root: root, update: paint };
+  };
+
   function hxArt(kind) { return h('span', { class: 'hx-art k-' + kind }, h('span', { class: 'hx-img hx-i-' + kind })); }
   function hxCard(cls, n, kind, title, sub, flag, fn, i) {
     var art = hxArt(kind);
@@ -7771,6 +7997,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
       hxCard('', '08', 'bf', 'Bully Football', '6v6 jelly football · 1–12P', '', function () { goGame('bully'); }, 14),
       hxCard('rkwide', '09', 'rk', 'Turbo Ball 3D', '3D car football 3v3 · boost, jump, fly · 1–6P', 'NEW', function () { goGame('rocket'); }, 15),
       hxCard('rkwide', '10', 'mb', 'Bomb Pass', 'Run, dodge, pass the bomb · 2–10P', 'NEW', function () { goGame('bomb'); }, 16),
+      hxCard('rkwide', '16', 'md', 'Match Day', 'Table tennis, badminton… teams, knockout bracket & live scorer · 2–32P', 'NEW', function () { goGame('matchday'); }, 16),
       hxCard('rkwide', '15', 'z8', 'The 0.8 Rule', 'Secret numbers · average × 0.8 · bluff & survive · up to 16P', 'NEW', function () { goGame('zero8'); }, 16),
       hxCard('rkwide', '14', 'lt', 'Last Tile', 'Hex floors crack · jump & push · last bean wins · up to 16P', 'NEW', function () { goGame('lasttile'); }, 17),
       hxCard('rkwide', '13', 'lz', 'Laser Arena', 'Secret aim · all lasers fire at once · shrinking zone · 1–8P', 'NEW', function () { goGame('laser'); }, 18),
@@ -7779,7 +8006,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
     var title = h('h1', { class: 'hx-title', 'aria-label': 'Games' }, 'GAMES'.split('').map(function (c, k) { return h('span', { style: '--k:' + k, 'aria-hidden': 'true' }, c); }));
     var pick = h('div', { class: 'hx-pick' });
     var pickOpen = false;
-    var PICK = [['undercover', 'Undercover', '🕵️'], ['uno', 'UNO', '🃏'], ['football', 'Football', '⚽'], ['race', 'Buggy', '🏖️'], ['cricket', 'Cricket', '🏏'], ['draw', 'Draw', '🎨'], ['golf', 'Golf', '⛳'], ['bully', 'Bully', '🤼'], ['rocket', 'Turbo', '🚗'], ['bomb', 'Bomb', '💣'], ['carrom', 'Carrom', '🎯'], ['zero8', '0.8 Rule', '🎯'], ['lasttile', 'Last Tile', '🔷'], ['laser', 'Laser', '🔫'], ['tapri', 'Tapri', '☕']];
+    var PICK = [['undercover', 'Undercover', '🕵️'], ['uno', 'UNO', '🃏'], ['football', 'Football', '⚽'], ['race', 'Buggy', '🏖️'], ['cricket', 'Cricket', '🏏'], ['draw', 'Draw', '🎨'], ['golf', 'Golf', '⛳'], ['bully', 'Bully', '🤼'], ['rocket', 'Turbo', '🚗'], ['bomb', 'Bomb', '💣'], ['carrom', 'Carrom', '🎯'], ['zero8', '0.8 Rule', '🎯'], ['matchday', 'Match Day', '🏆'], ['lasttile', 'Last Tile', '🔷'], ['laser', 'Laser', '🔫'], ['tapri', 'Tapri', '☕']];
     PICK.forEach(function (G, i) {
       pick.appendChild(h('button', { class: 'hx-pk', type: 'button', style: '--i:' + i, onclick: function () { buzz(15); goGame(G[0]); } }, h('span', null, G[2]), h('b', null, G[1])));
     });
@@ -7915,7 +8142,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
     else if (m.t === 'admshotd') { if (!m.data) toast('No screenshot'); else uxOpen(h('h3', null, 'Screenshot'), h('img', { src: m.data, alt: 'screenshot', style: 'display:block;max-width:100%;max-height:60vh;margin:0 auto;border-radius:10px' }), h('button', { type: 'button', class: 'ux-b gh', style: 'margin-top:10px', onclick: uxClose }, 'Close')); }
     else if (m.t === 'fbok') { fbBusy = null; uxClose(); toast('Thanks! Your feedback was sent'); }
   }
-  var GN = { undercover: 'Undercover', football: 'Gully Football', race: 'Beach Buggy', uno: 'UNO', cricket: 'Gully Cricket', draw: 'Draw & Guess', golf: 'Gully Golf', bully: 'Bully Football', rocket: 'Turbo Ball', tapri: 'Chai Tapri', bomb: 'Bomb Pass', carrom: 'Carrom', laser: 'Laser Arena', lasttile: 'Last Tile', zero8: 'The 0.8 Rule' };
+  var GN = { undercover: 'Undercover', football: 'Gully Football', race: 'Beach Buggy', uno: 'UNO', cricket: 'Gully Cricket', draw: 'Draw & Guess', golf: 'Gully Golf', bully: 'Bully Football', rocket: 'Turbo Ball', tapri: 'Chai Tapri', bomb: 'Bomb Pass', carrom: 'Carrom', laser: 'Laser Arena', lasttile: 'Last Tile', zero8: 'The 0.8 Rule', matchday: 'Match Day' };
   screens.admin = function () {
     var body = h('div'), tabs = h('div', { class: 'adm-tabs' }), last = 0;
     function who(o) { return o.photo ? h('span', { class: 'av toon pic sm' }, h('img', { src: o.photo, alt: '' })) : avatar(o.name || '?', 0, 'sm'); }
@@ -8176,6 +8403,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
     draw: ['One player gets a secret word and draws it.', 'Everyone else types guesses in the box. Faster correct guesses earn more points.', 'Everyone gets a turn to draw.'],
     golf: ['Everyone plays the hole at the same time.', 'Aim your shot, set the power, then shoot. Mind the wind.', 'The player with the fewest strokes in total wins.'],
     tapri: ['A hangout room: sit at the chai stall with your friends. Swipe the screen to look around.', 'Tap ☕ to order a cutting chai, 📌 to pin an idea, and the 💬 button to chat. Messages pop up over people\u2019s heads.', 'Vote for the next game at the bottom. The host taps Play and everyone goes to that game together. Switch back to Tapri from any lobby.'],
+    matchday: ['Add everyone who is here (friends without a phone can be added by name), choose the sport and how many per team, then shuffle into teams. The host picks how far to play: the full knockout or only up to the quarter-finals or semi-finals.','Each match has a supervisor: any one person with a phone who adds the points with the big +1 buttons. The game shows deuce, advantage, game point, match point, who serves and when to change ends. Wrong tap? Undo.'],
     zero8: ['Everyone secretly picks a number from 0 to 100. The game averages all picks and multiplies by 0.8: that is the target. Closest pick wins the round, everyone else loses a life. Last one alive wins.','Talk on the call, make deals, then break them. Special rules (duplicates bust, exact hit, 0 vs 100) can switch on as players get knocked out. The host can change lives, timer, multiplier and every rule in the lobby.'],
     lasttile: ['Run on a huge floor of hexagon tiles. Every tile you step on cracks and vanishes a moment later, so keep moving! If you stand on nothing you fall to the floor below, and falling off the bottom floor knocks you out.','Left thumb moves, JUMP crosses gaps. Bump into others to push them onto cracking tiles (the host can turn pushing off). After a while the edges crack by themselves. Last bean standing wins. PC: WASD and Space.'],
     laser: ['Each round, walk inside the safe zone and secretly pick a laser direction. Nobody sees it. When time is up ALL lasers fire at once: anyone hit, or outside the zone, is out.', 'Then the zone shrinks and you go again. The last zone never shrinks, so it ends in chaos. Phone: left thumb moves, right thumb aims, press LOCK IN. PC: WASD, drag the mouse to aim, Enter to lock.'],
@@ -8300,7 +8528,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
         S.me.host ? h('button', { class: 'cb-sw' + (S.open ? ' on' : ''), type: 'button', onclick: function () { send({ t: 'settings', open: !S.open }); } },
           h('i'), h('span', null, 'Show in open rooms'), h('em', null, S.open ? 'ON' : 'OFF')) : null,
         S.me.host ? h('div', { class: 'cb-games' }, h('small', null, '🎮 SWITCH GAME · everyone stays in the room'),
-          h('div', { class: 'cb-grid' }, [['undercover', '🕵️', 'Undercover', '#7B2CBF'], ['uno', '🃏', 'UNO', '#E5334A'], ['football', '⚽', 'Football', '#12A850'], ['race', '🏖️', 'Buggy', '#00A6D6'], ['cricket', '🏏', 'Cricket', '#2E7D32'], ['draw', '🎨', 'Draw', '#FF7A00'], ['golf', '⛳', 'Golf', '#4CAF50'], ['bully', '🤼', 'Bully', '#3949AB'], ['rocket', '🚗', 'Turbo', '#1E6BFF'], ['bomb', '💣', 'Bomb', '#C2185B'], ['carrom', '🎯', 'Carrom', '#8A4B14'], ['zero8', '🎯', '0.8 Rule', '#B8860B'], ['lasttile', '🔷', 'Last Tile', '#17A398'], ['laser', '🔫', 'Laser', '#1F6FD0'], ['tapri', '☕', 'Chai Tapri', '#8D5524']].map(function (G) {
+          h('div', { class: 'cb-grid' }, [['undercover', '🕵️', 'Undercover', '#7B2CBF'], ['uno', '🃏', 'UNO', '#E5334A'], ['football', '⚽', 'Football', '#12A850'], ['race', '🏖️', 'Buggy', '#00A6D6'], ['cricket', '🏏', 'Cricket', '#2E7D32'], ['draw', '🎨', 'Draw', '#FF7A00'], ['golf', '⛳', 'Golf', '#4CAF50'], ['bully', '🤼', 'Bully', '#3949AB'], ['rocket', '🚗', 'Turbo', '#1E6BFF'], ['bomb', '💣', 'Bomb', '#C2185B'], ['carrom', '🎯', 'Carrom', '#8A4B14'], ['zero8', '🎯', '0.8 Rule', '#B8860B'], ['matchday', '🏆', 'Match Day', '#0b8a7a'], ['lasttile', '🔷', 'Last Tile', '#17A398'], ['laser', '🔫', 'Laser', '#1F6FD0'], ['tapri', '☕', 'Chai Tapri', '#8D5524']].map(function (G) {
             var on = S.game === G[0];
             return h('button', { class: 'cb-t' + (on ? ' on' : ''), style: '--c:' + G[3], type: 'button', 'aria-label': 'Switch to ' + G[2], onclick: function () { if (on) return; send({ t: 'switchgame', game: G[0] }); buzz(15); } }, h('i', null, G[1]), h('span', null, G[2]));
           }))) : null);
@@ -9825,7 +10053,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
     fsim = { turn: m.turn, ids: m.ids, frames: r.frames, goal: m.goal, by: m.by, startAt: m.startAt };
   }
   function leaveLink() { return h('button', { class: 'link', type: 'button', onclick: function () { if (confirm('Leave this game?')) send({ t: 'leave' }); } }, 'Leave game'); }
-  function logoText() { var g = S ? S.game : wantGame; return g === 'tapri' ? 'Tapri' : g === 'bomb' ? 'Bomb' : g === 'carrom' ? 'Carrom' : g === 'zero8' ? 'The 0.8 Rule' : g === 'lasttile' ? 'Last Tile' : g === 'laser' ? 'Laser Arena' : g === 'rocket' ? 'Turbo' : g === 'bully' ? 'Bully' : g === 'golf' ? 'Golf' : g === 'draw' ? 'Draw' : g === 'cricket' ? 'Cricket' : g === 'uno' ? 'UNO' : g === 'football' ? 'Football' : g === 'race' ? 'Buggy' : 'Undercover'; }
+  function logoText() { var g = S ? S.game : wantGame; return g === 'tapri' ? 'Tapri' : g === 'bomb' ? 'Bomb' : g === 'carrom' ? 'Carrom' : g === 'matchday' ? 'Match Day' : g === 'zero8' ? 'The 0.8 Rule' : g === 'lasttile' ? 'Last Tile' : g === 'laser' ? 'Laser Arena' : g === 'rocket' ? 'Turbo' : g === 'bully' ? 'Bully' : g === 'golf' ? 'Golf' : g === 'draw' ? 'Draw' : g === 'cricket' ? 'Cricket' : g === 'uno' ? 'UNO' : g === 'football' ? 'Football' : g === 'race' ? 'Buggy' : 'Undercover'; }
 
   screens.flobby = function () {
     var list = h('ul', { class: 'plist' }), count = h('h2'), setBox = h('div'), act = h('div');
@@ -11913,7 +12141,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
   };
 
   /* ---------- Chai Tapri: the hangout room ---------- */
-  var TP_GAMES = [['undercover', '🕵️', 'Undercover'], ['uno', '🃏', 'UNO'], ['football', '⚽', 'Football'], ['race', '🏖️', 'Buggy'], ['cricket', '🏏', 'Cricket'], ['draw', '🎨', 'Draw'], ['golf', '⛳', 'Golf'], ['bully', '🤼', 'Bully'], ['rocket', '🚗', 'Turbo Ball'], ['bomb', '💣', 'Bomb'], ['carrom', '🎯', 'Carrom'], ['zero8', '🎯', '0.8 Rule'], ['lasttile', '🔷', 'Last Tile'], ['laser', '🔫', 'Laser']];
+  var TP_GAMES = [['undercover', '🕵️', 'Undercover'], ['uno', '🃏', 'UNO'], ['football', '⚽', 'Football'], ['race', '🏖️', 'Buggy'], ['cricket', '🏏', 'Cricket'], ['draw', '🎨', 'Draw'], ['golf', '⛳', 'Golf'], ['bully', '🤼', 'Bully'], ['rocket', '🚗', 'Turbo Ball'], ['bomb', '💣', 'Bomb'], ['carrom', '🎯', 'Carrom'], ['zero8', '🎯', '0.8 Rule'], ['matchday', '🏆', 'Match Day'], ['lasttile', '🔷', 'Last Tile'], ['laser', '🔫', 'Laser']];
   var ideasPaint = null;
   function openPay() {
     uxOpen(h('h3', null, '💸 Pay for the chai'), h('p', null, 'Scan with PhonePe or any UPI app and pay what you like for the chai. It goes straight to the tapri owner, so it can\u2019t be tracked here.'),
@@ -12462,6 +12690,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
     if (S.game === 'rocket') return S.phase === 'lobby' ? 'klobby' : 'kgame';
     if (S.game === 'bomb') return S.phase === 'lobby' ? 'mlobby' : 'mgame';
     if (S.game === 'carrom') return S.phase === 'lobby' ? 'crlobby' : 'crgame';
+    if (S.game === 'matchday') return S.phase === 'lobby' ? 'mdlobby' : 'mdgame';
     if (S.game === 'zero8') return S.phase === 'lobby' ? 'z8lobby' : 'z8game';
     if (S.game === 'lasttile') return S.phase === 'lobby' ? 'ltlobby' : 'ltgame';
     if (S.game === 'laser') return S.phase === 'lobby' ? 'lzlobby' : 'lzgame';

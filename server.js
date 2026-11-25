@@ -947,6 +947,7 @@ function view(room, p) {
   if (room.game === 'golf') { v.gfSet = room.gfSet; if (room.gf) v.gf = gfView(room); }
   if (room.game === 'bully') { v.bfSet = room.bfSet; v.bfMe = {}; for (const q of room.players.values()) if (!q.left) v.bfMe[q.id] = bfOf(room, q); if (room.bf) v.bf = { ids: room.bf.ids, seq: room.bf.seq, res: room.bf.res || null }; }
   if (room.game === 'tapri') { const t = room.tp || {}; v.tp = { votes: t.votes || {}, chai: t.chai || {}, kind: t.kind || {}, spot: t.spot || {}, av: t.av || {}, wall: (t.wall || []).map((x) => ({ id: x.id, by: x.by })), ak: t.ak || null, td: t.td || null, mu: t.mu ? { now: t.mu.now, t: Date.now(), q: t.mu.q.map((x) => ({ id: x.id, tid: x.tid, title: x.title, artist: x.artist, img: x.img, by: x.by, v: Object.keys(x.v).length, vs: Object.keys(x.v) })), keys: !!(process.env.SPOTIFY_ID && process.env.SPOTIFY_SECRET) } : { now: null, t: Date.now(), q: [], keys: !!(process.env.SPOTIFY_ID && process.env.SPOTIFY_SECRET) }, whistle: t.whistle || null, emo: t.emo || {}, sky: t.sky || 'dusk', radio: t.radio | 0, paid: t.paid | 0, score: t.score || '', notes: t.notes || [], ludo: t.ludo || null }; }
+  if (room.game === 'matchday') { const md = mdSt(room); if (room.phase === 'lobby' && !md.teams.length) mdBuildTeams(room); v.md = mdView(room, p); }
   if (room.game === 'zero8') { v.z8Set = room.z8Set; if (room.z8) v.z8 = z8View(room, p); }
   if (room.game === 'lasttile') { v.ltSet = room.ltSet; if (room.lt) v.lt = { ids: room.lt.ids, seq: room.lt.seq, host: room.lt.host, bots: room.lt.bots, floors: room.lt.floors, speed: room.lt.speed, push: room.lt.push }; }
   if (room.game === 'laser') { v.lzSet = room.lzSet; if (room.lz) v.lz = { ids: room.lz.ids, seq: room.lz.seq, host: room.lz.host, bots: room.lz.bots, shrink: room.lz.shrink, time: room.lz.time }; }
@@ -1667,8 +1668,140 @@ function backToLobby(room) {
   room.nextPair = drawPair(room);
 }
 
+// ---------------------------------------------------------------- Match Day (real-life scorer + tournament)
+const MDDEF = { sport: 'tt', target: 11, winBy2: true, cap: 0, bestOf: 3, size: 1, upTo: 'final', toss: true };
+const MD_SPORT = { tt: { target: 11, winBy2: true, cap: 0 }, bd: { target: 21, winBy2: true, cap: 30 }, vb: { target: 25, winBy2: true, cap: 0 }, custom: {} };
+function mdCfg(room) { return room.mdSet || (room.mdSet = Object.assign({}, MDDEF)); }
+function mdSt(room) { return room.md || (room.md = { guests: [], teams: [], rounds: null, R: 0, play: 0, nid: 1, ended: false, champ: null, quals: [] }); }
+function mdPeople(room) {
+  const out = []; for (const q of room.players.values()) if (!q.left) out.push({ id: q.id, name: q.name, g: false });
+  for (const g of mdSt(room).guests) out.push({ id: g.id, name: g.name, g: true }); return out;
+}
+function mdLetter(i) { return i < 26 ? String.fromCharCode(65 + i) : String(i + 1); }
+function mdBuildTeams(room) {
+  const md = mdSt(room), set = mdCfg(room), ppl = shuffle(mdPeople(room)), size = Math.max(1, Math.min(6, set.size | 0));
+  const n = ppl.length; if (!n) { md.teams = []; return; }
+  const nt = Math.max(1, Math.ceil(n / size)), ts = [];
+  for (let i = 0; i < nt; i++) ts.push({ id: 't' + (md.nid++), name: '', members: [] });
+  ppl.forEach((q, i) => ts[i % nt].members.push({ id: q.id, name: q.name }));
+  ts.forEach((t, i) => { t.name = size === 1 ? t.members[0].name : 'Team ' + mdLetter(i); });
+  md.teams = ts;
+}
+function mdSync(room) { // lobby only: drop people who left from the teams
+  const md = mdSt(room); if (room.phase !== 'lobby') return;
+  const ok = new Set(mdPeople(room).map((q) => q.id));
+  md.teams.forEach((t) => { t.members = t.members.filter((q) => ok.has(q.id)); });
+  md.teams = md.teams.filter((t) => t.members.length);
+}
+function mdRoundName(R, r) { const left = R - r; return left === 1 ? 'Final' : left === 2 ? 'Semi-finals' : left === 3 ? 'Quarter-finals' : left === 4 ? 'Round of 16' : left === 5 ? 'Round of 32' : 'Round ' + (r + 1); }
+function mdPlayRounds(R, upTo) { const k = { final: 0, semi: 1, quarter: 2, r16: 3 }[upTo] || 0; return Math.max(1, R - k); }
+function mdLead(rule, a, b) { // who has won the game (or null)
+  const hi = Math.max(a, b), lo = Math.min(a, b);
+  if (rule.cap && hi >= rule.cap) return a > b ? 'a' : 'b';
+  if (hi < rule.target) return null;
+  if (rule.winBy2) return hi - lo >= 2 ? (a > b ? 'a' : 'b') : null;
+  return a > b ? 'a' : 'b';
+}
+const mdOpp = (s) => (s === 'a' ? 'b' : 'a');
+function mdReplay(m) {
+  const r = m.rule, need = Math.floor(r.bestOf / 2) + 1;
+  m.games = []; m.wins = { a: 0, b: 0 }; m.cur = { a: 0, b: 0 }; m.winSide = null; m.firsts = [m.first0]; m.lastS = null; m.gstart = 0;
+  for (let i = 0; i < m.hist.length; i++) {
+    const s = m.hist[i]; m.cur[s]++; m.lastS = s;
+    const w = mdLead(r, m.cur.a, m.cur.b);
+    if (w) {
+      m.games.push([m.cur.a, m.cur.b]); m.wins[w]++;
+      if (m.wins[w] >= need) { m.winSide = w; m.hist.length = i + 1; return; }
+      const prev = m.firsts[m.firsts.length - 1];
+      m.firsts.push(r.serve === 'none' || !prev ? null : r.serve === 'rally' ? w : mdOpp(prev));
+      m.cur = { a: 0, b: 0 }; m.lastS = null; m.gstart = i + 1;
+    }
+  }
+}
+function mdServer(m) {
+  const r = m.rule; if (r.serve === 'none') return null;
+  const first = m.firsts[m.games.length]; if (!first || m.winSide) return null;
+  if (r.serve === 'rally') return m.lastS || first;
+  const t = r.target, a = m.cur.a, b = m.cur.b, total = a + b;
+  const idx = (a >= t - 1 && b >= t - 1) ? (t - 1) + (total - 2 * (t - 1)) : Math.floor(total / 2);
+  return idx % 2 === 0 ? first : mdOpp(first);
+}
+function mdFlags(m) {
+  const r = m.rule, a = m.cur.a, b = m.cur.b, need = Math.floor(r.bestOf / 2) + 1, f = {};
+  if (m.winSide) return f;
+  const zone = r.winBy2 && a >= r.target - 1 && b >= r.target - 1;
+  if (zone && a === b) f.deuce = true;
+  if (zone && Math.abs(a - b) === 1) f.adv = a > b ? 'a' : 'b';
+  const ga = mdLead(r, a + 1, b) === 'a', gb = mdLead(r, a, b + 1) === 'b';
+  if (ga || gb) { f.gp = ga && gb ? 'both' : ga ? 'a' : 'b'; }
+  if (ga && m.wins.a + 1 >= need) f.mp = 'a'; if (gb && m.wins.b + 1 >= need) f.mp = f.mp ? 'both' : 'b';
+  if (need > 1 && m.wins.a === need - 1 && m.wins.b === need - 1 && Math.max(a, b) === r.change) f.ends = true;
+  return f;
+}
+function mdPeopleName(room, id) { const q = mdPeople(room).find((x) => x.id === id); return q ? q.name : ''; }
+function mdBuildTour(room) {
+  const md = mdSt(room), set = mdCfg(room);
+  const ids = shuffle(md.teams.map((t) => t.id)), n = ids.length;
+  let P = 2; while (P < n) P *= 2; const R = Math.log2(P);
+  const rule = { target: set.target, winBy2: !!set.winBy2, cap: set.cap | 0, bestOf: set.bestOf, serve: set.sport === 'tt' ? 'two' : set.sport === 'bd' || set.sport === 'vb' ? 'rally' : 'none',
+    change: set.sport === 'tt' ? 5 : set.sport === 'bd' ? 11 : Math.ceil(set.target / 2) };
+  const seeds = ids.concat(new Array(P - n).fill(null));
+  const rounds = [];
+  for (let r = 0; r < R; r++) {
+    const row = [];
+    for (let i = 0; i < P / (2 ** (r + 1)); i++) row.push({ id: 'm' + r + '_' + i, r, i, a: null, b: null, status: 'wait', bye: false, sup: null, rule, hist: [], games: [], wins: { a: 0, b: 0 }, cur: { a: 0, b: 0 }, firsts: [null], first0: null, toss: null, winSide: null, winner: null });
+    rounds.push(row);
+  }
+  for (let i = 0; i < P / 2; i++) { const m = rounds[0][i]; m.a = seeds[i]; m.b = seeds[P - 1 - i]; }
+  md.rounds = rounds; md.R = R; md.play = mdPlayRounds(R, set.upTo); md.ended = false; md.champ = null; md.quals = [];
+  for (const m of rounds[0]) {
+    if (m.a && m.b) m.status = 'ready';
+    else { m.bye = true; m.status = 'done'; m.winner = m.a || m.b; m.winSide = m.a ? 'a' : 'b'; mdAdvance(md, m); }
+  }
+}
+function mdAdvance(md, m) {
+  if (m.r + 1 >= md.play) return;
+  const nx = md.rounds[m.r + 1][m.i >> 1], slot = m.i % 2 === 0 ? 'a' : 'b';
+  nx[slot] = m.winner; if (nx.a && nx.b && nx.status === 'wait') nx.status = 'ready';
+}
+function mdCheckEnd(room) {
+  const md = mdSt(room); if (!md.rounds) return;
+  const all = []; for (let r = 0; r < md.play; r++) md.rounds[r].forEach((m) => all.push(m));
+  const done = all.every((m) => m.status === 'done');
+  md.ended = done;
+  if (done) {
+    const last = md.rounds[md.play - 1]; md.quals = last.map((m) => m.winner).filter(Boolean); md.champ = md.play === md.R ? last[0].winner : null;
+    if (room.phase === 'mdplay') setPhase(room, 'mdover');
+  } else { md.champ = null; md.quals = []; if (room.phase === 'mdover') setPhase(room, 'mdplay'); }
+}
+function mdFindMatch(room, id) { const md = mdSt(room); if (!md.rounds) return null; for (const row of md.rounds) for (const m of row) if (m.id === id) return m; return null; }
+function mdDefaultSup(room, m) {
+  const md = mdSt(room), on = new Set();
+  [m.a, m.b].forEach((tid) => { const t = md.teams.find((x) => x.id === tid); if (t) t.members.forEach((q) => on.add(q.id)); });
+  const free = [...room.players.values()].filter((q) => !q.left && q.connected && !on.has(q.id));
+  const bus = new Set(); md.rounds.forEach((row) => row.forEach((x) => { if (x.status === 'live' && x.sup) bus.add(x.sup); }));
+  const pick = free.find((q) => !bus.has(q.id)) || free[0];
+  return pick ? pick.id : room.hostId;
+}
+function mdView(room, p) {
+  const md = mdSt(room), set = mdCfg(room), ppl = mdPeople(room);
+  const placed = new Set(); md.teams.forEach((t) => t.members.forEach((q) => placed.add(q.id)));
+  const v = { set, people: room.phase === 'lobby' ? ppl : [], teams: md.teams, free: room.phase === 'lobby' ? ppl.filter((q) => !placed.has(q.id)).map((q) => q.id) : [], tour: null };
+  if (md.rounds) {
+    v.tour = { R: md.R, play: md.play, ended: md.ended, champ: md.champ, quals: md.quals,
+      rounds: md.rounds.slice(0, md.play).map((row, r) => ({ name: mdRoundName(md.R, r), ms: row.map((m) => ({ id: m.id, a: m.a, b: m.b, st: m.status, bye: m.bye, sup: m.sup, supName: m.sup ? mdPeopleName(room, m.sup) : '', games: m.games, cur: m.cur, wins: m.wins, win: m.winner, ws: m.winSide, serve: m.status === 'live' ? mdServer(m) : null, fl: m.status === 'live' ? mdFlags(m) : {}, toss: m.toss, rule: m.rule, n: m.hist.length })) })) };
+  }
+  return v;
+}
+function mdAfterChange(room) { mdCheckEnd(room); return broadcast(room); }
+
 // After a player leaves/is kicked mid-game, re-check whatever the current phase is waiting for.
 function afterRemoval(room) {
+  if (room.game === 'matchday') {
+    mdSync(room); const md = mdSt(room), here = new Set(mdPeople(room).filter((q) => !q.g).map((q) => q.id));
+    if (md.rounds) md.rounds.forEach((row) => row.forEach((mt) => { if (mt.status === 'live' && mt.sup && !here.has(mt.sup)) mt.sup = room.hostId; }));
+    return broadcast(room);
+  }
   if (room.game === 'football') return fbCheck(room);
   if (room.game === 'race') return raceCheck(room);
   if (room.game === 'uno') return broadcast(room);
@@ -2690,7 +2823,7 @@ async function frCmd(ws, m) {
       let how = socks.length ? 'online' : 'none';
       if (!socks.length && webpush && target.push) {
         try {
-          await webpush.sendNotification(JSON.parse(target.push), JSON.stringify({ title: pl.name + ' invited you', body: 'Join their ' + (room.game === 'bully' ? 'Bully Football' : room.game === 'rocket' ? 'Turbo Ball' : room.game === 'tapri' ? 'Chai Tapri' : room.game === 'bomb' ? 'Bomb Pass' : room.game === 'carrom' ? 'Carrom' : room.game === 'laser' ? 'Laser Arena' : room.game === 'lasttile' ? 'Last Tile' : room.game === 'zero8' ? 'The 0.8 Rule' : room.game === 'undercover' ? 'Undercover' : room.game) + ' lobby', tag: 'inv-' + room.code, vib: [200, 100, 200, 100, 300], url: '/?c=' + room.code }), { TTL: 600, urgency: 'high' });
+          await webpush.sendNotification(JSON.parse(target.push), JSON.stringify({ title: pl.name + ' invited you', body: 'Join their ' + (room.game === 'bully' ? 'Bully Football' : room.game === 'rocket' ? 'Turbo Ball' : room.game === 'tapri' ? 'Chai Tapri' : room.game === 'bomb' ? 'Bomb Pass' : room.game === 'carrom' ? 'Carrom' : room.game === 'laser' ? 'Laser Arena' : room.game === 'lasttile' ? 'Last Tile' : room.game === 'zero8' ? 'The 0.8 Rule' : room.game === 'matchday' ? 'Match Day' : room.game === 'undercover' ? 'Undercover' : room.game) + ' lobby', tag: 'inv-' + room.code, vib: [200, 100, 200, 100, 300], url: '/?c=' + room.code }), { TTL: 600, urgency: 'high' });
           how = 'push';
         } catch (e) { if (e && (e.statusCode === 404 || e.statusCode === 410)) q('UPDATE users SET push = NULL WHERE id = $1', [target.id]).catch(() => {}); }
       }
@@ -2783,7 +2916,7 @@ function handle(ws, m) {
     const name = clean(m.name, 14);
     if (!name) return errTo(ws, 'Enter your name');
     const room = makeRoom(loadWords(m));
-    if (m.game === 'football' || m.game === 'race' || m.game === 'uno' || m.game === 'cricket' || m.game === 'draw' || m.game === 'golf' || m.game === 'bully' || m.game === 'rocket' || m.game === 'bomb' || m.game === 'carrom' || m.game === 'laser' || m.game === 'lasttile' || m.game === 'zero8' || m.game === 'tapri') room.game = m.game;
+    if (m.game === 'football' || m.game === 'race' || m.game === 'uno' || m.game === 'cricket' || m.game === 'draw' || m.game === 'golf' || m.game === 'bully' || m.game === 'rocket' || m.game === 'bomb' || m.game === 'carrom' || m.game === 'laser' || m.game === 'lasttile' || m.game === 'zero8' || m.game === 'matchday' || m.game === 'tapri') room.game = m.game;
     if (m.open === false) room.open = false;
     const p = addPlayer(room, name);
     room.hostId = room.ownerId = p.id;
@@ -3116,16 +3249,16 @@ function handle(ws, m) {
     }
     case 'switchgame': {
       if (!hostOnly()) return;
-      const g = ['undercover', 'football', 'race', 'uno', 'cricket', 'draw', 'golf', 'bully', 'rocket', 'bomb', 'carrom', 'laser', 'lasttile', 'zero8', 'tapri'].includes(m.game) ? m.game : null;
+      const g = ['undercover', 'football', 'race', 'uno', 'cricket', 'draw', 'golf', 'bully', 'rocket', 'bomb', 'carrom', 'laser', 'lasttile', 'zero8', 'matchday', 'tapri'].includes(m.game) ? m.game : null;
       if (!g) return;
-      if (!['lobby', 'over', 'fover', 'rover', 'uover', 'cover', 'dover', 'gover', 'bover', 'kover', 'mover'].includes(room.phase)) return errTo(ws, 'Finish or end the current game first');
+      if (!['lobby', 'over', 'fover', 'rover', 'uover', 'cover', 'dover', 'gover', 'bover', 'kover', 'mover', 'mdover'].includes(room.phase)) return errTo(ws, 'Finish or end the current game first');
       if (g === room.game && room.phase === 'lobby') return;
       clearTimeout(room.timer); dwClear(room); room.dw = null; room.gf = null; room.bf = null; room.rk = null; room.mb = null; room.seq++;
       room.game = g; room.un = null; room.fb = null; room.pkPick = null; room.rc = null; room.ck = null; room.winner = null; room.guess = null; room.votes = {}; room.tie = false; room.descs = {}; room.history = [];
       for (const [qid, q] of room.players) if (q.left) room.players.delete(qid);
       for (const q of room.players.values()) { q.watch = false; q.alive = true; q.role = null; q.word = ''; q.revealed = false; }
       setPhase(room, 'lobby');
-      const gn = { undercover: '🕵️ Undercover', football: '⚽ Football', race: '🏖️ Beach Buggy', uno: '🃏 UNO', cricket: '🏏 Cricket', draw: '🎨 Draw & Guess', golf: '⛳ Golf', bully: '🤼 Bully Football', rocket: '🚗 Turbo Ball', bomb: '💣 Bomb Pass', carrom: '🎯 Carrom', laser: '🔫 Laser Arena', lasttile: '🔷 Last Tile', zero8: '🎯 The 0.8 Rule', tapri: '☕ Chai Tapri' }[g];
+      const gn = { undercover: '🕵️ Undercover', football: '⚽ Football', race: '🏖️ Beach Buggy', uno: '🃏 UNO', cricket: '🏏 Cricket', draw: '🎨 Draw & Guess', golf: '⛳ Golf', bully: '🤼 Bully Football', rocket: '🚗 Turbo Ball', bomb: '💣 Bomb Pass', carrom: '🎯 Carrom', laser: '🔫 Laser Arena', lasttile: '🔷 Last Tile', zero8: '🎯 The 0.8 Rule', matchday: '🏆 Match Day', tapri: '☕ Chai Tapri' }[g];
       notice(room, '🎮 The host switched the game to ' + gn);
       return broadcast(room);
     }
@@ -3289,7 +3422,7 @@ function handle(ws, m) {
     case 'tvote': case 'tchai': case 'tnote': case 'tdel': case 'temo': case 'tsky': case 'tradio': case 'tpaid': case 'tscore': case 'tludo': case 'tseat': case 'tavatar': case 'twhistle': case 'twall': case 'twdel': case 'twget': case 'tstats': case 'tak': case 'ttd': case 'tmadd': case 'tmvote': case 'tmnext': case 'tmsearch': { // Chai Tapri: hang out, vote for the next game, order chai, pin ideas
       if (room.game !== 'tapri' || room.phase !== 'lobby') return;
       const t = room.tp || (room.tp = { votes: {}, chai: {}, notes: [], nid: 0 });
-      if (m.t === 'tvote') { const g = String(m.g || ''); if (!g || t.votes[p.id] === g) delete t.votes[p.id]; else if (['undercover', 'uno', 'football', 'race', 'cricket', 'draw', 'golf', 'bully', 'rocket', 'bomb', 'carrom', 'laser', 'lasttile', 'zero8'].includes(g)) t.votes[p.id] = g; }
+      if (m.t === 'tvote') { const g = String(m.g || ''); if (!g || t.votes[p.id] === g) delete t.votes[p.id]; else if (['undercover', 'uno', 'football', 'race', 'cricket', 'draw', 'golf', 'bully', 'rocket', 'bomb', 'carrom', 'laser', 'lasttile', 'zero8', 'matchday'].includes(g)) t.votes[p.id] = g; }
       else if (m.t === 'tchai') { if (t.chai[p.id] && Date.now() - t.chai[p.id] < 4000) return; const k = Math.max(0, Math.min(2, Number(m.k) | 0)); t.chai[p.id] = Date.now(); (t.kind || (t.kind = {}))[p.id] = k; notice(room, '☕ ' + p.name + ' ordered ' + ['a cutting chai', 'a masala chai', 'a bun maska'][k]); }
       else if (m.t === 'temo') { const E = ['😂', '👏', '😍', '🔥', '👋', '😮', '😢', '🎉', '🙏', '💀', 'wah!']; const e = String(m.e || ''); if (!E.includes(e) || Date.now() - ((t.emo || {})[p.id] || {}).at < 900) return; (t.emo || (t.emo = {}))[p.id] = { e, at: Date.now() }; }
       else if (m.t === 'tsky') { if (!['dusk', 'day', 'night', 'rain'].includes(m.k) || Date.now() - (t.skyAt || 0) < 3000) return; t.sky = m.k; t.skyAt = Date.now(); notice(room, '🌦️ ' + p.name + ' changed the weather: ' + m.k); }
@@ -3321,6 +3454,102 @@ function handle(ws, m) {
         t.notes.push({ id: ++t.nid, by: p.name, pid: p.id, text: text, at: now }); if (t.notes.length > 16) t.notes.shift(); }
       else if (m.t === 'tdel') { const i = t.notes.findIndex((n) => n.id === Number(m.id)); if (i >= 0 && (t.notes[i].pid === p.id || p.id === room.hostId)) t.notes.splice(i, 1); }
       return broadcast(room);
+    }
+    case 'mdset': {
+      if (!hostOnly() || room.game !== 'matchday' || room.phase !== 'lobby') return;
+      const s = mdCfg(room);
+      if (['tt', 'bd', 'vb', 'custom'].includes(m.sport)) { s.sport = m.sport; Object.assign(s, MD_SPORT[m.sport]); if (m.sport === 'bd') s.bestOf = 3; }
+      if (Number.isInteger(m.target) && m.target >= 3 && m.target <= 99) s.target = m.target;
+      if (typeof m.winBy2 === 'boolean') s.winBy2 = m.winBy2;
+      if (Number.isInteger(m.cap) && m.cap >= 0 && m.cap <= 150) s.cap = m.cap;
+      if ([1, 3, 5, 7].includes(m.bestOf)) s.bestOf = m.bestOf;
+      if (Number.isInteger(m.size) && m.size >= 1 && m.size <= 6) { s.size = m.size; mdBuildTeams(room); }
+      if (['final', 'semi', 'quarter', 'r16'].includes(m.upTo)) s.upTo = m.upTo;
+      if (typeof m.toss === 'boolean') s.toss = m.toss;
+      return broadcast(room);
+    }
+    case 'mdadd': {
+      if (!hostOnly() || room.game !== 'matchday' || room.phase !== 'lobby') return;
+      const md = mdSt(room), nm = clean(m.name, 14); if (!nm) return;
+      if (mdPeople(room).length >= 32) return errTo(ws, 'Up to 32 people');
+      if (mdPeople(room).some((q) => norm(q.name) === norm(nm))) return errTo(ws, 'That name is already in the list');
+      md.guests.push({ id: 'g' + (md.nid++), name: nm }); return broadcast(room);
+    }
+    case 'mddel': {
+      if (!hostOnly() || room.game !== 'matchday' || room.phase !== 'lobby') return;
+      const md = mdSt(room); md.guests = md.guests.filter((g) => g.id !== m.id); mdSync(room); return broadcast(room);
+    }
+    case 'mdteams': {
+      if (!hostOnly() || room.game !== 'matchday' || room.phase !== 'lobby') return;
+      const md = mdSt(room);
+      if (m.op === 'shuffle') mdBuildTeams(room);
+      else if (m.op === 'swap') {
+        let ta, tb, ia = -1, ib = -1;
+        md.teams.forEach((t) => t.members.forEach((q, i) => { if (q.id === m.a) { ta = t; ia = i; } if (q.id === m.b) { tb = t; ib = i; } }));
+        if (ta && tb && ta !== tb) { const x = ta.members[ia]; ta.members[ia] = tb.members[ib]; tb.members[ib] = x; }
+      } else if (m.op === 'move') { // move a person into another team (or into an unassigned slot of their own team)
+        const to = md.teams.find((t) => t.id === m.tid); let from = null, who = null;
+        md.teams.forEach((t) => t.members.forEach((q) => { if (q.id === m.a) { from = t; who = q; } }));
+        const person = who || mdPeople(room).find((q) => q.id === m.a);
+        if (to && person && from !== to) { if (from) from.members = from.members.filter((q) => q.id !== m.a); to.members.push({ id: person.id, name: person.name }); md.teams = md.teams.filter((t) => t.members.length); }
+      } else if (m.op === 'rename') { const t = md.teams.find((x) => x.id === m.tid), nm = clean(m.name, 16); if (t && nm) t.name = nm; }
+      return broadcast(room);
+    }
+    case 'mdstart': {
+      if (!hostOnly() || room.game !== 'matchday' || room.phase !== 'lobby') return;
+      const md = mdSt(room); mdSync(room);
+      const placed = new Set(); md.teams.forEach((t) => t.members.forEach((q) => placed.add(q.id)));
+      if (mdPeople(room).some((q) => !placed.has(q.id))) return errTo(ws, 'Some people are not in a team yet. Tap Shuffle.');
+      if (md.teams.length < 2) return errTo(ws, 'Need at least 2 teams');
+      mdBuildTour(room); setPhase(room, 'mdplay'); return mdAfterChange(room);
+    }
+    case 'mdlobby': {
+      if (!hostOnly() || room.game !== 'matchday' || room.phase === 'lobby') return;
+      const md = mdSt(room); md.rounds = null; md.ended = false; md.champ = null; md.quals = [];
+      setPhase(room, 'lobby'); for (const [qid, q] of room.players) if (q.left) room.players.delete(qid);
+      mdSync(room); return broadcast(room);
+    }
+    case 'mdbegin': {
+      if (!hostOnly() || room.game !== 'matchday' || room.phase !== 'mdplay') return;
+      const mt = mdFindMatch(room, m.mid); if (!mt || mt.status !== 'ready') return;
+      const set = mdCfg(room);
+      mt.sup = (typeof m.sup === 'string' && (mdPeople(room).some((q) => q.id === m.sup && !q.g))) ? m.sup : mdDefaultSup(room, mt);
+      mt.status = 'live';
+      if (mt.rule.serve === 'none') mt.first0 = null;
+      else { const w = set.toss ? (crypto.randomInt(2) ? 'a' : 'b') : 'a'; mt.toss = set.toss ? { win: w } : null; mt.first0 = w; }
+      mdReplay(mt); return mdAfterChange(room);
+    }
+    case 'mdsup': {
+      if (room.game !== 'matchday' || room.phase !== 'mdplay') return;
+      const mt = mdFindMatch(room, m.mid); if (!mt || mt.status === 'done' || mt.status === 'wait') return;
+      if (!isHost && mt.sup !== p.id) return;
+      if (!mdPeople(room).some((q) => q.id === m.sup && !q.g)) return errTo(ws, 'Pick someone who is on a phone');
+      mt.sup = m.sup; return broadcast(room);
+    }
+    case 'mdserve': { // before the first point: give the serve to the other side
+      if (room.game !== 'matchday' || room.phase !== 'mdplay') return;
+      const mt = mdFindMatch(room, m.mid); if (!mt || mt.status !== 'live' || (!isHost && mt.sup !== p.id) || mt.hist.length || mt.rule.serve === 'none') return;
+      mt.first0 = (m.s === 'a' || m.s === 'b') ? m.s : mdOpp(mt.first0); mdReplay(mt); return broadcast(room);
+    }
+    case 'mdpt': {
+      if (room.game !== 'matchday' || room.phase !== 'mdplay') return;
+      const mt = mdFindMatch(room, m.mid); if (!mt || mt.status !== 'live' || (!isHost && mt.sup !== p.id)) return;
+      if (m.s !== 'a' && m.s !== 'b') return;
+      mt.hist.push(m.s); mdReplay(mt);
+      if (mt.winSide) { mt.status = 'done'; mt.winner = mt.winSide === 'a' ? mt.a : mt.b; mdAdvance(mdSt(room), mt); }
+      return mdAfterChange(room);
+    }
+    case 'mdundo': {
+      if (room.game !== 'matchday' || room.phase !== 'mdplay' && room.phase !== 'mdover') return;
+      const mt = mdFindMatch(room, m.mid); if (!mt || mt.status === 'ready' || mt.status === 'wait' || !mt.hist.length || (!isHost && mt.sup !== p.id)) return;
+      const md = mdSt(room);
+      if (mt.status === 'done') {
+        const nx = mt.r + 1 < md.play ? md.rounds[mt.r + 1][mt.i >> 1] : null;
+        if (nx && (nx.status === 'live' || nx.status === 'done')) return errTo(ws, 'The next match already started');
+        if (nx) { nx[mt.i % 2 === 0 ? 'a' : 'b'] = null; nx.status = 'wait'; }
+        mt.status = 'live'; mt.winner = null; mt.winSide = null;
+      }
+      mt.hist.pop(); mdReplay(mt); return mdAfterChange(room);
     }
     case 'z8set': {
       if (!hostOnly() || room.game !== 'zero8' || room.phase !== 'lobby') return;
