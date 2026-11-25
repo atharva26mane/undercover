@@ -10,6 +10,12 @@
 <meta name="mobile-web-app-capable" content="yes">
 <title>Undercover</title>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script>/* host pause: freezes every animation loop and game clock */(function(){
+var raf=window.requestAnimationFrame.bind(window),pn=performance.now.bind(performance),paused=false,at=0,off=0,q=[];
+window.requestAnimationFrame=function(cb){return raf(function(ts){if(paused){q.push(cb);return;}cb(ts-off);});};
+performance.now=function(){return (paused?at:pn())-off;};
+window.__hpSet=function(v){v=!!v;if(v===paused)return;if(v){at=pn();paused=true;}else{off+=pn()-at;paused=false;var a=q;q=[];a.forEach(function(cb){window.requestAnimationFrame(cb);});}};
+})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@500;600;700&display=swap" rel="stylesheet">
@@ -780,7 +786,7 @@ html[data-theme=dark] .suspects{background:repeating-linear-gradient(0deg,transp
 /* ===== Beach Buggy race ===== */
 .hm-fbtn.hm-rbtn{background:#2D6CDF;margin-top:12px}.hm-re{animation:rcDrive 1.6s ease-in-out infinite}
 @keyframes rcDrive{0%,100%{transform:translateX(-5px) rotate(-3deg)}50%{transform:translateX(5px) rotate(3deg)}}
-body.racing .reactbar,body.racing .chatbtn,body.racing .cfloats,body.racing .hostline,body.racing .vibbar{display:none!important}
+body.racing .reactbar,body.racing .cfloats,body.racing .hostline,body.racing .vibbar{display:none!important}
 .rstage{position:fixed;inset:0;z-index:60;background:#18b4c9;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
 .rcv{position:absolute;inset:0;width:100%;height:100%;display:block}
 .rdriver{position:absolute;left:0;top:0;z-index:2;pointer-events:none;will-change:transform}
@@ -1609,7 +1615,7 @@ body.ckmode .vb{width:36px;height:36px;font-size:16px}
 .hb-new{position:absolute;top:8px;left:8px;z-index:2;background:#E6003D;color:#fff;font:800 10px var(--f-mono);padding:2px 8px;border-radius:999px;border:2px solid #121212}
 .hx-art.k-gf{aspect-ratio:464/144}
 .hx-i-gf{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 464 144'><defs><linearGradient id='s' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%2389c6f0'/><stop offset='1' stop-color='%23d9eef7'/></linearGradient></defs><rect width='464' height='144' fill='url(%23s)'/><path d='M0 92 Q120 70 240 88 T464 80 V144 H0Z' fill='%234f9a3a'/><path d='M0 110 Q160 92 300 106 T464 100 V144 H0Z' fill='%2367b845'/><ellipse cx='352' cy='104' rx='62' ry='11' fill='%2379d457'/><rect x='366' y='40' width='3' height='62' fill='%23fff'/><path d='M369 40 L398 48 L369 56Z' fill='%23ff3b30'/><circle cx='120' cy='60' r='7' fill='%23fff'/><path d='M60 118 Q100 40 120 60' fill='none' stroke='%23fff' stroke-width='3' stroke-dasharray='6 5'/><text x='22' y='36' font-size='30' font-family='sans-serif' font-weight='900' fill='%23121212'>GULLY GOLF</text></svg>");background-size:cover;background-position:center}
-body.gfmode #hdr,body.gfmode .hostline,body.gfmode .vibbar,body.gfmode .reactbar,body.gfmode .chatbtn{display:none!important}
+body.gfmode #hdr,body.gfmode .hostline,body.gfmode .vibbar,body.gfmode .reactbar{display:none!important}
 body.gfmode{overflow:hidden!important;overscroll-behavior:none}
 body.bfmode .vbox{bottom:auto;top:calc(64px + env(safe-area-inset-top));left:auto;right:8px;z-index:70}
 .bullyhost{position:fixed;inset:0;z-index:60;display:block}
@@ -1640,6 +1646,7 @@ body.gfmode .vbox{bottom:auto;top:calc(250px + env(safe-area-inset-top));left:au
 body.dwmode #hdr,body.dwmode .hostline,body.dwmode .vibbar,body.dwmode .reactbar{display:none!important}
 body.dwmode{overflow:hidden!important;overscroll-behavior:none}
 body.dwmode .chatbtn{display:none!important}
+body.racing .chatbtn,body.gfmode .chatbtn{top:calc(64px + env(safe-area-inset-top));bottom:auto;right:8px;width:40px;height:40px;font-size:18px;opacity:.85;z-index:60}
 body.dwmode .vbox{bottom:auto;top:calc(104px + env(safe-area-inset-top));left:auto;right:6px;flex-direction:column;align-items:flex-end;z-index:30}body.dwmode .vbox .vb{width:38px;height:38px;font-size:17px}
 body.dwmode #wrap{max-width:none!important;padding:0!important;margin:0!important}body.dwmode #app{padding:0!important}
 .dgame{position:fixed;left:0;right:0;top:0;height:100dvh;display:flex;flex-direction:column;align-items:center;background:var(--bg,#fff);color:var(--ink,#121212);z-index:5;overflow:hidden;touch-action:manipulation}
@@ -6468,6 +6475,13 @@ body.hubmode header{pointer-events:none}body.hubmode header button{pointer-event
 .adm input[type=text]{width:100%;box-sizing:border-box;border-radius:12px;border:2px solid #3a3860;background:#0f0e1a;color:#fff;padding:12px;font:700 15px 'Nunito',sans-serif}
 .adm-acts button.adm-rm{background:#2f2c57}
 .vinv{height:42px;padding:0 14px;border-radius:21px;border:2px solid #121212;background:#ff9a2e;color:#121212;font:800 13px/1 'Nunito',system-ui,sans-serif;box-shadow:2px 2px 0 #121212;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+#hpause{position:fixed;inset:0;z-index:8600;background:rgba(10,9,24,.86);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;font-family:'Nunito',system-ui,sans-serif;text-align:center;padding:24px}
+#hpause b{font:900 28px 'Lilita One','Nunito',system-ui,sans-serif}
+#hpause button{margin-top:6px;padding:14px 28px;border-radius:16px;border:3px solid #14123a;background:#ffd23f;color:#14123a;font:900 18px 'Nunito',system-ui,sans-serif}
+#hpbtn{position:fixed;top:calc(64px + env(safe-area-inset-top));left:8px;z-index:61;width:40px;height:40px;border-radius:50%;border:3px solid #14123a;background:#ffd23f;font-size:16px;opacity:.9}
+#namechip{position:fixed;top:calc(3px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:40;max-width:46vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:3px 9px;border-radius:999px;border:2px solid #14123a;background:rgba(255,210,63,.92);color:#14123a;font:800 11px/14px 'Nunito',system-ui,sans-serif}
+body.hubmode #namechip{left:68px;transform:none;top:calc(24px + env(safe-area-inset-top))}
+body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #namechip,body.rkmode #namechip,body.mbmode #namechip,body.bfmode #namechip,body.gfmode #namechip,body.dwmode #namechip,body.tpmode #namechip{pointer-events:none;opacity:.75}
 #apause{position:fixed;inset:0;z-index:8500;background:rgba(10,9,24,.82);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-family:'Nunito',system-ui,sans-serif;text-align:center;padding:20px}
 #apause b{font:900 28px 'Lilita One','Nunito',system-ui,sans-serif}
 </style>
@@ -7195,14 +7209,14 @@ body.hubmode header{pointer-events:none}body.hubmode header button{pointer-event
   var chatSheet = h('div', { class: 'chatsheet' }, h('div', { class: 'chead' }, h('b', null, '💬 Chat'), chatInfo, h('button', { class: 'link', type: 'button', onclick: function () { chatOpen = false; paintChat(); } }, 'Close')),
     chatMsgs, h('div', { class: 'cin' }, chatInp, chatSend));
   document.body.appendChild(chatBtn); document.body.appendChild(chatSheet);
-  function chatAllowed() { return S && S.settings && S.settings.chat && (S.game === 'uno' || S.game === 'cricket' || S.game === 'draw' || S.game === 'golf' || ['lobby', 'vote', 'elim', 'over'].indexOf(S.phase) >= 0); }
+  function chatAllowed() { return !!(S && S.settings && S.settings.chat && S.game !== 'undercover'); }
   function sendChat() {
     var t = chatInp.value.trim(); if (!t) return;
     if (!chatAllowed()) return toast('Chat opens during the discussion');
     send({ t: 'chat', text: t }); chatInp.value = ''; // the server checks slow mode, mutes and secret words
   }
   function paintChat() {
-    var on = S && S.settings && S.settings.chat;
+    var on = S && S.settings && S.settings.chat && S.game !== 'undercover';
     chatBtn.style.display = on ? '' : 'none';
     document.body.classList.toggle('has-chat', !!on);
     chatSheet.classList.toggle('open', !!(on && chatOpen));
@@ -7939,6 +7953,27 @@ body.hubmode header{pointer-events:none}body.hubmode header button{pointer-event
     paint(); send({ t: 'admget' });
     return { root: root, update: function () {}, adm: paint, tick: function () { if (Date.now() - last > 4000) { last = Date.now(); send({ t: 'admget' }); } } };
   };
+  var nameChip = null;
+  function syncNameChip() {
+    if (!nameChip) { nameChip = h('button', { type: 'button', id: 'namechip', onclick: function () { if (!S) { mode = 'profile'; render(); } else if (S.phase === 'lobby') { var ni = h('input', { type: 'text', maxlength: 14, value: savedName, autocomplete: 'off', style: 'width:100%;padding:12px;border-radius:12px;border:3px solid #14123a;font:800 18px Nunito,system-ui,sans-serif;box-sizing:border-box' }); uxOpen(h('h3', null, 'Your name'), ni, h('button', { type: 'button', class: 'ux-b', style: 'margin-top:10px', onclick: function () { var v = ni.value.trim(); if (!v) return toast('Enter a name'); savedName = v; store('uc.name', v); send({ t: 'rename', name: v }); sendHello(true); uxClose(); render(); } }, 'Save'), h('button', { type: 'button', class: 'ux-b gh', style: 'margin-top:8px', onclick: uxClose }, 'Cancel')); } else toast('You are playing as ' + (S.me && S.me.name || savedName) + '. Change your name in the lobby.'); } }); document.body.appendChild(nameChip); }
+    var n = (S && S.me && S.me.name) || savedName || '';
+    nameChip.style.display = n && mode !== 'profile' ? '' : 'none';
+    var t = '👤 ' + n; if (nameChip.textContent !== t) nameChip.textContent = t;
+  }
+  var HP_OWN = { football: 1, uno: 1, draw: 1, undercover: 1, tapri: 1 };
+  var hpBtn = null;
+  function syncHostPause() {
+    var on = !!(S && S.hp), el = document.getElementById('hpause');
+    if (window.__hpSet) window.__hpSet(on);
+    if (on) {
+      if (!el) document.body.appendChild(el = h('div', { id: 'hpause' }, h('b', null, '⏸ Paused by the host'), h('span', { id: 'hpsub' }), h('button', { type: 'button', id: 'hpres', onclick: function () { send({ t: 'hpause' }); } }, '▶ Resume')));
+      el.querySelector('#hpsub').textContent = S.me && S.me.host ? 'Tap Resume when everyone is ready.' : 'Waiting for the host to resume.';
+      el.querySelector('#hpres').style.display = S.me && S.me.host ? '' : 'none';
+    } else if (el) el.parentNode.removeChild(el);
+    var show = !!(S && S.me && S.me.host && S.game && !HP_OWN[S.game] && S.phase !== 'lobby' && !/over$/.test(S.phase) && !S.hp);
+    if (show && !hpBtn) { hpBtn = h('button', { type: 'button', id: 'hpbtn', 'aria-label': 'Pause game', onclick: function () { send({ t: 'hpause' }); } }, '⏸'); document.body.appendChild(hpBtn); }
+    if (hpBtn) hpBtn.style.display = show ? '' : 'none';
+  }
   function syncPause() {
     var el = document.getElementById('apause');
     if (S && S.apaused) {
@@ -8222,7 +8257,7 @@ body.hubmode header{pointer-events:none}body.hubmode header button{pointer-event
       h('button', { class: 'btn primary', type: 'button', onclick: function () {
         var n = nameIn.value.trim();
         if (!n) { toast('Enter a name'); nameIn.focus(); return; }
-        savedName = n; store('uc.name', n); store('uc.photo', draft || null);
+        savedName = n; store('uc.name', n); store('uc.photo', draft || null); if (S && S.me && S.phase === 'lobby') send({ t: 'rename', name: n });
         toast('Saved ✓'); mode = 'hub'; render(); if (afterName && Date.now() - afterNameAt < 120000) { var go = afterName; afterName = null; setTimeout(go, 250); }
       } }, 'Save'), h('div', { class: 'gap' }),
       h('p', { class: 'mute small center' }, 'Saved on this phone. Everyone in your room sees your name and photo.'));
@@ -12439,7 +12474,7 @@ body.hubmode header{pointer-events:none}body.hubmode header button{pointer-event
     }
     if (S && S.phase !== 'lobby' && S.phase !== 'over') wakeLock();
     cur.update();
-    syncSupModal(); syncCodeBar(); syncReqModal(); syncVoice(); syncPause(); syncHowto(); syncHostbar(); syncWatch(); syncWhiteTry(); syncUc(); syncReactBar(); paintChat();
+    syncSupModal(); syncCodeBar(); syncReqModal(); syncVoice(); syncPause(); syncHostPause(); syncNameChip(); syncHowto(); syncHostbar(); syncWatch(); syncWhiteTry(); syncUc(); syncReactBar(); paintChat();
   }
   setInterval(function () { if (cur && cur.tick) cur.tick(); }, 250);
 

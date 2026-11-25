@@ -861,7 +861,7 @@ function checkStart(room) {
 }
 
 function setPhase(room, phase) {
-  room.phase = phase;
+  room.phase = phase; if (room.hp && (phase === 'lobby' || /over$/.test(phase))) room.hp = null;
   room.seq++;
   clearTimeout(room.timer);
   room.endsAt = 0;
@@ -900,7 +900,7 @@ function view(room, p) {
     return o;
   });
   const v = {
-    t: 'state', apaused: !!room.apaused, game: room.game, now: Date.now(), code: room.code, phase: room.phase, round: room.round,
+    t: 'state', apaused: !!room.apaused, hp: room.hp ? 1 : 0, game: room.game, now: Date.now(), code: room.code, phase: room.phase, round: room.round,
     settings: room.settings, endsAt: room.endsAt, plan: plan(room), players,
     history: room.history, tie: room.tie, lastElim: room.lastElim, guess: room.guess, whiteId: room.whiteId,
     winner: over ? room.winner : null, pair: over ? room.pair : null,
@@ -1811,8 +1811,14 @@ function z8View(room, p) {
   if (pick) o.last = z.last && z.round > 1 ? { prev: true, avg: z.last.avg, target: z.last.target, mult: z.last.mult } : null;
   return o;
 }
-function z8Clear(z) { if (z && z.timers) { z.timers.forEach(clearTimeout); z.timers = []; } }
-function z8Later(room, z, ms, fn) { const t = setTimeout(() => { if (room.z8 !== z || !rooms.has(room.code)) return; fn(); }, ms); z.timers.push(t); }
+function z8Clear(z) { if (z && z.timers) { z.timers.forEach(clearTimeout); z.timers = []; z.sched = []; } }
+function z8Later(room, z, ms, fn) { const e = { fn, due: Date.now() + ms, done: false, t: null }; e.t = setTimeout(() => { e.done = true; if (room.z8 !== z || !rooms.has(room.code)) return; fn(); }, ms); z.timers.push(e.t); (z.sched = z.sched || []).push(e); }
+function z8Pause(room) { const z = room.z8; if (!z) return; const n = Date.now(); (z.sched || []).forEach((e) => { if (!e.done) { clearTimeout(e.t); e.left = Math.max(0, e.due - n); } }); }
+function z8Resume(room, d) {
+  const z = room.z8; if (!z) return; z.ends = (z.ends || 0) + d;
+  const list = (z.sched || []).filter((e) => !e.done); z.sched = []; z.timers = [];
+  list.forEach((e) => z8Later(room, z, e.left == null ? 0 : e.left, e.fn));
+}
 function z8Start(room) {
   const hs = rkHumans(room), st = Object.assign({}, Z8DEF, room.z8Set || {});
   const nb = Math.max(0, Math.min(16 - hs.length, st.bots | 0)); if (hs.length + nb < 2) return 'Need at least 2 players (add a bot)';
@@ -2876,6 +2882,7 @@ function handle(ws, m) {
   const room = ctx && rooms.get(ctx.code);
   const p = room && room.players.get(ctx.pid);
   if (!p) return;
+  if (room.hp && !['leave', 'chat', 'vjoin', 'vleave', 'vsig', 'photo', 'react', 'typing', 'hpause', 'ping'].includes(m.t)) return; // host paused: nothing else moves
   if (room.apaused && !['leave', 'chat', 'vjoin', 'vleave', 'vsig', 'photo', 'react', 'typing'].includes(m.t)) { if (m.t !== 'bin' && m.t !== 'bst' && m.t !== 'kin' && m.t !== 'kst' && m.t !== 'mbin' && m.t !== 'mbst' && m.t !== 'crin' && m.t !== 'crst' && m.t !== 'lzin' && m.t !== 'lzst' && m.t !== 'ltin' && m.t !== 'ltst' && m.t !== 'rpos' && m.t !== 'rprog' && m.t !== 'ckpos' && m.t !== 'dop') errTo(ws, '⏸ Paused by the admin'); return; }
   const isHost = p.id === room.hostId;
   const hostOnly = () => { if (!isHost) { errTo(ws, 'Only the host can do that'); return false; } return true; };
@@ -3076,6 +3083,13 @@ function handle(ws, m) {
     case 'flobby':
       if (!hostOnly() || room.game !== 'football' || !['fover', 'faim', 'fplay', 'pkaim', 'pkshow'].includes(room.phase)) return;
       return fbBack(room);
+    case 'hpause': { // host pause for every game that has no pause of its own
+      if (!hostOnly()) return;
+      if (room.phase === 'lobby' || /over$/.test(room.phase)) return;
+      if (room.hp) { const d = Date.now() - room.hp.at; room.hp = null; if (room.z8) z8Resume(room, d); notice(room, '▶️ Game resumed'); }
+      else { room.hp = { at: Date.now() }; if (room.z8) z8Pause(room); notice(room, '⏸ Game paused by the host'); }
+      return broadcast(room);
+    }
     case 'fpause': {
       if (!hostOnly() || room.game !== 'football' || room.phase !== 'faim' || !room.fb || room.fb.paused) return;
       clearTimeout(room.timer); room.fb.paused = { left: room.endsAt ? Math.max(1500, room.endsAt - Date.now()) : 3000 }; room.endsAt = 0;
@@ -3646,6 +3660,15 @@ function handle(ws, m) {
     case 'vis':
       p.hidden = !!m.hidden;
       return;
+    case 'rename': { // change my display name while we are still in the lobby
+      if (room.phase !== 'lobby') return;
+      const n = clean(m.name, 14); if (!n || n === p.name) return;
+      if (Date.now() - (p.renameAt || 0) < 2000) return errTo(ws, 'Slow down');
+      if ([...room.players.values()].some((q) => q !== p && !q.left && norm(q.name) === norm(n))) return errTo(ws, 'That name is taken in this lobby');
+      p.renameAt = Date.now(); p.name = n; broadcast(room);
+      if (p.photo) for (const q of room.players.values()) if (q.ws && q.connected) send(q.ws, { t: 'photo', name: p.name, data: p.photo });
+      return;
+    }
     case 'photo': { // session profile photo: kept in memory for this lobby only, never saved
       const d = m.data;
       if (d !== null && (typeof d !== 'string' || !/^data:image\/(jpeg|webp|png);base64,[A-Za-z0-9+/=]+$/.test(d) || d.length > 16000)) return errTo(ws, 'Photo too big');
@@ -3708,6 +3731,7 @@ function handle(ws, m) {
     case 'chat': {
       const s = room.settings, now = Date.now();
       if (!s.chat) return errTo(ws, 'Chat is off');
+      if (room.game === 'undercover') return errTo(ws, 'Chat is off in Undercover');
       if (room.game === 'draw' && room.phase !== 'lobby' && room.phase !== 'dover') return errTo(ws, 'Use the guess box');
       if (room.game === 'undercover' && !['lobby', 'vote', 'elim', 'over'].includes(room.phase)) return errTo(ws, 'Chat opens during the discussion');
       if (p.watch && room.game === 'undercover' && room.phase !== 'lobby' && room.phase !== 'over') return errTo(ws, '👀 You can see the words, so chat opens for you after this game');
