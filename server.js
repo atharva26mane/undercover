@@ -1669,7 +1669,7 @@ function backToLobby(room) {
 }
 
 // ---------------------------------------------------------------- Match Day (real-life scorer + tournament)
-const MDDEF = { sport: 'tt', target: 11, winBy2: true, cap: 0, bestOf: 3, size: 1, upTo: 'final', toss: true };
+const MDDEF = { mode: 'knock', sport: 'tt', target: 11, winBy2: true, cap: 0, bestOf: 3, size: 1, upTo: 'final', toss: true };
 const MD_SPORT = { tt: { target: 11, winBy2: true, cap: 0 }, bd: { target: 21, winBy2: true, cap: 30 }, vb: { target: 25, winBy2: true, cap: 0 }, custom: {} };
 function mdCfg(room) { return room.mdSet || (room.mdSet = Object.assign({}, MDDEF)); }
 function mdSt(room) { return room.md || (room.md = { guests: [], teams: [], rounds: null, R: 0, play: 0, nid: 1, ended: false, champ: null, quals: [] }); }
@@ -1739,8 +1739,17 @@ function mdFlags(m) {
   return f;
 }
 function mdPeopleName(room, id) { const q = mdPeople(room).find((x) => x.id === id); return q ? q.name : ''; }
+function mdMatch(room, a, b) {
+  const md = mdSt(room);
+  return { id: 'f' + (md.nid++), r: 0, i: md.rounds[0].length, a, b, status: 'ready', bye: false, sup: null, rule: md.rule, hist: [], games: [], wins: { a: 0, b: 0 }, cur: { a: 0, b: 0 }, firsts: [null], first0: null, toss: null, winSide: null, winner: null };
+}
+function mdRule(set) {
+  return { target: set.target, winBy2: !!set.winBy2, cap: set.cap | 0, bestOf: set.bestOf, serve: set.sport === 'tt' ? 'two' : set.sport === 'bd' || set.sport === 'vb' ? 'rally' : 'none', change: set.sport === 'tt' ? 5 : set.sport === 'bd' ? 11 : Math.ceil(set.target / 2) };
+}
 function mdBuildTour(room) {
   const md = mdSt(room), set = mdCfg(room);
+  if (set.mode === 'friendly') { md.friendly = true; md.rule = mdRule(set); md.rounds = [[]]; md.R = 1; md.play = 1; md.ended = false; md.champ = null; md.quals = []; return; }
+  md.friendly = false;
   const ids = shuffle(md.teams.map((t) => t.id)), n = ids.length;
   let P = 2; while (P < n) P *= 2; const R = Math.log2(P);
   const rule = { target: set.target, winBy2: !!set.winBy2, cap: set.cap | 0, bestOf: set.bestOf, serve: set.sport === 'tt' ? 'two' : set.sport === 'bd' || set.sport === 'vb' ? 'rally' : 'none',
@@ -1765,7 +1774,7 @@ function mdAdvance(md, m) {
   nx[slot] = m.winner; if (nx.a && nx.b && nx.status === 'wait') nx.status = 'ready';
 }
 function mdCheckEnd(room) {
-  const md = mdSt(room); if (!md.rounds) return;
+  const md = mdSt(room); if (!md.rounds || md.friendly) return;
   const all = []; for (let r = 0; r < md.play; r++) md.rounds[r].forEach((m) => all.push(m));
   const done = all.every((m) => m.status === 'done');
   md.ended = done;
@@ -1774,6 +1783,7 @@ function mdCheckEnd(room) {
     if (room.phase === 'mdplay') setPhase(room, 'mdover');
   } else { md.champ = null; md.quals = []; if (room.phase === 'mdover') setPhase(room, 'mdplay'); }
 }
+function mdTeamName(room, id) { const t = mdSt(room).teams.find((x) => x.id === id); return t ? t.name : '?'; }
 function mdFindMatch(room, id) { const md = mdSt(room); if (!md.rounds) return null; for (const row of md.rounds) for (const m of row) if (m.id === id) return m; return null; }
 function mdDefaultSup(room, m) {
   const md = mdSt(room), on = new Set();
@@ -1786,10 +1796,10 @@ function mdDefaultSup(room, m) {
 function mdView(room, p) {
   const md = mdSt(room), set = mdCfg(room), ppl = mdPeople(room);
   const placed = new Set(); md.teams.forEach((t) => t.members.forEach((q) => placed.add(q.id)));
-  const v = { set, people: room.phase === 'lobby' ? ppl : [], teams: md.teams, free: room.phase === 'lobby' ? ppl.filter((q) => !placed.has(q.id)).map((q) => q.id) : [], tour: null };
+  const v = { friendly: !!md.friendly, set, people: room.phase === 'lobby' ? ppl : [], teams: md.teams, free: room.phase === 'lobby' ? ppl.filter((q) => !placed.has(q.id)).map((q) => q.id) : [], tour: null };
   if (md.rounds) {
     v.tour = { R: md.R, play: md.play, ended: md.ended, champ: md.champ, quals: md.quals,
-      rounds: md.rounds.slice(0, md.play).map((row, r) => ({ name: mdRoundName(md.R, r), ms: row.map((m) => ({ id: m.id, a: m.a, b: m.b, st: m.status, bye: m.bye, sup: m.sup, supName: m.sup ? mdPeopleName(room, m.sup) : '', games: m.games, cur: m.cur, wins: m.wins, win: m.winner, ws: m.winSide, serve: m.status === 'live' ? mdServer(m) : null, fl: m.status === 'live' ? mdFlags(m) : {}, toss: m.toss, rule: m.rule, n: m.hist.length })) })) };
+      rounds: md.rounds.slice(0, md.play).map((row, r) => ({ name: md.friendly ? 'Matches' : mdRoundName(md.R, r), ms: row.map((m) => ({ id: m.id, a: m.a, b: m.b, st: m.status, bye: m.bye, sup: m.sup, supName: m.sup ? mdPeopleName(room, m.sup) : '', games: m.games, cur: m.cur, wins: m.wins, win: m.winner, ws: m.winSide, serve: m.status === 'live' ? mdServer(m) : null, fl: m.status === 'live' ? mdFlags(m) : {}, toss: m.toss, rule: m.rule, n: m.hist.length })) })) };
   }
   return v;
 }
@@ -3465,6 +3475,7 @@ function handle(ws, m) {
       if ([1, 3, 5, 7].includes(m.bestOf)) s.bestOf = m.bestOf;
       if (Number.isInteger(m.size) && m.size >= 1 && m.size <= 6) { s.size = m.size; mdBuildTeams(room); }
       if (['final', 'semi', 'quarter', 'r16'].includes(m.upTo)) s.upTo = m.upTo;
+      if (m.mode === 'knock' || m.mode === 'friendly') s.mode = m.mode;
       if (typeof m.toss === 'boolean') s.toss = m.toss;
       return broadcast(room);
     }
@@ -3503,6 +3514,27 @@ function handle(ws, m) {
       if (md.teams.length < 2) return errTo(ws, 'Need at least 2 teams');
       mdBuildTour(room); setPhase(room, 'mdplay'); return mdAfterChange(room);
     }
+    case 'mdnew': { // friendly mode: make a match (two chosen teams, or a random pair)
+      if (!hostOnly() || room.game !== 'matchday' || room.phase !== 'mdplay') return;
+      const md = mdSt(room); if (!md.friendly) return;
+      if (md.rounds[0].length >= 80) return errTo(ws, 'Too many matches. Start a new session.');
+      const busy = new Set(); md.rounds[0].forEach((x) => { if (x.status === 'live' || x.status === 'ready') { busy.add(x.a); busy.add(x.b); } });
+      let a = m.a, b = m.b;
+      if (m.random) {
+        const played = {}; md.teams.forEach((t) => { played[t.id] = 0; }); md.rounds[0].forEach((x) => { if (x.status === 'done') { played[x.a]++; played[x.b]++; } });
+        const pool = shuffle(md.teams.filter((t) => !busy.has(t.id))).sort((x, y) => played[x.id] - played[y.id]);
+        if (pool.length < 2) return errTo(ws, 'No two free teams right now');
+        a = pool[0].id; b = pool[1].id;
+      }
+      if (!md.teams.some((t) => t.id === a) || !md.teams.some((t) => t.id === b) || a === b) return errTo(ws, 'Pick two different teams');
+      if (busy.has(a) || busy.has(b)) return errTo(ws, 'One of those teams is already in a match');
+      md.rounds[0].push(mdMatch(room, a, b)); return broadcast(room);
+    }
+    case 'mdcancel': {
+      if (!hostOnly() || room.game !== 'matchday' || room.phase !== 'mdplay') return;
+      const md = mdSt(room); if (!md.friendly) return;
+      md.rounds[0] = md.rounds[0].filter((x) => !(x.id === m.mid && x.status === 'ready')); md.rounds[0].forEach((x, i) => { x.i = i; }); return broadcast(room);
+    }
     case 'mdlobby': {
       if (!hostOnly() || room.game !== 'matchday' || room.phase === 'lobby') return;
       const md = mdSt(room); md.rounds = null; md.ended = false; md.champ = null; md.quals = [];
@@ -3515,6 +3547,7 @@ function handle(ws, m) {
       const set = mdCfg(room);
       mt.sup = (typeof m.sup === 'string' && (mdPeople(room).some((q) => q.id === m.sup && !q.g))) ? m.sup : mdDefaultSup(room, mt);
       mt.status = 'live';
+      notice(room, '🔴 Now playing: ' + mdTeamName(room, mt.a) + ' vs ' + mdTeamName(room, mt.b) + (mdSt(room).friendly ? '' : ' (' + mdRoundName(mdSt(room).R, mt.r) + ')'));
       if (mt.rule.serve === 'none') mt.first0 = null;
       else { const w = set.toss ? (crypto.randomInt(2) ? 'a' : 'b') : 'a'; mt.toss = set.toss ? { win: w } : null; mt.first0 = w; }
       mdReplay(mt); return mdAfterChange(room);

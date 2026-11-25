@@ -6556,6 +6556,10 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
 .mdgames{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:10px}
 .mdg{border:2px solid #1d1147;border-radius:999px;padding:3px 10px;font-size:13px;background:#fff;color:#1d1147}
 .mdsel{width:100%;padding:12px;border-radius:12px;border:3px solid #1d1147;font:800 15px 'Nunito',system-ui,sans-serif;background:#fff;color:#1d1147}
+.mdnow{display:block;width:100%;text-align:left;margin:0 0 10px;padding:10px 12px;border-radius:16px;border:3px solid #1d1147;background:#ff4d5e;color:#fff;font-family:'Nunito',system-ui,sans-serif}
+.mdnow b{display:block;font-size:17px}
+.mdnl{font-size:11px;font-weight:900;letter-spacing:.06em;opacity:.9}
+.mdns{font-size:12.5px;font-weight:700;opacity:.95}
 .mdchamp{text-align:center}
 .mdtrophy{font-size:64px;line-height:1.1}
 .hx-art.k-md{aspect-ratio:464/150}
@@ -7842,6 +7846,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
       var freeEls = M.free.length ? h('div', { class: 'mdteam warn' }, h('div', { class: 'mdth' }, h('b', null, '⚠️ Not in a team yet')), h('div', { class: 'mdmems' }, M.free.map(function (id) { var q = M.people.filter(function (x) { return x.id === id; })[0]; return h('button', { type: 'button', class: 'mdchip pk' + (sel === id ? ' sel' : ''), disabled: !host, onclick: function () { pick(id); } }, q ? q.name : '?'); })), host ? h('p', { class: 'mdmute' }, 'Tap Shuffle, or tap a name and then a team.') : null) : null;
       var big = M.people.length >= 2;
       fill(box,
+        seg('🎯 Format', st.mode === 'friendly' ? 'Friendly: no bracket. The host creates matches one by one, random or picked.' : 'Tournament: knockout bracket with a champion.', [['knock', '🏆 Tournament'], ['friendly', '🎲 Friendly matches']], st.mode || 'knock', function (v) { send({ t: 'mdset', mode: v }); }),
         seg('🏅 Sport', 'Sets the points to win, then you can tweak.', MD_SPORTS.map(function (s) { return [s[0], s[1] + ' ' + s[2]]; }), st.sport, function (v) { send({ t: 'mdset', sport: v }); }),
         h('div', { class: 'card' }, h('h2', null, '📏 Rules'),
           h('div', { class: 'mdrow' }, h('span', null, 'Points to win a game'), h('div', { class: 'mdstep' }, h('button', { type: 'button', disabled: !host, onclick: function () { send({ t: 'mdset', target: Math.max(3, st.target - 1) }); } }, '−'), h('b', null, String(st.target)), h('button', { type: 'button', disabled: !host, onclick: function () { send({ t: 'mdset', target: Math.min(99, st.target + 1) }); } }, '+'))),
@@ -7852,18 +7857,18 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
           host ? h('div', { class: 'mdadd' }, addIn, h('button', { type: 'button', class: 'btn', onclick: doAdd }, 'Add')) : h('p', { class: 'mdmute' }, 'The host adds friends who do not have a phone.'),
           h('p', { class: 'mdmute' }, '📱 on a phone · ✍️ added by the host')),
         seg('🧑‍🤝‍🧑 People per team', '1 = singles, 2 = doubles. Odd numbers are shared out as evenly as possible.', [[1, '1'], [2, '2'], [3, '3'], [4, '4'], [5, '5'], [6, '6']], st.size, function (v) { send({ t: 'mdset', size: v }); }),
-        h('div', { class: 'card' }, h('h2', null, '🎲 Teams (' + nTeams + ')'), teamEls, freeEls,
+        h('div', { class: 'card' }, h('h2', null, '🎲 Teams (' + nTeams + ')'), h('p', { class: 'mdmute' }, 'Shuffle for random teams, or arrange them by hand (no shuffle needed).'), teamEls, freeEls,
           host ? h('button', { type: 'button', class: 'btn', style: 'width:100%;margin-top:8px', onclick: function () { sel = null; send({ t: 'mdteams', op: 'shuffle' }); } }, '🎲 Shuffle teams') : null,
           host && nTeams > 1 ? h('p', { class: 'mdmute' }, 'Tap two names to swap them, or tap a name then “Move here”.') : null),
-        nTeams > 1 ? seg('🏆 How far to play', R + ' round' + (R > 1 ? 's' : '') + ' for ' + nTeams + ' teams. Stop early if you are short on time.', upOpts, upCur, function (v) { send({ t: 'mdset', upTo: v }); }) : null,
+        nTeams > 1 && st.mode !== 'friendly' ? seg('🏆 How far to play', R + ' round' + (R > 1 ? 's' : '') + ' for ' + nTeams + ' teams. Stop early if you are short on time.', upOpts, upCur, function (v) { send({ t: 'mdset', upTo: v }); }) : null,
         h('div', { class: 'card' }, tog('🪙 Toss before each match', 'A coin flip decides who serves first.', st.toss, function () { send({ t: 'mdset', toss: !st.toss }); })),
-        host ? h('button', { class: 'btn primary', type: 'button', disabled: !big || nTeams < 2 || M.free.length > 0, onclick: function () { send({ t: 'mdstart' }); } }, nTeams < 2 ? 'Need 2 or more teams' : '🏆 Start tournament') : h('p', { class: 'mdmute center' }, 'Waiting for the host to start…'));
+        host ? h('button', { class: 'btn primary', type: 'button', disabled: !big || nTeams < 2 || M.free.length > 0, onclick: function () { send({ t: 'mdstart' }); } }, nTeams < 2 ? 'Need 2 or more teams' : st.mode === 'friendly' ? '🎲 Start matches' : '🏆 Start tournament') : h('p', { class: 'mdmute center' }, 'Waiting for the host to start…'));
     }
     return { root: root, update: paint };
   };
   screens.mdgame = function () {
-    var root = h('div', { class: 'md' }), top = h('div'), live = h('div'), br = h('div', { class: 'mdbr' }), foot = h('div');
-    root.appendChild(top); root.appendChild(live); root.appendChild(br); root.appendChild(foot);
+    var root = h('div', { class: 'md' }), top = h('div'), np = h('div'), live = h('div'), br = h('div', { class: 'mdbr' }), foot = h('div');
+    root.appendChild(top); root.appendChild(np); root.appendChild(live); root.appendChild(br); root.appendChild(foot);
     var open = null, auto = {};
     function allMatches() { var T = S.md.tour, out = []; T.rounds.forEach(function (r, ri) { r.ms.forEach(function (m) { m.rn = r.name; m.ri = ri; out.push(m); }); }); return out; }
     function findM(id) { var a = allMatches(); for (var i = 0; i < a.length; i++) if (a[i].id === id) return a[i]; return null; }
@@ -7919,23 +7924,50 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
           wrap.appendChild(h('p', { class: 'mdmute center' }, 'The supervisor is the person who adds the points. Anyone with a phone can do it.'));
           wrap.appendChild(sl);
           wrap.appendChild(h('button', { type: 'button', class: 'btn primary', style: 'width:100%;margin-top:10px', onclick: function () { send({ t: 'mdbegin', mid: m.id, sup: sl.value || undefined }); } }, S.md.set.toss ? '🪙 Toss & start match' : '▶ Start match'));
+          if (S.md.friendly) wrap.appendChild(h('button', { type: 'button', class: 'btn', style: 'width:100%;margin-top:8px', onclick: function () { open = null; send({ t: 'mdcancel', mid: m.id }); } }, '🗑 Cancel this match'));
         } else wrap.appendChild(h('p', { class: 'mdmute center' }, '⏳ Waiting for the host to start this match.'));
       }
       if (m.games.length) wrap.appendChild(h('div', { class: 'mdgames' }, m.games.map(function (g, i) { return h('span', { class: 'mdg' }, 'G' + (i + 1) + ' ', h('b', null, g[0] + '–' + g[1])); })));
       if (m.st === 'done' && !m.bye) { wrap.appendChild(h('div', { class: 'mdflag win' }, '🏆 ' + mdTn(m.win) + ' won ' + m.wins.a + '–' + m.wins.b)); if (can) wrap.appendChild(h('button', { type: 'button', class: 'btn', style: 'width:100%;margin-top:8px', onclick: function () { send({ t: 'mdundo', mid: m.id }); } }, '↩ Undo last point (wrong result?)')); }
       return wrap;
     }
+    var selA = null, selB = null, lastN = -1;
+    function friendlyPaint(M, T, all, om) {
+      if (lastN >= 0 && all.length > lastN) { var nw = all[all.length - 1]; if (nw.st === 'ready' && S.me.host) { open = nw.id; om = nw; } }
+      lastN = all.length;
+      if (om) { fill(live, detail(om)); fill(br); fill(foot); return; }
+      var teams = M.teams, busy = {}; all.forEach(function (m) { if (m.st === 'live' || m.st === 'ready') { busy[m.a] = 1; busy[m.b] = 1; } });
+      function sel(cur, set) { return h('select', { class: 'mdsel', 'aria-label': 'Team', onchange: function (e) { set(e.target.value); } }, h('option', { value: '' }, 'Pick a team'), teams.map(function (t) { return h('option', { value: t.id, selected: cur === t.id }, t.name + (busy[t.id] ? ' (busy)' : '')); })); }
+      var rd = all.filter(function (m) { return m.st === 'ready'; });
+      var stand = {}; teams.forEach(function (t) { stand[t.id] = { id: t.id, w: 0, l: 0, pf: 0, pa: 0 }; });
+      all.forEach(function (m) { if (m.st !== 'done') return; var wa = m.ws === 'a'; stand[m.a].w += wa ? 1 : 0; stand[m.a].l += wa ? 0 : 1; stand[m.b].w += wa ? 0 : 1; stand[m.b].l += wa ? 1 : 0; m.games.forEach(function (g) { stand[m.a].pf += g[0]; stand[m.a].pa += g[1]; stand[m.b].pf += g[1]; stand[m.b].pa += g[0]; }); });
+      var rows = Object.keys(stand).map(function (k) { return stand[k]; }).sort(function (x, y) { return (y.w - x.w) || ((y.pf - y.pa) - (x.pf - x.pa)); });
+      var done = all.filter(function (m) { return m.st === 'done'; }).reverse();
+      fill(live,
+        S.me.host ? h('div', { class: 'card' }, h('h2', null, '➕ New match'),
+          h('button', { type: 'button', class: 'btn primary', style: 'width:100%', onclick: function () { send({ t: 'mdnew', random: true }); } }, '🎲 Random match'),
+          h('p', { class: 'mdmute center' }, 'or pick the two teams yourself'), sel(selA, function (v) { selA = v || null; }), h('div', { style: 'height:8px' }), sel(selB, function (v) { selB = v || null; }),
+          h('button', { type: 'button', class: 'btn', style: 'width:100%;margin-top:8px', onclick: function () { if (!selA || !selB) return toast('Pick two teams'); send({ t: 'mdnew', a: selA, b: selB }); } }, 'Create match')) : h('div', { class: 'card' }, h('p', { class: 'mdmute center' }, 'The host creates the next match.')),
+        rd.length ? h('div', { class: 'card' }, h('h2', null, '⏭ Ready to start'), h('div', { class: 'mdlist' }, rd.map(function (m) { return card(m); }))) : null,
+        done.length ? h('div', { class: 'card' }, h('h2', null, '✔ Results'), h('div', { class: 'mdlist' }, done.map(function (m) { return card(m); }))) : null,
+        done.length ? h('div', { class: 'card' }, h('h2', null, '📊 Standings'), rows.map(function (r, i) { return h('div', { class: 'mdrow' }, h('span', null, (i + 1) + '. ' + mdTn(r.id)), h('b', null, r.w + 'W ' + r.l + 'L · ' + (r.pf - r.pa >= 0 ? '+' : '') + (r.pf - r.pa))); })) : null);
+      fill(br);
+      fill(foot, S.me.host ? h('button', { type: 'button', class: 'btn', style: 'width:100%', onclick: function () { if (confirm('End this session and go back to the lobby?')) send({ t: 'mdlobby' }); } }, '🏁 End session') : null);
+    }
     function paint() {
       var M = S.md, T = M.tour; if (!T) return;
       var all = allMatches(), om = open ? findM(open) : null;
       all.forEach(function (m) { if (m.st === 'live' && m.sup === S.me.id && !auto[m.id]) { auto[m.id] = 1; if (!open) { open = m.id; om = m; } } });
       fill(top, h('div', { class: 'mdtop' }, h('b', null, M.set.sport === 'bd' ? '🏸 Badminton' : M.set.sport === 'tt' ? '🏓 Table tennis' : M.set.sport === 'vb' ? '🏐 Volleyball' : '🎯 Match Day'), h('span', null, M.teams.length + ' teams · ' + T.play + ' round' + (T.play > 1 ? 's' : ''))));
+      var lvAll = all.filter(function (m) { return m.st === 'live' && (!om || m.id !== om.id); });
+      fill(np, lvAll.map(function (m) { return h('button', { type: 'button', class: 'mdnow', onclick: function () { open = m.id; paint(); } }, h('span', { class: 'mdnl' }, '🔴 NOW PLAYING'), h('b', null, mdTn(m.a) + ' vs ' + mdTn(m.b)), h('span', { class: 'mdns' }, (M.friendly ? '' : m.rn + ' · ') + m.cur.a + '–' + m.cur.b + (m.wins.a + m.wins.b ? ' · games ' + m.wins.a + '–' + m.wins.b : '') + (m.supName ? ' · 📋 ' + m.supName : ''))); }));
+      if (M.friendly) { friendlyPaint(M, T, all, om); return; }
       if (S.phase === 'mdover' && !om) {
         var ch = T.champ ? mdTeam(T.champ) : null;
         fill(live, h('div', { class: 'card mdchamp' }, ch ? h('div', null, h('div', { class: 'mdtrophy' }, '🏆'), h('h2', null, ch.name), h('p', null, mdMem(ch)), h('p', { class: 'mdmute' }, 'Champions!')) : h('div', null, h('div', { class: 'mdtrophy' }, '🎖️'), h('h2', null, 'Qualified'), T.quals.map(function (id) { var t = mdTeam(id); return h('p', null, h('b', null, t ? t.name : '?'), ' · ', mdMem(t)); }), h('p', { class: 'mdmute' }, 'These teams go through to the next stage.'))));
       } else if (om) { fill(live, detail(om)); } else {
-        var lv = all.filter(function (m) { return m.st === 'live'; }), rd = all.filter(function (m) { return m.st === 'ready' && !m.bye; }).slice(0, 4);
-        fill(live, lv.length ? h('div', { class: 'card' }, h('h2', null, '🔴 Live now'), h('div', { class: 'mdlist' }, lv.map(card))) : null, rd.length ? h('div', { class: 'card' }, h('h2', null, '⏭ Up next'), h('div', { class: 'mdlist' }, rd.map(card))) : null);
+        var rd = all.filter(function (m) { return m.st === 'ready' && !m.bye; }).slice(0, 4);
+        fill(live, rd.length ? h('div', { class: 'card' }, h('h2', null, '⏭ Up next'), h('div', { class: 'mdlist' }, rd.map(card))) : null);
       }
       if (om) fill(br); else fill(br, h('div', { class: 'card' }, h('h2', null, '🗂 Bracket'), h('div', { class: 'mdcols2' }, T.rounds.map(function (r) { return h('div', { class: 'mdround' }, h('div', { class: 'mdrn' }, r.name), r.ms.map(card)); }))));
       fill(foot, S.me.host ? h('button', { type: 'button', class: 'btn', style: 'width:100%', onclick: function () { if (S.phase === 'mdover' || confirm('End the tournament and go back to the lobby?')) send({ t: 'mdlobby' }); } }, S.phase === 'mdover' ? '🔁 New tournament' : '🏁 End tournament') : null);
