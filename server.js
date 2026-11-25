@@ -1678,13 +1678,14 @@ function mdPeople(room) {
   for (const g of mdSt(room).guests) out.push({ id: g.id, name: g.name, g: true }); return out;
 }
 function mdLetter(i) { return i < 26 ? String.fromCharCode(65 + i) : String(i + 1); }
+function mdAutoName(t) { if (!t.auto || !t.members.length) return; t.name = t.members.length === 1 ? t.members[0].name : 'Team ' + t.members[0].name; } // the first member is the captain
 function mdBuildTeams(room) {
   const md = mdSt(room), set = mdCfg(room), ppl = shuffle(mdPeople(room)), size = Math.max(1, Math.min(6, set.size | 0));
   const n = ppl.length; if (!n) { md.teams = []; return; }
   const nt = Math.max(1, Math.ceil(n / size)), ts = [];
   for (let i = 0; i < nt; i++) ts.push({ id: 't' + (md.nid++), name: '', members: [] });
   ppl.forEach((q, i) => ts[i % nt].members.push({ id: q.id, name: q.name }));
-  ts.forEach((t, i) => { t.name = size === 1 ? t.members[0].name : 'Team ' + mdLetter(i); });
+  ts.forEach((t) => { t.auto = true; mdAutoName(t); });
   md.teams = ts;
 }
 function mdSync(room) { // lobby only: drop people who left from the teams
@@ -1799,7 +1800,7 @@ function mdView(room, p) {
   const v = { friendly: !!md.friendly, set, people: room.phase === 'lobby' ? ppl : [], teams: md.teams, free: room.phase === 'lobby' ? ppl.filter((q) => !placed.has(q.id)).map((q) => q.id) : [], tour: null };
   if (md.rounds) {
     v.tour = { R: md.R, play: md.play, ended: md.ended, champ: md.champ, quals: md.quals,
-      rounds: md.rounds.slice(0, md.play).map((row, r) => ({ name: md.friendly ? 'Matches' : mdRoundName(md.R, r), ms: row.map((m) => ({ id: m.id, a: m.a, b: m.b, st: m.status, bye: m.bye, sup: m.sup, supName: m.sup ? mdPeopleName(room, m.sup) : '', games: m.games, cur: m.cur, wins: m.wins, win: m.winner, ws: m.winSide, serve: m.status === 'live' ? mdServer(m) : null, fl: m.status === 'live' ? mdFlags(m) : {}, toss: m.toss, rule: m.rule, n: m.hist.length })) })) };
+      rounds: md.rounds.slice(0, md.play).map((row, r) => ({ name: md.friendly ? 'Matches' : mdRoundName(md.R, r), ms: row.map((m) => ({ id: m.id, a: m.a, b: m.b, st: m.status, bye: m.bye, sup: m.sup, supName: m.sup ? mdPeopleName(room, m.sup) : '', games: m.games, cur: m.cur, wins: m.wins, win: m.winner, ws: m.winSide, go: m.status === 'live' ? !!m.go : true, first: m.first0 || null, serve: m.status === 'live' && m.go ? mdServer(m) : null, fl: m.status === 'live' ? mdFlags(m) : {}, toss: m.toss, rule: m.rule, n: m.hist.length })) })) };
   }
   return v;
 }
@@ -3497,13 +3498,14 @@ function handle(ws, m) {
       else if (m.op === 'swap') {
         let ta, tb, ia = -1, ib = -1;
         md.teams.forEach((t) => t.members.forEach((q, i) => { if (q.id === m.a) { ta = t; ia = i; } if (q.id === m.b) { tb = t; ib = i; } }));
-        if (ta && tb && ta !== tb) { const x = ta.members[ia]; ta.members[ia] = tb.members[ib]; tb.members[ib] = x; }
+        if (ta && tb && ta !== tb) { const x = ta.members[ia]; ta.members[ia] = tb.members[ib]; tb.members[ib] = x; mdAutoName(ta); mdAutoName(tb); }
       } else if (m.op === 'move') { // move a person into another team (or into an unassigned slot of their own team)
         const to = md.teams.find((t) => t.id === m.tid); let from = null, who = null;
         md.teams.forEach((t) => t.members.forEach((q) => { if (q.id === m.a) { from = t; who = q; } }));
         const person = who || mdPeople(room).find((q) => q.id === m.a);
-        if (to && person && from !== to) { if (from) from.members = from.members.filter((q) => q.id !== m.a); to.members.push({ id: person.id, name: person.name }); md.teams = md.teams.filter((t) => t.members.length); }
-      } else if (m.op === 'rename') { const t = md.teams.find((x) => x.id === m.tid), nm = clean(m.name, 16); if (t && nm) t.name = nm; }
+        if (to && person && from !== to) { if (from) from.members = from.members.filter((q) => q.id !== m.a); to.members.push({ id: person.id, name: person.name }); md.teams = md.teams.filter((t) => t.members.length); md.teams.forEach(mdAutoName); }
+      } else if (m.op === 'rename') { const t = md.teams.find((x) => x.id === m.tid), nm = clean(m.name, 16); if (t && nm) { t.name = nm; t.auto = false; } }
+      else if (m.op === 'captain') { const t = md.teams.find((x) => x.id === m.tid), i = t ? t.members.findIndex((q) => q.id === m.a) : -1; if (i > 0) { const q = t.members.splice(i, 1)[0]; t.members.unshift(q); mdAutoName(t); } }
       return broadcast(room);
     }
     case 'mdstart': {
@@ -3546,7 +3548,7 @@ function handle(ws, m) {
       const mt = mdFindMatch(room, m.mid); if (!mt || mt.status !== 'ready') return;
       const set = mdCfg(room);
       mt.sup = (typeof m.sup === 'string' && (mdPeople(room).some((q) => q.id === m.sup && !q.g))) ? m.sup : mdDefaultSup(room, mt);
-      mt.status = 'live';
+      mt.status = 'live'; mt.go = !set.toss;
       notice(room, '🔴 Now playing: ' + mdTeamName(room, mt.a) + ' vs ' + mdTeamName(room, mt.b) + (mdSt(room).friendly ? '' : ' (' + mdRoundName(mdSt(room).R, mt.r) + ')'));
       if (mt.rule.serve === 'none') mt.first0 = null;
       else { const w = set.toss ? (crypto.randomInt(2) ? 'a' : 'b') : 'a'; mt.toss = set.toss ? { win: w } : null; mt.first0 = w; }
@@ -3559,14 +3561,19 @@ function handle(ws, m) {
       if (!mdPeople(room).some((q) => q.id === m.sup && !q.g)) return errTo(ws, 'Pick someone who is on a phone');
       mt.sup = m.sup; return broadcast(room);
     }
+    case 'mdgo': { // toss is done: show the 0-0 scoreboard and start playing
+      if (room.game !== 'matchday' || room.phase !== 'mdplay') return;
+      const mt = mdFindMatch(room, m.mid); if (!mt || mt.status !== 'live' || mt.go || (!isHost && mt.sup !== p.id)) return;
+      mt.go = true; return broadcast(room);
+    }
     case 'mdserve': { // before the first point: give the serve to the other side
       if (room.game !== 'matchday' || room.phase !== 'mdplay') return;
-      const mt = mdFindMatch(room, m.mid); if (!mt || mt.status !== 'live' || (!isHost && mt.sup !== p.id) || mt.hist.length || mt.rule.serve === 'none') return;
+      const mt = mdFindMatch(room, m.mid); if (!mt || mt.status !== 'live' || (!isHost && mt.sup !== p.id) || mt.hist.length || mt.go && mt.hist.length || mt.rule.serve === 'none') return;
       mt.first0 = (m.s === 'a' || m.s === 'b') ? m.s : mdOpp(mt.first0); mdReplay(mt); return broadcast(room);
     }
     case 'mdpt': {
       if (room.game !== 'matchday' || room.phase !== 'mdplay') return;
-      const mt = mdFindMatch(room, m.mid); if (!mt || mt.status !== 'live' || (!isHost && mt.sup !== p.id)) return;
+      const mt = mdFindMatch(room, m.mid); if (!mt || mt.status !== 'live' || !mt.go || (!isHost && mt.sup !== p.id)) return;
       if (m.s !== 'a' && m.s !== 'b') return;
       mt.hist.push(m.s); mdReplay(mt);
       if (mt.winSide) { mt.status = 'done'; mt.winner = mt.winSide === 'a' ? mt.a : mt.b; mdAdvance(mdSt(room), mt); }

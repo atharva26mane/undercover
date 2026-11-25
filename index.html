@@ -6537,6 +6537,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
 .mdcol.win{background:#fff3b8}
 .mdcn{font:900 17px 'Nunito',system-ui,sans-serif;word-break:break-word}
 .mdcm{font-size:11px;color:#6b6394;min-height:14px}
+.mdsc.rdy{font-size:34px;opacity:.35}
 .mdsc{font:900 64px/1.05 'Lilita One','Nunito',system-ui,sans-serif;margin:4px 0}
 .mdsv{font-size:12px;font-weight:800;min-height:16px;color:#e8384f}
 .mdpips{display:flex;gap:5px;justify-content:center;margin:4px 0 8px}
@@ -6560,6 +6561,27 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
 .mdnow b{display:block;font-size:17px}
 .mdnl{font-size:11px;font-weight:900;letter-spacing:.06em;opacity:.9}
 .mdns{font-size:12.5px;font-weight:700;opacity:.95}
+
+.mdmw{display:inline-flex;align-items:center;gap:2px}
+.mdchip.cap{background:#fff3b8}
+.mdcap{border:2px solid #1d1147;background:#fff;color:#1d1147;border-radius:50%;width:26px;height:26px;font-size:13px;line-height:1;padding:0}
+.mdmt{display:block;font-size:11px;font-weight:700;opacity:.7;margin-top:1px}
+.mdpcs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.mdpc{position:relative;text-align:left;padding:10px;border-radius:16px;border:3px solid var(--tc);background:#fff;color:#1d1147;font-family:'Nunito',system-ui,sans-serif;min-height:78px}
+.mdpc b{display:block;font-size:15px}
+.mdpc small{display:block;font-size:12px;font-weight:700;opacity:.75;margin-top:2px}
+.mdpc.on{background:#fff3b8;box-shadow:0 0 0 3px #7c4dff}
+.mdpc.busy{background:#eee;opacity:.65;border-style:dashed}
+.mdbz{display:block;margin-top:5px;font-size:11px;font-weight:900;color:#c0182e}
+.mdsl{position:absolute;top:-9px;right:8px;background:#7c4dff;color:#fff;border-radius:999px;padding:1px 8px;font-size:10px;font-weight:900}
+.mdtoss{text-align:center;padding:6px 0 4px}
+.mdcoin{font-size:84px;line-height:1;display:inline-block;animation:mdflip 1.4s ease-out 1}
+@keyframes mdflip{0%{transform:translateY(40px) rotateY(0)}40%{transform:translateY(-30px) rotateY(900deg)}100%{transform:translateY(0) rotateY(1800deg)}}
+.mdtl{font:900 13px 'Nunito',system-ui,sans-serif;letter-spacing:.18em;color:#6b6394;margin:4px 0 8px}
+.mdtw{border:3px solid var(--tc);border-radius:18px;padding:10px;background:#fff9dd}
+.mdtw h2{margin:0 0 4px;font-size:22px}
+.mdtw p{margin:2px 0}
+.mdsrvtxt{font-weight:900;margin:10px 0 0;font-size:16px}
 .mdchamp{text-align:center}
 .mdtrophy{font-size:64px;line-height:1.1}
 .hx-art.k-md{aspect-ratio:464/150}
@@ -7807,7 +7829,8 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
   function mdTeam(id) { var T = (S.md && S.md.teams) || []; for (var i = 0; i < T.length; i++) if (T[i].id === id) return T[i]; return null; }
   function mdTn(id) { var t = mdTeam(id); return t ? t.name : '—'; }
   function mdTc(id) { var T = (S.md && S.md.teams) || []; for (var i = 0; i < T.length; i++) if (T[i].id === id) return MD_COL[i % MD_COL.length]; return '#999'; }
-  function mdMem(t) { return t ? t.members.map(function (q) { return q.name; }).join(' & ') : ''; }
+  function mdMem(t) { return t ? t.members.map(function (q, i) { return (i === 0 && t.members.length > 1 ? '⭐' : '') + q.name; }).join(' & ') : ''; }
+  function mdSub(id) { var t = mdTeam(id); return t && t.members.length > 1 ? h('small', { class: 'mdmt' }, mdMem(t)) : null; }
   function mdCanScore(mt) { return !!(S && S.me && (S.me.host || mt.sup === S.me.id)); }
   screens.mdlobby = function () {
     var root = h('div', { class: 'md' }), box = h('div'), sel = null;
@@ -7841,7 +7864,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
       var teamEls = M.teams.map(function (t, i) {
         return h('div', { class: 'mdteam', style: '--tc:' + MD_COL[i % MD_COL.length] },
           h('div', { class: 'mdth' }, h('b', null, t.name), host ? h('button', { type: 'button', class: 'mdmini', 'aria-label': 'Rename team', onclick: function () { renameTeam(t); } }, '✎') : null, sel && host ? h('button', { type: 'button', class: 'mdmini go', onclick: function () { send({ t: 'mdteams', op: 'move', a: sel, tid: t.id }); sel = null; paint(); } }, 'Move here') : null),
-          h('div', { class: 'mdmems' }, t.members.map(function (q) { return h('button', { type: 'button', class: 'mdchip pk' + (sel === q.id ? ' sel' : ''), disabled: !host, onclick: function () { pick(q.id); } }, q.name); })));
+          h('div', { class: 'mdmems' }, t.members.map(function (q, qi) { return h('span', { class: 'mdmw' }, h('button', { type: 'button', class: 'mdchip pk' + (sel === q.id ? ' sel' : '') + (qi === 0 && t.members.length > 1 ? ' cap' : ''), disabled: !host, onclick: function () { pick(q.id); } }, (qi === 0 && t.members.length > 1 ? '⭐ ' : '') + q.name), host && qi > 0 ? h('button', { type: 'button', class: 'mdcap', 'aria-label': 'Make ' + q.name + ' captain', onclick: function () { send({ t: 'mdteams', op: 'captain', tid: t.id, a: q.id }); } }, '☆') : null); })));
       });
       var freeEls = M.free.length ? h('div', { class: 'mdteam warn' }, h('div', { class: 'mdth' }, h('b', null, '⚠️ Not in a team yet')), h('div', { class: 'mdmems' }, M.free.map(function (id) { var q = M.people.filter(function (x) { return x.id === id; })[0]; return h('button', { type: 'button', class: 'mdchip pk' + (sel === id ? ' sel' : ''), disabled: !host, onclick: function () { pick(id); } }, q ? q.name : '?'); })), host ? h('p', { class: 'mdmute' }, 'Tap Shuffle, or tap a name and then a team.') : null) : null;
       var big = M.people.length >= 2;
@@ -7857,7 +7880,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
           host ? h('div', { class: 'mdadd' }, addIn, h('button', { type: 'button', class: 'btn', onclick: doAdd }, 'Add')) : h('p', { class: 'mdmute' }, 'The host adds friends who do not have a phone.'),
           h('p', { class: 'mdmute' }, '📱 on a phone · ✍️ added by the host')),
         seg('🧑‍🤝‍🧑 People per team', '1 = singles, 2 = doubles. Odd numbers are shared out as evenly as possible.', [[1, '1'], [2, '2'], [3, '3'], [4, '4'], [5, '5'], [6, '6']], st.size, function (v) { send({ t: 'mdset', size: v }); }),
-        h('div', { class: 'card' }, h('h2', null, '🎲 Teams (' + nTeams + ')'), h('p', { class: 'mdmute' }, 'Shuffle for random teams, or arrange them by hand (no shuffle needed).'), teamEls, freeEls,
+        h('div', { class: 'card' }, h('h2', null, '🎲 Teams (' + nTeams + ')'), h('p', { class: 'mdmute' }, 'The first name in each team is the ⭐ captain (the team is named after them). Tap ☆ to change the captain. Shuffle for random teams or arrange by hand.'), teamEls, freeEls,
           host ? h('button', { type: 'button', class: 'btn', style: 'width:100%;margin-top:8px', onclick: function () { sel = null; send({ t: 'mdteams', op: 'shuffle' }); } }, '🎲 Shuffle teams') : null,
           host && nTeams > 1 ? h('p', { class: 'mdmute' }, 'Tap two names to swap them, or tap a name then “Move here”.') : null),
         nTeams > 1 && st.mode !== 'friendly' ? seg('🏆 How far to play', R + ' round' + (R > 1 ? 's' : '') + ' for ' + nTeams + ' teams. Stop early if you are short on time.', upOpts, upCur, function (v) { send({ t: 'mdset', upTo: v }); }) : null,
@@ -7876,9 +7899,9 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
       var cls = 'mdm ' + m.st + (m.bye ? ' bye' : '');
       var sa = m.st === 'live' ? String(m.cur.a) : m.st === 'done' && !m.bye ? String(m.wins.a) : '', sb = m.st === 'live' ? String(m.cur.b) : m.st === 'done' && !m.bye ? String(m.wins.b) : '';
       return h('button', { type: 'button', class: cls, disabled: m.st === 'wait' || m.bye, onclick: function () { open = m.id; paint(); } },
-        h('span', { class: 'mdmr' }, h('span', { class: m.ws === 'a' ? 'w' : '' }, m.a ? mdTn(m.a) : (m.st === 'wait' ? 'TBD' : 'BYE')), h('b', null, sa)),
-        h('span', { class: 'mdmr' }, h('span', { class: m.ws === 'b' ? 'w' : '' }, m.b ? mdTn(m.b) : (m.st === 'wait' ? 'TBD' : 'BYE')), h('b', null, sb)),
-        h('span', { class: 'mdms' }, m.st === 'live' ? '🔴 LIVE' : m.st === 'ready' ? (S.me.host ? '▶ Tap to start' : '⏳ Up next') : m.st === 'done' ? (m.bye ? 'bye' : '✔ done') : ''));
+        h('span', { class: 'mdmr' }, h('span', { class: m.ws === 'a' ? 'w' : '' }, m.a ? mdTn(m.a) : (m.st === 'wait' ? 'TBD' : 'BYE'), mdSub(m.a)), h('b', null, sa)),
+        h('span', { class: 'mdmr' }, h('span', { class: m.ws === 'b' ? 'w' : '' }, m.b ? mdTn(m.b) : (m.st === 'wait' ? 'TBD' : 'BYE'), mdSub(m.b)), h('b', null, sb)),
+        h('span', { class: 'mdms' }, m.st === 'live' ? (m.go ? '🔴 LIVE' : '🪙 Toss') : m.st === 'ready' ? (S.me.host ? '▶ Tap to start' : '⏳ Up next') : m.st === 'done' ? (m.bye ? 'bye' : '✔ done') : ''));
     }
     function banner(m) {
       var f = m.fl || {}, out = [];
@@ -7896,6 +7919,16 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
     function detail(m) {
       var can = mdCanScore(m), ta = mdTeam(m.a), tb = mdTeam(m.b), need = Math.floor(m.rule.bestOf / 2) + 1;
       var wrap = h('div', { class: 'card mdsb' });
+      if (m.st === 'live' && !m.go) {
+        var w = m.toss ? m.toss.win : 'a', wid = w === 'a' ? m.a : m.b, wt = mdTeam(wid), capn = wt && wt.members[0] ? wt.members[0].name : '', first = m.first, fid = first === 'a' ? m.a : first === 'b' ? m.b : null;
+        wrap.appendChild(h('div', { class: 'mdsbh' }, h('button', { type: 'button', class: 'mdmini', onclick: function () { open = null; paint(); } }, '← Back'), h('b', null, m.rn), h('span', null, mdTn(m.a) + ' vs ' + mdTn(m.b))));
+        wrap.appendChild(h('div', { class: 'mdtoss' }, h('div', { class: 'mdcoin' }, '🪙'), h('div', { class: 'mdtl' }, 'THE TOSS'),
+          h('div', { class: 'mdtw', style: '--tc:' + mdTc(wid) }, h('h2', null, mdTn(wid) + ' won the toss!'), h('p', null, mdMem(wt)), capn && wt.members.length > 1 ? h('p', { class: 'mdmute' }, '⭐ Captain ' + capn + ' calls it') : null),
+          fid ? h('p', { class: 'mdsrvtxt' }, '🏓 ' + mdTn(fid) + ' will serve first') : null,
+          can ? h('div', { class: 'mdacts' }, fid ? h('button', { type: 'button', class: 'btn', onclick: function () { send({ t: 'mdserve', mid: m.id, s: first === 'a' ? 'b' : 'a' }); } }, '🔁 Swap serve') : null, h('button', { type: 'button', class: 'btn', onclick: function () { supPicker(m); } }, '👤 Change supervisor')) : null,
+          can ? h('button', { type: 'button', class: 'btn primary', style: 'width:100%;margin-top:10px', onclick: function () { send({ t: 'mdgo', mid: m.id }); } }, '▶ Start match · 0 – 0') : h('p', { class: 'mdmute center' }, '⏳ Waiting for ' + (m.supName || 'the supervisor') + ' to start…')));
+        return wrap;
+      }
       wrap.appendChild(h('div', { class: 'mdsbh' }, h('button', { type: 'button', class: 'mdmini', onclick: function () { open = null; paint(); } }, '← Back'), h('b', null, m.rn), h('span', null, 'Best of ' + m.rule.bestOf + ' · to ' + m.rule.target + (m.rule.winBy2 ? ' (win by 2)' : '') + (m.rule.cap ? ' · cap ' + m.rule.cap : ''))));
       var pips = function (n) { var a = []; for (var i = 0; i < need; i++) a.push(h('i', { class: i < n ? 'on' : '' })); return h('span', { class: 'mdpips' }, a); };
       function col(s) {
@@ -7903,8 +7936,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
         var srv = m.serve === s;
         return h('div', { class: 'mdcol' + (m.ws === s ? ' win' : ''), style: '--tc:' + mdTc(id) },
           h('div', { class: 'mdcn' }, mdTn(id)), h('div', { class: 'mdcm' }, mdMem(t)),
-          h('div', { class: 'mdsc' }, String(sc)), h('div', { class: 'mdsv' }, srv ? '🏓 serving' : ' '),
-          pips(m.wins[s]),
+          m.st === 'ready' ? h('div', { class: 'mdsc rdy' }, '🆚') : [h('div', { class: 'mdsc' }, String(sc)), h('div', { class: 'mdsv' }, srv ? '🏓 serving' : ' '), pips(m.wins[s])],
           m.st === 'live' && can ? h('button', { type: 'button', class: 'mdplus', 'aria-label': 'Add a point to ' + mdTn(id), onclick: function () { send({ t: 'mdpt', mid: m.id, s: s }); } }, '+1') : null);
       }
       wrap.appendChild(h('div', { class: 'mdcols' }, col('a'), h('div', { class: 'mdvs' }, 'VS'), col('b')));
@@ -7937,7 +7969,14 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
       lastN = all.length;
       if (om) { fill(live, detail(om)); fill(br); fill(foot); return; }
       var teams = M.teams, busy = {}; all.forEach(function (m) { if (m.st === 'live' || m.st === 'ready') { busy[m.a] = 1; busy[m.b] = 1; } });
-      function sel(cur, set) { return h('select', { class: 'mdsel', 'aria-label': 'Team', onchange: function (e) { set(e.target.value); } }, h('option', { value: '' }, 'Pick a team'), teams.map(function (t) { return h('option', { value: t.id, selected: cur === t.id }, t.name + (busy[t.id] ? ' (busy)' : '')); })); }
+      var busyBy = {}; all.forEach(function (m) { if (m.st === 'live') { busyBy[m.a] = m; busyBy[m.b] = m; } else if (m.st === 'ready') { if (!busyBy[m.a]) busyBy[m.a] = m; if (!busyBy[m.b]) busyBy[m.b] = m; } });
+      if (selA && busyBy[selA]) selA = null; if (selB && busyBy[selB]) selB = null;
+      function tcard(t) {
+        var bm = busyBy[t.id], on = selA === t.id || selB === t.id, other = bm ? (bm.a === t.id ? bm.b : bm.a) : null;
+        return h('button', { type: 'button', class: 'mdpc' + (on ? ' on' : '') + (bm ? ' busy' : ''), style: '--tc:' + mdTc(t.id), disabled: !!bm, onclick: function () { if (selA === t.id) selA = null; else if (selB === t.id) selB = null; else if (!selA) selA = t.id; else selB = t.id; paint(); } },
+          h('b', null, t.name), h('small', null, mdMem(t)),
+          bm ? h('span', { class: 'mdbz' }, (bm.st === 'live' ? '🔴 Busy · playing ' : '⏳ Busy · next vs ') + mdTn(other)) : on ? h('span', { class: 'mdsl' }, selA === t.id ? 'TEAM 1' : 'TEAM 2') : null);
+      }
       var rd = all.filter(function (m) { return m.st === 'ready'; });
       var stand = {}; teams.forEach(function (t) { stand[t.id] = { id: t.id, w: 0, l: 0, pf: 0, pa: 0 }; });
       all.forEach(function (m) { if (m.st !== 'done') return; var wa = m.ws === 'a'; stand[m.a].w += wa ? 1 : 0; stand[m.a].l += wa ? 0 : 1; stand[m.b].w += wa ? 0 : 1; stand[m.b].l += wa ? 1 : 0; m.games.forEach(function (g) { stand[m.a].pf += g[0]; stand[m.a].pa += g[1]; stand[m.b].pf += g[1]; stand[m.b].pa += g[0]; }); });
@@ -7946,8 +7985,8 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
       fill(live,
         S.me.host ? h('div', { class: 'card' }, h('h2', null, '➕ New match'),
           h('button', { type: 'button', class: 'btn primary', style: 'width:100%', onclick: function () { send({ t: 'mdnew', random: true }); } }, '🎲 Random match'),
-          h('p', { class: 'mdmute center' }, 'or pick the two teams yourself'), sel(selA, function (v) { selA = v || null; }), h('div', { style: 'height:8px' }), sel(selB, function (v) { selB = v || null; }),
-          h('button', { type: 'button', class: 'btn', style: 'width:100%;margin-top:8px', onclick: function () { if (!selA || !selB) return toast('Pick two teams'); send({ t: 'mdnew', a: selA, b: selB }); } }, 'Create match')) : h('div', { class: 'card' }, h('p', { class: 'mdmute center' }, 'The host creates the next match.')),
+          h('p', { class: 'mdmute center' }, 'or tap two teams yourself. Busy teams are playing and cannot be picked.'), h('div', { class: 'mdpcs' }, teams.map(tcard)),
+          h('button', { type: 'button', class: 'btn' + (selA && selB ? ' primary' : ''), style: 'width:100%;margin-top:8px', onclick: function () { if (!selA || !selB) return toast('Tap two teams'); send({ t: 'mdnew', a: selA, b: selB }); selA = selB = null; } }, selA && selB ? 'Create: ' + mdTn(selA) + ' vs ' + mdTn(selB) : 'Create match')) : h('div', { class: 'card' }, h('p', { class: 'mdmute center' }, 'The host creates the next match.')),
         rd.length ? h('div', { class: 'card' }, h('h2', null, '⏭ Ready to start'), h('div', { class: 'mdlist' }, rd.map(function (m) { return card(m); }))) : null,
         done.length ? h('div', { class: 'card' }, h('h2', null, '✔ Results'), h('div', { class: 'mdlist' }, done.map(function (m) { return card(m); }))) : null,
         done.length ? h('div', { class: 'card' }, h('h2', null, '📊 Standings'), rows.map(function (r, i) { return h('div', { class: 'mdrow' }, h('span', null, (i + 1) + '. ' + mdTn(r.id)), h('b', null, r.w + 'W ' + r.l + 'L · ' + (r.pf - r.pa >= 0 ? '+' : '') + (r.pf - r.pa))); })) : null);
@@ -7960,7 +7999,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
       all.forEach(function (m) { if (m.st === 'live' && m.sup === S.me.id && !auto[m.id]) { auto[m.id] = 1; if (!open) { open = m.id; om = m; } } });
       fill(top, h('div', { class: 'mdtop' }, h('b', null, M.set.sport === 'bd' ? '🏸 Badminton' : M.set.sport === 'tt' ? '🏓 Table tennis' : M.set.sport === 'vb' ? '🏐 Volleyball' : '🎯 Match Day'), h('span', null, M.teams.length + ' teams · ' + T.play + ' round' + (T.play > 1 ? 's' : ''))));
       var lvAll = all.filter(function (m) { return m.st === 'live' && (!om || m.id !== om.id); });
-      fill(np, lvAll.map(function (m) { return h('button', { type: 'button', class: 'mdnow', onclick: function () { open = m.id; paint(); } }, h('span', { class: 'mdnl' }, '🔴 NOW PLAYING'), h('b', null, mdTn(m.a) + ' vs ' + mdTn(m.b)), h('span', { class: 'mdns' }, (M.friendly ? '' : m.rn + ' · ') + m.cur.a + '–' + m.cur.b + (m.wins.a + m.wins.b ? ' · games ' + m.wins.a + '–' + m.wins.b : '') + (m.supName ? ' · 📋 ' + m.supName : ''))); }));
+      fill(np, lvAll.map(function (m) { return h('button', { type: 'button', class: 'mdnow', onclick: function () { open = m.id; paint(); } }, h('span', { class: 'mdnl' }, m.go ? '🔴 NOW PLAYING' : '🪙 TOSS TIME'), h('b', null, mdTn(m.a) + ' vs ' + mdTn(m.b)), h('span', { class: 'mdns' }, (M.friendly ? '' : m.rn + ' · ') + (m.go ? m.cur.a + '–' + m.cur.b : 'about to start') + (m.wins.a + m.wins.b ? ' · games ' + m.wins.a + '–' + m.wins.b : '') + (m.supName ? ' · 📋 ' + m.supName : ''))); }));
       if (M.friendly) { friendlyPaint(M, T, all, om); return; }
       if (S.phase === 'mdover' && !om) {
         var ch = T.champ ? mdTeam(T.champ) : null;
