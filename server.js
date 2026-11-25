@@ -2587,8 +2587,9 @@ async function frCmd(ws, m) {
   try {
     if (m.t === 'fauth') {
       if (typeof m.token !== 'string' || m.token.length < 16 || m.token.length > 64) return send(ws, { t: 'fnone' });
+      if (badNow('fa:' + ws.ip, 20)) return send(ws, { t: 'fnone' });
       const r = await q('SELECT id, uname FROM users WHERE token_hash = $1', [sha(m.token)]);
-      if (!r.length) return send(ws, { t: 'fnone' });
+      if (!r.length) { badHit('fa:' + ws.ip, 20); return send(ws, { t: 'fnone' }); }
       return frLogin(ws, r[0]);
     }
     if (m.t === 'freg') {
@@ -2598,6 +2599,7 @@ async function frCmd(ws, m) {
       if (typeof m.token !== 'string' || m.token.length < 16 || m.token.length > 64) return;
       if (Date.now() - (ws.regAt || 0) < 3000) return errTo(ws, 'One moment, still saving. Try again in a few seconds');
       ws.regAt = Date.now();
+      if (badHit('rg:' + ws.ip, 6)) return errTo(ws, 'Too many new accounts from here. Try again in a minute');
       const ex = await q('SELECT 1 FROM users WHERE uname = $1', [un]);
       if (ex.length && ws.isAdmin) { // the admin phone lost its sign-in: take the account back onto this phone
         const rr = await q('UPDATE users SET token_hash = $2 WHERE uname = $1 RETURNING id, uname', [un, sha(m.token)]);
@@ -2630,6 +2632,7 @@ async function frCmd(ws, m) {
       send(ws, { t: 'fok', msg: 'Request sent. Your name changes when the admin approves it' });
       return frList(ws);
     }
+    if (m.t === 'fadd' || m.t === 'faccept' || m.t === 'fremove') { if (Date.now() - (ws.frAt || 0) < 700) return errTo(ws, 'Slow down a little'); ws.frAt = Date.now(); }
     const un = String(m.uname || '').toLowerCase().trim();
     const tr = un ? await q('SELECT id, uname, push FROM users WHERE uname = $1', [un]) : [];
     const target = tr[0];

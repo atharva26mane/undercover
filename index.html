@@ -7977,13 +7977,13 @@ body.hubmode header{pointer-events:none}body.hubmode header button{pointer-event
     invEl = h('div', { class: 'ux-inv', role: 'alert' }, face,
       h('span', { class: 'ux-invt' }, h('b', null, m.name || m.from), ' invited you to ', h('b', null, GN[m.game] || 'a game')),
       h('button', { type: 'button', class: 'ux-invj', onclick: function () {
+        if (S) { toast('Leave your current lobby first, then tap Join again'); return; }
         hideInvite();
-        if (S) { toast('Leave your current lobby first, then tap the invite again'); return; }
         joinCode(m.code);
       } }, 'Join'),
       h('button', { type: 'button', class: 'ux-invx', 'aria-label': 'Dismiss', onclick: hideInvite }, '✕'));
     document.body.appendChild(invEl);
-    invTm = setTimeout(hideInvite, 25000);
+    invTm = setTimeout(hideInvite, 60000);
   }
   var uxInv = null; // repaints the invite sheet when the list changes
   function openInvite() { // friends sheet for lobbies: accept requests, add by username, invite into this room
