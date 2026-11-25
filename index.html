@@ -6607,6 +6607,9 @@ body.hubmode header{pointer-events:none}body.hubmode header button{pointer-event
   setInterval(function () { if (open) send({ t: 'ping' }); }, 20000);
 
   var lastPhase = null;
+  var navArmed = false;
+  function navGuard() { try { if (S && S.me && !navArmed) { history.pushState({ g: 1 }, ''); navArmed = true; } else if (!S) navArmed = false; } catch (e) { /* ignore */ } }
+  window.addEventListener('popstate', function () { try { if (S && S.me) { history.pushState({ g: 1 }, ''); navArmed = true; if (confirm('Leave this lobby / game?')) { send({ t: 'leave' }); } } } catch (e) { /* ignore */ } });
   function onMsg(m) {
     if (m.t === 'joined') { session = { id: m.id, token: m.token, code: m.code }; store('uc.session', JSON.stringify(session)); store('uc.last', m.code); hideWait(); setTimeout(sendProfilePhoto, 900); vapidKey = m.vapid || null; if (load('uc.push') === 'on') enablePush(false); setTimeout(function () { send({ t: 'vis', hidden: document.visibilityState === 'hidden' }); }, 300); }
     else if (m.t === 'state') {
@@ -6615,7 +6618,7 @@ body.hubmode header{pointer-events:none}body.hubmode header button{pointer-event
       S = m;
       if (phaseChanged && lastPhase !== null && m.phase === 'vote') buzz([200, 100, 200]); // voting starts: double buzz
       lastPhase = m.phase;
-      render();
+      render(); navGuard();
     }
     else if (m.t === 'err') { toast(m.msg); if (/^Voice is full/.test(m.msg)) voiceStop(false); if (m.msg === 'No lobby with that code' && load('uc.last')) { store('uc.last', null); if (!S && mode === 'hub') { curKey = null; render(); } } if (S && S.game === 'uno' && cur && cur.update) cur.update(); }
     else if (m.t === 'dops') { dwOnOps(m.ops || []); }
@@ -6658,11 +6661,11 @@ body.hubmode header{pointer-events:none}body.hubmode header button{pointer-event
     else if (m.t === 'reqwait') showWait();
     else if (m.t === 'vsig') voiceSig(m);
     else if (m.t === 'reqres') { hideWait(); if (m.msg) toast(m.msg); }
-    else if (m.t === 'norejoin') { session = null; store('uc.session', null); S = null; if (!wantGame) mode = 'hub'; render(); }
+    else if (m.t === 'norejoin') { navArmed = false; session = null; store('uc.session', null); S = null; if (!wantGame) mode = 'hub'; render(); }
     else if (m.t === 'kicked' || m.t === 'left') {
       chatList = []; chatOpen = false; chatUnread = 0; photoMap = {};
       if (m.t === 'kicked') toast('The host removed you from the lobby');
-      session = null; store('uc.session', null); S = null; wantGame = null; mode = 'hub'; openRooms = []; render(); send({ t: 'rooms' }); setTimeout(function () { send({ t: 'rooms' }); }, 900);
+      navArmed = false; session = null; store('uc.session', null); S = null; wantGame = null; mode = 'hub'; openRooms = []; render(); send({ t: 'rooms' }); setTimeout(function () { send({ t: 'rooms' }); }, 900);
     }
   }
 
