@@ -1724,7 +1724,7 @@ function removePlayer(room, p, selfLeft) {
 
 // ---------------------------------------------------------------- websocket
 function okOrigin(req) { const o = req.headers.origin; if (!o) return false; try { return new URL(o).host === req.headers.host; } catch (e) { return false; } }
-const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 32768, perMessageDeflate: false, verifyClient: (info) => okOrigin(info.req) && !badNow(ipOf(info.req), 60) && !isBlocked(queryCid(info.req), ipOf(info.req)) });
+const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 120000, perMessageDeflate: false, verifyClient: (info) => okOrigin(info.req) && !badNow(ipOf(info.req), 60) && !isBlocked(queryCid(info.req), ipOf(info.req)) });
 
 function attach(ws, room, p) {
   if (p.ws && p.ws !== ws) { p.ws.ctx = null; try { p.ws.close(); } catch (e) { /* ignore */ } }
@@ -2717,7 +2717,7 @@ function admView() {
     rl.push({ code: r.code, game: r.game, phase: r.phase, paused: !!r.apaused, open: r.open !== false, host: (r.players.get(r.hostId) || {}).name || '', players: ps.map((q) => ({ name: q.name, on: !!q.connected, host: q.id === r.hostId })) });
   }
   return {
-    t: 'admdata', now: Date.now(), online, rooms: rl, fb: ADM.feedback.slice(-100).reverse(),
+    t: 'admdata', now: Date.now(), online, rooms: rl, fb: ADM.feedback.slice(-100).reverse().map((f) => Object.assign({}, f, { shot: f.shot ? 1 : 0 })),
     blocked: Object.keys(ADM.blockedCids).map((cid) => Object.assign({ cid }, ADM.blockedCids[cid])),
     ips: Object.keys(ADM.blockedIps).map((ip) => Object.assign({ ip }, ADM.blockedIps[ip])),
   };
@@ -2772,6 +2772,7 @@ function admCmd(ws, m) {
     admSave(); return admSend(ws);
   }
   if (m.t === 'admname') return admRename(ws, m);
+  if (m.t === 'admshot') { const f = ADM.feedback.find((x) => x.id === m.id); return send(ws, { t: 'admshotd', id: m.id, data: f && f.shot || null }); }
   if (m.t === 'admfbdel') { ADM.feedback = ADM.feedback.filter((f) => f.id !== m.id); admSave(); return admSend(ws); }
 }
 
@@ -2850,7 +2851,10 @@ function handle(ws, m) {
     if (Date.now() - (ws.fbAt || 0) < 15000) return errTo(ws, 'Wait a few seconds before sending another');
     ws.fbAt = Date.now();
     const anon = m.anon !== false, info = ws.info || {};
-    ADM.feedback.push({ id: rid(), at: Date.now(), text, anon, name: anon ? '' : (clean(m.name, 14) || info.name || ''), dev: anon ? '' : deviceOf(ws.ua) });
+    const shot = typeof m.shot === 'string' && m.shot.length <= 90000 && /^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(m.shot) ? m.shot : null;
+    const fr = ws.ctx && rooms.get(ws.ctx.code);
+    ADM.feedback.push({ id: rid(), at: Date.now(), text, anon, name: anon ? '' : (clean(m.name, 14) || info.name || ''), dev: anon ? '' : deviceOf(ws.ua), where: fr ? fr.game + ' · ' + fr.phase : '', shot });
+    { let keep = 12; for (let i = ADM.feedback.length - 1; i >= 0; i--) { if (ADM.feedback[i].shot && --keep < 0) ADM.feedback[i].shot = null; } }
     if (ADM.feedback.length > 300) ADM.feedback.shift();
     admSave(); admNotify('💬 New feedback', text, 'fb');
     return send(ws, { t: 'fbok' });
@@ -3786,6 +3790,7 @@ wss.on('connection', (ws, req) => {
     ws.isAlive = true;
     let m;
     try { m = JSON.parse(raw.toString()); } catch (e) { return; }
+    if (raw.length > 32768 && !(m && m.t === 'fb')) return; // only feedback may carry a screenshot
     const hot = m && (m.t === 'dop' || m.t === 'dguess' || m.t === 'rpos' || m.t === 'ckpos' || m.t === 'rprog' || m.t === 'rbump' || m.t === 'vsig' || m.t === 'ping' || m.t === 'bin' || m.t === 'bst' || m.t === 'kin' || m.t === 'kst' || m.t === 'mbin' || m.t === 'mbst' || m.t === 'crin' || m.t === 'crst' || m.t === 'lzin' || m.t === 'lzst' || m.t === 'ltin' || m.t === 'ltst');
     if (hot ? ++ws.rh > 420 : ++ws.rl > 40) return; // flood guard (reset every 5s); race positions & voice setup have their own, bigger budget
     try { handle(ws, m); } catch (e) { console.error('handler error:', e); }

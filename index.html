@@ -6645,7 +6645,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
     else if (m.t === 'sheriff') showSheriff(m);
     else if (m.t === 'rrank') { rRank = m.list || []; if (cur && cur.rank) cur.rank(); }
     else if (m.t === 'pong') { if (pingT) { var pm = Math.round(performance.now() - pingT); pingMs = pingMs ? Math.round(pingMs * 0.5 + pm * 0.5) : pm; pingT = 0; } }
-    else if (m.t === 'admok' || m.t === 'admno' || m.t === 'admdata' || m.t === 'fbok') adminMsg(m);
+    else if (m.t === 'admok' || m.t === 'admno' || m.t === 'admdata' || m.t === 'admshotd' || m.t === 'fbok') adminMsg(m);
     else if (/^(fme|fnone|fdown|flist|freq|fchg|fok|finvok|finv)$/.test(m.t)) frMsg(m);
     else if (m.t === 'bst') { if (cur && cur.bst) cur.bst(m); }
     else if (m.t === 'bin') { if (cur && cur.bin) cur.bin(m); }
@@ -7848,9 +7848,24 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
   }
 
   /* feedback: anyone can send, anonymous or with their name */
-  var fbBusy = null;
-  function openFeedback() {
-    var anon = true;
+  var fbBusy = null, h2cP = null;
+  function loadH2C() {
+    if (window.htmlToImage) return Promise.resolve();
+    if (!h2cP) h2cP = new Promise(function (ok, no) { var s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js'; s.onload = ok; s.onerror = function () { h2cP = null; no(); }; document.head.appendChild(s); });
+    return h2cP;
+  }
+  function captureShot() { // a small picture of what the player sees right now (null if it fails)
+    return loadH2C().then(function () {
+      return window.htmlToImage.toCanvas(document.body, { pixelRatio: 0.5, skipFonts: true, width: window.innerWidth, height: window.innerHeight, filter: function (n) { return !(n.id === 'namechip' || n.id === 'hpbtn' || n.tagName === 'VIDEO'); } });
+    }).then(function (c) {
+      var q = 0.6, d = c.toDataURL('image/jpeg', q);
+      while (d.length > 85000 && q > 0.25) { q -= 0.1; d = c.toDataURL('image/jpeg', q); }
+      return d.length <= 90000 ? d : null;
+    }).catch(function (e) { try { console.warn('shot failed', e && e.message); } catch (x) { /* ignore */ } return null; });
+  }
+  function openFeedbackShot() { var t = setTimeout(function () { toast('Taking a picture…'); }, 400); captureShot().then(function (d) { clearTimeout(t); openFeedback(d); }); }
+  function openFeedback(shot) {
+    var anon = true, useShot = !!shot;
     var ta = h('textarea', { maxlength: 600, placeholder: 'Tell us what to fix or add. New games, bugs, ideas…', 'aria-label': 'Your feedback' });
     var cnt = h('div', { class: 'ux-cnt' }, '0 / 600');
     ta.addEventListener('input', function () { cnt.textContent = ta.value.length + ' / 600'; });
@@ -7861,14 +7876,15 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
       anon = !anon; tg.classList.toggle('on', anon); tg.setAttribute('aria-checked', String(anon));
       sub.textContent = anon ? 'The admin will not see your name' : 'The admin will see your name: ' + (savedName || 'Player');
     });
+    var shotRow = shot ? h('button', { type: 'button', class: 'ux-tg on', role: 'switch', 'aria-checked': 'true', onclick: function (e) { useShot = !useShot; e.currentTarget.classList.toggle('on', useShot); e.currentTarget.setAttribute('aria-checked', String(useShot)); } }, h('span', { class: 'sw' }), h('span', null, '📸 Attach a picture of my screen', h('small', null, 'The admin sees what you saw'))) : null;
     var go = h('button', { type: 'button', class: 'ux-b', onclick: function () {
       var t = ta.value.trim();
       if (t.length < 3) { toast('Write a little more'); return; }
       go.disabled = true; go.textContent = 'Sending…'; fbBusy = go;
-      send({ t: 'fb', text: t, anon: anon, name: savedName });
+      send({ t: 'fb', text: t, anon: anon, name: savedName, shot: useShot ? shot : undefined });
       setTimeout(function () { if (fbBusy === go) { go.disabled = false; go.textContent = 'Send feedback'; fbBusy = null; } }, 6000);
     } }, 'Send feedback');
-    uxOpen(h('h3', null, 'Send feedback'), h('p', null, 'Want a new game or found a bug? Write it here.'), ta, cnt, tg, go, h('button', { type: 'button', class: 'ux-b gh', onclick: uxClose }, 'Cancel'));
+    uxOpen(h('h3', null, 'Send feedback'), h('p', null, 'Want a new game or found a bug? Write it here.'), ta, cnt, tg, shotRow, go, h('button', { type: 'button', class: 'ux-b gh', onclick: uxClose }, 'Cancel'));
   }
 
   /* admin: only the one phone that holds the secret token */
@@ -7896,6 +7912,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
       render();
     } else if (m.t === 'admno') { ADMIN = false; store('uc.adm', null); render(); }
     else if (m.t === 'admdata') { ADMD = m; if (cur && cur.adm) cur.adm(); }
+    else if (m.t === 'admshotd') { if (!m.data) toast('No screenshot'); else uxOpen(h('h3', null, 'Screenshot'), h('img', { src: m.data, alt: 'screenshot', style: 'display:block;max-width:100%;max-height:60vh;margin:0 auto;border-radius:10px' }), h('button', { type: 'button', class: 'ux-b gh', style: 'margin-top:10px', onclick: uxClose }, 'Close')); }
     else if (m.t === 'fbok') { fbBusy = null; uxClose(); toast('Thanks! Your feedback was sent'); }
   }
   var GN = { undercover: 'Undercover', football: 'Gully Football', race: 'Beach Buggy', uno: 'UNO', cricket: 'Gully Cricket', draw: 'Draw & Guess', golf: 'Gully Golf', bully: 'Bully Football', rocket: 'Turbo Ball', tapri: 'Chai Tapri', bomb: 'Bomb Pass', carrom: 'Carrom', laser: 'Laser Arena', lasttile: 'Last Tile', zero8: 'The 0.8 Rule' };
@@ -7925,9 +7942,9 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
     function fbList(d) {
       if (!d.fb.length) return h('p', { class: 'adm-mute' }, 'No feedback yet.');
       return d.fb.map(function (f) {
-        return h('div', { class: 'adm-card' }, h('div', { class: 'adm-fb' }, f.text),
+        return h('div', { class: 'adm-card' }, h('div', { class: 'adm-fb' }, f.text), f.where ? h('small', { class: 'adm-mute' }, '🎮 ' + f.where) : null,
           h('small', { class: 'adm-mute' }, (f.kind === 'report' ? 'Report by ' + f.name : f.anon ? 'Anonymous' : (f.name || 'No name') + (f.dev ? ' · ' + f.dev : '')) + ' · ' + ago(f.at)),
-          h('div', { class: 'adm-acts' }, twoTap('Delete', 'red', function () { send({ t: 'admfbdel', id: f.id }); })));
+          h('div', { class: 'adm-acts' }, f.shot ? h('button', { type: 'button', onclick: function () { send({ t: 'admshot', id: f.id }); } }, '📸 Screenshot') : null, twoTap('Delete', 'red', function () { send({ t: 'admfbdel', id: f.id }); })));
       });
     }
     function nameList(d) {
@@ -7955,7 +7972,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
   };
   var nameChip = null;
   function syncNameChip() {
-    if (!nameChip) { nameChip = h('button', { type: 'button', id: 'namechip', onclick: function () { if (!S) { mode = 'profile'; render(); } else if (S.phase === 'lobby') { var ni = h('input', { type: 'text', maxlength: 14, value: savedName, autocomplete: 'off', style: 'width:100%;padding:12px;border-radius:12px;border:3px solid #14123a;font:800 18px Nunito,system-ui,sans-serif;box-sizing:border-box' }); uxOpen(h('h3', null, 'Your name'), ni, h('button', { type: 'button', class: 'ux-b', style: 'margin-top:10px', onclick: function () { var v = ni.value.trim(); if (!v) return toast('Enter a name'); savedName = v; store('uc.name', v); send({ t: 'rename', name: v }); sendHello(true); uxClose(); render(); } }, 'Save'), h('button', { type: 'button', class: 'ux-b gh', style: 'margin-top:8px', onclick: uxClose }, 'Cancel')); } else toast('You are playing as ' + (S.me && S.me.name || savedName) + '. Change your name in the lobby.'); } }); document.body.appendChild(nameChip); }
+    if (!nameChip) { nameChip = h('button', { type: 'button', id: 'namechip', onclick: function () { if (!S) { mode = 'profile'; render(); } else if (S.phase === 'lobby') { var ni = h('input', { type: 'text', maxlength: 14, value: savedName, autocomplete: 'off', style: 'width:100%;padding:12px;border-radius:12px;border:3px solid #14123a;font:800 18px Nunito,system-ui,sans-serif;box-sizing:border-box' }); uxOpen(h('h3', null, 'Your name'), ni, h('button', { type: 'button', class: 'ux-b', style: 'margin-top:10px', onclick: function () { var v = ni.value.trim(); if (!v) return toast('Enter a name'); savedName = v; store('uc.name', v); send({ t: 'rename', name: v }); sendHello(true); uxClose(); render(); } }, 'Save'), h('button', { type: 'button', class: 'ux-b gh', style: 'margin-top:8px', onclick: function () { uxClose(); openFeedbackShot(); } }, '💬 Send feedback'), h('button', { type: 'button', class: 'ux-b gh', style: 'margin-top:8px', onclick: uxClose }, 'Cancel')); } else openFeedbackShot(); } }); document.body.appendChild(nameChip); }
     var n = (S && S.me && S.me.name) || savedName || '';
     nameChip.style.display = n && mode !== 'profile' ? '' : 'none';
     var t = '👤 ' + n; if (nameChip.textContent !== t) nameChip.textContent = t;
