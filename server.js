@@ -262,7 +262,12 @@ function deviceOf(ua) {
 }
 const server = http.createServer((req, res) => {
   const url = (req.url || '/').split('?')[0];
-  if (isBlocked(cookieCid(req), ipOf(req))) return; // blocked: the page just never loads (no answer, no error)
+  res.setHeader('X-Content-Type-Options', 'nosniff'); res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'no-referrer'); res.setHeader('Strict-Transport-Security', 'max-age=15552000');
+  res.setHeader('Permissions-Policy', 'geolocation=(), payment=(), usb=()');
+  res.setHeader('Content-Security-Policy', "frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'");
+  if (isBlocked(cookieCid(req), ipOf(req))) return;
+  if (url === '/tpqr') { const b = process.env.TP_QR_B64; if (!b) { res.writeHead(404); return res.end(); } res.writeHead(200, { 'Content-Type': 'image/jpeg', 'Cache-Control': 'no-store' }); return res.end(Buffer.from(b, 'base64')); } // blocked: the page just never loads (no answer, no error)
   if (url === '/' || url === '/index.html') {
     if (req.headers['if-none-match'] === etag) { res.writeHead(304, { ETag: etag }); return res.end(); }
     const gz = /\bgzip\b/.test(req.headers['accept-encoding'] || '');
@@ -297,7 +302,7 @@ const server = http.createServer((req, res) => {
 
 // ---------------------------------------------------------------- helpers
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, Math.floor(Number(v)) || lo));
-const clean = (s, n) => String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f]/g, '').replace(/\s+/g, ' ').trim().slice(0, n);
+const clean = (s, n) => String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, n);
 const norm = (s) => String(s).toLowerCase().normalize('NFKD').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const reEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const mentions = (text, word) => { const w = norm(word); return !!w && new RegExp('(^| )' + reEsc(w) + '( |$)').test(norm(text)); };
@@ -384,6 +389,13 @@ function shareWords(room) { // phones save the updated memory
   const msg = { t: 'words', used: [...room.words.used], recent: room.words.recent };
   for (const p of room.players.values()) if (p.ws && p.connected) send(p.ws, msg);
 }
+const PUSH_HOSTS = /^https:\/\/([a-z0-9-]+\.)*(googleapis\.com|push\.apple\.com|mozilla\.com|windows\.com|notify\.windows\.com)(:443)?\//i;
+function okPushEp(u) { return typeof u === 'string' && u.length < 900 && PUSH_HOSTS.test(u); }
+// brute-force guard: counts bad tries per IP in a sliding minute
+const BAD = new Map();
+function badHit(ip, max) { const n = Date.now(); let b = BAD.get(ip); if (!b || n - b.t > 60000) b = { t: n, c: 0 }; b.c++; BAD.set(ip, b); return b.c > max; }
+function badNow(ip, max) { const b = BAD.get(ip); return !!b && Date.now() - b.t <= 60000 && b.c > max; }
+setInterval(() => { const n = Date.now(); for (const [k, b] of BAD) if (n - b.t > 60000) BAD.delete(k); }, 60000).unref();
 function okPhoto(d) { return typeof d === 'string' && d.length <= 16000 && /^data:image\/(jpeg|webp|png);base64,[A-Za-z0-9+/=]+$/.test(d); }
 function openList() { // rooms that appear on the main page
   const out = [];
@@ -1711,7 +1723,8 @@ function removePlayer(room, p, selfLeft) {
 }
 
 // ---------------------------------------------------------------- websocket
-const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 32768, perMessageDeflate: false, verifyClient: (info) => !isBlocked(queryCid(info.req), ipOf(info.req)) });
+function okOrigin(req) { const o = req.headers.origin; if (!o) return false; try { return new URL(o).host === req.headers.host; } catch (e) { return false; } }
+const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 32768, perMessageDeflate: false, verifyClient: (info) => okOrigin(info.req) && !badNow(ipOf(info.req), 60) && !isBlocked(queryCid(info.req), ipOf(info.req)) });
 
 function attach(ws, room, p) {
   if (p.ws && p.ws !== ws) { p.ws.ctx = null; try { p.ws.close(); } catch (e) { /* ignore */ } }
@@ -2600,7 +2613,7 @@ async function frCmd(ws, m) {
     if (m.t === 'flist') return frList(ws);
     if (m.t === 'fpush') {
       const sub = m.sub;
-      const ok = sub && typeof sub.endpoint === 'string' && /^https:\/\//.test(sub.endpoint) && sub.keys && typeof sub.keys.p256dh === 'string' && typeof sub.keys.auth === 'string';
+      const ok = sub && typeof sub.endpoint === 'string' && okPushEp(sub.endpoint) && sub.keys && typeof sub.keys.p256dh === 'string' && typeof sub.keys.auth === 'string';
       await q('UPDATE users SET push = $2 WHERE id = $1', [me.id, ok ? JSON.stringify({ endpoint: sub.endpoint.slice(0, 800), keys: { p256dh: sub.keys.p256dh.slice(0, 200), auth: sub.keys.auth.slice(0, 100) } }) : null]);
       return;
     }
@@ -2726,7 +2739,7 @@ function admCmd(ws, m) {
   if (m.t === 'admget') return admSend(ws);
   if (m.t === 'admpush') {
     const sub = m.sub;
-    if (sub && typeof sub.endpoint === 'string' && /^https:\/\//.test(sub.endpoint) && sub.keys && typeof sub.keys.p256dh === 'string' && typeof sub.keys.auth === 'string') { ADM.push = { endpoint: sub.endpoint.slice(0, 800), keys: { p256dh: sub.keys.p256dh.slice(0, 200), auth: sub.keys.auth.slice(0, 100) } }; admSave(); admNotify('🔔 Admin alerts are on', 'You will get a notification for feedback, reports and name requests'); }
+    if (sub && typeof sub.endpoint === 'string' && okPushEp(sub.endpoint) && sub.keys && typeof sub.keys.p256dh === 'string' && typeof sub.keys.auth === 'string') { ADM.push = { endpoint: sub.endpoint.slice(0, 800), keys: { p256dh: sub.keys.p256dh.slice(0, 200), auth: sub.keys.auth.slice(0, 100) } }; admSave(); admNotify('🔔 Admin alerts are on', 'You will get a notification for feedback, reports and name requests'); }
     return;
   }
   if (m.t === 'admpause') { const r = rooms.get(clean(m.code, 4)); if (!r) return; r.apaused = !r.apaused; broadcast(r); return admSend(ws); }
@@ -2771,7 +2784,7 @@ function handle(ws, m) {
     const name = clean(m.name, 14);
     const room = rooms.get(clean(m.code, 4).toUpperCase());
     if (!name) return errTo(ws, 'Enter your name');
-    if (!room) return errTo(ws, 'No lobby with that code');
+    if (!room) { if (badHit(ws.ip, 15)) return errTo(ws, 'Too many tries, wait a minute'); return errTo(ws, 'No lobby with that code'); }
     if ([...room.players.values()].filter((q) => !q.left).length >= MAX_PLAYERS) return errTo(ws, 'Lobby is full');
     if ([...room.players.values()].some((q) => !q.left && norm(q.name) === norm(name))) return errTo(ws, 'That name is taken in this lobby');
     const np = addPlayer(room, name);
@@ -2845,7 +2858,7 @@ function handle(ws, m) {
     admSave(); admNotify('🚩 New report', rp.name + ' reported ' + who + ': ' + why, 'rep');
     return send(ws, { t: 'fok', msg: 'Report sent to the admin' });
   }
-  if (m.t === 'adm') { if (ADM.hash && typeof m.token === 'string' && sha(m.token) === ADM.hash) { ws.isAdmin = true; return send(ws, { t: 'admok' }); } return send(ws, { t: 'admno' }); }
+  if (m.t === 'adm') { if (badHit(ws.ip, 8)) return send(ws, { t: 'admno' }); if (ADM.hash && typeof m.token === 'string' && sha(m.token) === ADM.hash) { ws.isAdmin = true; return send(ws, { t: 'admok' }); } return send(ws, { t: 'admno' }); }
   if (m.t === 'admclaim') { // first phone to claim becomes the admin (only while nobody is)
     if (ADM.hash) return errTo(ws, 'Admin is already set');
     if (typeof m.token !== 'string' || m.token.length < 16 || m.token.length > 64) return;
@@ -3622,7 +3635,7 @@ function handle(ws, m) {
       return startDescribe(room);
     case 'push': { // this phone's notification subscription
       const sub = m.sub;
-      if (sub && typeof sub.endpoint === 'string' && /^https:\/\//.test(sub.endpoint) && sub.keys && typeof sub.keys.p256dh === 'string' && typeof sub.keys.auth === 'string')
+      if (sub && typeof sub.endpoint === 'string' && okPushEp(sub.endpoint) && sub.keys && typeof sub.keys.p256dh === 'string' && typeof sub.keys.auth === 'string')
         p.push = { endpoint: sub.endpoint.slice(0, 800), keys: { p256dh: sub.keys.p256dh.slice(0, 200), auth: sub.keys.auth.slice(0, 100) } };
       else p.push = null;
       return;
