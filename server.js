@@ -1747,7 +1747,7 @@ function attach(ws, room, p) {
 
 
 // ================================================================ Bully Football (6v6 party football, the host's phone runs the match)
-const BF_CHARS = ['vedant', 'dj', 'rutu', 'hacker', 'beasty', 'moizt', 'bocha', 'jelly'];
+const BF_CHARS = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'jelly'];
 function bfOf(room, q) { // a player's picks, with defaults
   if (!q.bf) { const used = new Set([...room.players.values()].filter((x) => x !== q && x.bf).map((x) => x.bf.num)); let n = 7; while (used.has(n)) n++; q.bf = { char: 'jelly', jelly: Math.floor(Math.random() * 6), num: n, team: null }; }
   if (!q.bf.team) { const c = { o: 0, b: 0 }; for (const x of room.players.values()) if (x !== q && !x.left && x.bf && x.bf.team) c[x.bf.team]++; q.bf.team = c.o <= c.b ? 'o' : 'b'; }
