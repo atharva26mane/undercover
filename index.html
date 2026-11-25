@@ -3600,7 +3600,7 @@ window.lasttileMount = function (sr, NET) {
 };
 })();
 </script>
-<script>/* Chai Tapri */window.TP_QR='/tpqr';
+<script>/* Chai Tapri */window.TP_QR=''
 /* ===== Chai Tapri: a roadside tea stall at dusk, seen from your seat on the bench (three.js via window.THREE) ===== */
 (function () {
 'use strict';
@@ -12002,7 +12002,7 @@ body.hubmode header{pointer-events:none}body.hubmode header button{pointer-event
     var hint = h('div', { class: 'tp-hint' }, '👆 Swipe to look around');
     host.appendChild(stage); MU.host = host;
     host.appendChild(h('div', { class: 'tp-top' }, h('button', { type: 'button', class: 'tp-chip tp-x', 'aria-label': 'Leave', onclick: function () { if (confirm('Leave the tapri?')) send({ t: 'leave' }); } }, '✕'), codeChip, frBtn));
-    host.appendChild(h('div', { class: 'tp-col' }, chaiBtn, emoBtn, payBtn, moreBtn));
+    host.appendChild(h('div', { class: 'tp-col' }, chaiBtn, emoBtn, moreBtn));
     host.appendChild(bar); host.appendChild(hint);
     setTimeout(function () { hint.style.opacity = 0; }, 8000);
     import('three').then(function (T) { if (gone || !host.isConnected) return; window.THREE = T; try { stage.innerHTML = ''; game = window.tapriMount(stage, { state: function () { return S; }, emote: function (id, e) { tpFloat(host, e); }, wall: function () { var W = (S && S.tp && S.tp.wall) || []; return W.map(function (w) { if (wallImgs[w.id] === undefined) { wallImgs[w.id] = 0; send({ t: 'twget', id: w.id }); } return { id: w.id, by: w.by, img: wallImgs[w.id] || null }; }); }, photo: photoOf, speaking: function (id) { return !!V.speaking[vKey(id)]; } }); game.sync(); paintSnd(); } catch (e) { stage.innerHTML = '<p class="tpload">Could not build the tapri: ' + e.message + '</p>'; } })
