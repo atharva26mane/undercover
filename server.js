@@ -374,16 +374,26 @@ function pickPair(state, rand, modes) {
   state.used.add(KEYS[i]);
   state.recent.push(norm(PAIRS[i][0]), norm(PAIRS[i][1]));
   while (state.recent.length > COOLDOWN * 2) state.recent.shift();
+  if (state === SHARED) sharedSave();
   return PAIRS[i];
 }
 function drawPair(room) {
   const [a, b, , cat] = pickPair(room.words, (n) => crypto.randomInt(n), room.settings.modes);
   return Math.random() < 0.5 ? { civilian: a, undercover: b, cat } : { civilian: b, undercover: a, cat };
 }
+// One shared "already played" memory for the whole hub, saved in the database so restarts and new hosts keep it
+const SHARED = { used: new Set(), recent: [] };
+let sharedT = null;
+function sharedSave() {
+  clearTimeout(sharedT);
+  sharedT = setTimeout(() => { if (DB) q('INSERT INTO kv (k, v) VALUES ($1, $2) ON CONFLICT (k) DO UPDATE SET v = $2', ['uc.words', JSON.stringify({ used: [...SHARED.used], recent: SHARED.recent })]).catch(() => {}); }, 1500);
+}
+setTimeout(() => { if (DB) q('SELECT v FROM kv WHERE k = $1', ['uc.words']).then((r) => { if (r[0]) { const j = JSON.parse(r[0].v); (j.used || []).forEach((k) => KEYSET.has(k) && SHARED.used.add(k)); if (!SHARED.recent.length) SHARED.recent = (j.recent || []).slice(-COOLDOWN * 2); } }).catch(() => {}); }, 500).unref();
 function loadWords(m) { // memory handed over by the phone that creates the lobby
   const used = new Set(Array.isArray(m && m.used) ? m.used.filter((k) => typeof k === 'string' && KEYSET.has(k)).slice(0, 2000) : []);
   const recent = Array.isArray(m && m.recent) ? m.recent.filter((w) => typeof w === 'string' && w.length < 40).slice(-COOLDOWN * 2).map(norm) : [];
-  return { used, recent };
+  used.forEach((k) => SHARED.used.add(k)); // the host's phone memory joins the shared one
+  return SHARED;
 }
 function shareWords(room) { // phones save the updated memory
   const msg = { t: 'words', used: [...room.words.used], recent: room.words.recent };
@@ -2654,6 +2664,7 @@ function dbInit() {
     dbReady = DB.query('CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, uname TEXT UNIQUE NOT NULL, token_hash TEXT UNIQUE NOT NULL, push TEXT, created_at TIMESTAMPTZ DEFAULT now())')
       .then(() => DB.query('CREATE TABLE IF NOT EXISTS friends (a INT NOT NULL, b INT NOT NULL, req INT NOT NULL, ok BOOLEAN NOT NULL DEFAULT FALSE, PRIMARY KEY (a, b))'))
       .then(() => DB.query('CREATE TABLE IF NOT EXISTS wins (user_id INT NOT NULL, game TEXT NOT NULL, wins INT NOT NULL DEFAULT 0, plays INT NOT NULL DEFAULT 0, PRIMARY KEY (user_id, game))'))
+      .then(() => DB.query('CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT NOT NULL)'))
       .then(() => DB.query('CREATE TABLE IF NOT EXISTS name_reqs (user_id INT PRIMARY KEY, wanted TEXT NOT NULL, at TIMESTAMPTZ DEFAULT now())'))
       .catch((e) => { dbReady = null; throw e; });
   }
