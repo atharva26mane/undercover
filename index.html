@@ -8045,6 +8045,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
     var roomsBox = h('div', { class: 'hx-rooms hx-in', style: '--i:9' });
     function paintRooms() {
       liveN.textContent = String(onlineN || openRooms.length);
+      roomsBox.style.display = openRooms.length ? '' : 'none'; // only shown when a room is open
       fill(roomsBox, h('div', { class: 'hx-rh' }, h('span', null, 'Currently playing'), openRooms.length ? h('em', null, h('i'), 'LIVE') : null),
         openRooms.length ? h('div', { class: 'hx-rl' }, openRooms.map(function (r, i) {
           var g = GAMES[r.game] || GAMES.undercover;
@@ -8066,12 +8067,12 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
       hxCard('', '06', 'dw', 'Draw & Guess', 'Sketch it, guess it · 2–20P', '', function () { goGame('draw'); }, 12),
       hxCard('', '07', 'gf', 'Gully Golf', '3D golf, everyone at once · 1–8P', '', function () { goGame('golf'); }, 13),
       hxCard('', '08', 'bf', 'Bully Football', '6v6 jelly football · 1–12P', '', function () { goGame('bully'); }, 14),
-      hxCard('rkwide', '09', 'rk', 'Turbo Ball 3D', '3D car football 3v3 · boost, jump, fly · 1–6P', 'NEW', function () { goGame('rocket'); }, 15),
-      hxCard('rkwide', '10', 'mb', 'Bomb Pass', 'Run, dodge, pass the bomb · 2–10P', 'NEW', function () { goGame('bomb'); }, 16),
+      hxCard('rkwide', '09', 'rk', 'Turbo Ball 3D', '3D car football 3v3 · boost, jump, fly · 1–6P', '', function () { goGame('rocket'); }, 15),
+      hxCard('rkwide', '10', 'mb', 'Bomb Pass', 'Run, dodge, pass the bomb · 2–10P', '', function () { goGame('bomb'); }, 16),
       hxCard('rkwide', '16', 'md', 'Match Day', 'Table tennis, badminton… teams, knockout bracket & live scorer · 2–32P', 'NEW', function () { goGame('matchday'); }, 16),
-      hxCard('rkwide', '15', 'z8', 'The 0.8 Rule', 'Secret numbers · average × 0.8 · bluff & survive · up to 16P', 'NEW', function () { goGame('zero8'); }, 16),
-      hxCard('rkwide', '14', 'lt', 'Last Tile', 'Hex floors crack · jump & push · last bean wins · up to 16P', 'NEW', function () { goGame('lasttile'); }, 17),
-      hxCard('rkwide', '13', 'lz', 'Laser Arena', 'Secret aim · all lasers fire at once · shrinking zone · 1–8P', 'NEW', function () { goGame('laser'); }, 18),
+      hxCard('rkwide', '15', 'z8', 'The 0.8 Rule', 'Secret numbers · average × 0.8 · bluff & survive · up to 16P', '', function () { goGame('zero8'); }, 16),
+      hxCard('rkwide', '14', 'lt', 'Last Tile', 'Hex floors crack · jump & push · last bean wins · up to 16P', '', function () { goGame('lasttile'); }, 17),
+      hxCard('rkwide', '13', 'lz', 'Laser Arena', 'Secret aim · all lasers fire at once · shrinking zone · 1–8P', '', function () { goGame('laser'); }, 18),
       hxCard('rkwide', '12', 'cr', 'Carrom', 'Real carrom · 4 players, white vs black, queen · 1–4P', 'NEW', function () { goGame('carrom'); }, 18),
       hxCard('rkwide', '11', 'tp', 'Chai Tapri', 'Hang out at the tea stall · chat, ideas, pick a game · up to 20', 'NEW', function () { goGame('tapri'); }, 17));
     var title = h('h1', { class: 'hx-title', 'aria-label': 'Games' }, 'GAMES'.split('').map(function (c, k) { return h('span', { style: '--k:' + k, 'aria-hidden': 'true' }, c); }));
@@ -8095,13 +8096,13 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
     var root = h('div', { class: 'hx' },
       h('div', { class: 'hx-top' }, tag, title, me),
       h('div', { class: 'hx-mid' },
-        h('div', { class: 'hx-crt hx-in', style: '--i:2' }, h('div', { class: 'hx-scr' }, h('h2', null, 'The arcade', h('br'), 'is yours.'), h('p', null, 'Five ways to challenge your friends. One place to play.'), liveTxt)),
+        h('div', { class: 'hx-crt hx-in', style: '--i:2' }, h('div', { class: 'hx-scr' }, h('h2', null, 'The arcade', h('br'), 'is yours.'), h('p', null, grid.children.length + ' games. One place to play with your friends.'), liveTxt)),
       h('div', { class: 'hx-rcol' },
         h('div', { class: 'hx-join hx-in', style: '--i:3' }, h('label', null, 'Enter room code'),
         h('div', { class: 'hx-jr' }, h('div', { class: 'hx-slots' }, slots, inp), go),
         last ? h('button', { class: 'hx-rj', type: 'button', onclick: function () { joinCode(last); } }, '↩ Rejoin room ' + last) : null),
       newBtn)),
-      pick, util, sec, grid, roomsBox);
+      pick, roomsBox, util, sec, grid);
     var lastAsk = 0;
     return { root: root, update: function () { admBtn.style.display = ADMIN ? '' : 'none'; var n = frNeed(); frBadge.style.display = n ? '' : 'none'; frBadge.textContent = n; }, rooms: paintRooms, tick: function () {
       if (open && Date.now() - lastAsk > 5000) { lastAsk = Date.now(); send({ t: 'rooms' }); sendHello(false); if (FR.me && Date.now() - frTick > 20000) { frTick = Date.now(); send({ t: 'flist' }); } }
@@ -8434,7 +8435,8 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
       instEv ? h('button', { type: 'button', class: 'ux-b', onclick: function () { var e = instEv; instEv = null; uxClose(); store('uc.inst', String(Date.now())); try { e.prompt(); } catch (x) {} } }, 'Install') : null,
       h('button', { type: 'button', class: 'ux-b gh', style: 'margin-top:8px', onclick: function () { store('uc.inst', String(Date.now())); uxClose(); } }, 'Not now'));
   }
-  setTimeout(function () { var t = +load('uc.inst') || 0; if (!isApp() && !S && Date.now() - t > 3 * 86400000 && !uxOv) showInstall(); }, 3500);
+  var visits = (+load('uc.visits') || 0) + 1; store('uc.visits', String(visits));
+  setTimeout(function () { var t = +load('uc.inst') || 0; if (visits >= 3 && !isApp() && !S && Date.now() - t > 7 * 86400000 && !uxOv) showInstall(); }, 6000);
   function isMuted(name) { return !!MUTE[String(name || '').trim().toLowerCase()]; }
   function setMuted(name, on) {
     var k = String(name).trim().toLowerCase(); if (on) MUTE[k] = 1; else delete MUTE[k];
