@@ -43,6 +43,8 @@ input:focus{border-color:var(--violet);box-shadow:0 0 0 4px rgba(124,77,255,.25)
 input::placeholder{color:#6f66a3}
 .morerules{border-top:2px dashed var(--line);margin-top:4px}
 .morerules>summary::before{content:'▸';margin-right:8px;transition:transform .15s}.morerules[open]>summary::before{transform:rotate(90deg)}.morerules>summary::-webkit-details-marker{display:none}.morerules>summary{list-style:none;cursor:pointer;font-weight:800;font-size:14px;padding:12px 0;min-height:44px;display:flex;align-items:center;color:var(--ink)}
+ #namechip{transition:opacity .2s}#namechip.away{opacity:0;pointer-events:none}
+.themebtn{display:inline-flex;align-items:center;justify-content:center;color:var(--ink)}@media (max-width:420px){.themebtn{width:40px;height:40px}}
 .startbar{position:sticky;bottom:72px;z-index:5;padding:10px 0 calc(10px + env(safe-area-inset-bottom));margin:0 -12px;padding-left:12px;padding-right:12px;background:linear-gradient(to top,var(--bg) 70%,transparent)}
 .startbar .btn{width:100%}
 .startbar .err:empty{display:none}
@@ -6824,7 +6826,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
       if (!shown) fill(btn, 'Tap to see your word');
       else if (me.joker) fill(btn, 'You are the 🤡 Joker', h('span', { class: 'big' }, me.word), h('small', null, 'Get yourself voted out to win!'));
       else if (me.white) fill(btn, 'You are Mr. White', h('span', { class: 'big' }, 'No word'), h('small', null, me.hint ? '💡 Hint: ' + me.hint : 'Blend in and work out the word'));
-      else fill(btn, 'Your word', h('span', { class: 'big' }, me.word), me.sheriff ? h('small', { class: 'sh-note' }, me.shot ? '🤠 Sheriff (already shot this round)' : '🤠 You are the Sheriff! 1 bullet: in voting shoot an impostor (Undercover or Mr. White) and they are out. Shoot anyone else and YOU are out') : null);
+      else fill(btn, 'Your word', h('span', { class: 'big' }, me.word), me.sheriff ? h('small', { class: 'sh-note' }, me.shot ? 'Sheriff (already shot this round)' : '🤠 You are the Sheriff! 1 bullet: in voting shoot an impostor (Undercover or Mr. White) and they are out. Shoot anyone else and YOU are out') : null);
       var bg = btn.querySelector('.big'); if (bg) fitTextSoon(bg, 40);
     }
     function hide() { shown = false; clearTimeout(tm); paint(); }
@@ -6897,7 +6899,8 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
 
   /* ---------- dark mode (per phone) ---------- */
   function applyTheme() { document.documentElement.setAttribute('data-theme', load('uc.theme') === 'dark' ? 'dark' : 'light'); var m = document.querySelector('meta[name=theme-color]'); if (m) m.setAttribute('content', load('uc.theme') === 'dark' ? '#17141F' : '#FFF8E7'); }
-  function setBtn() { return h('button', { class: 'themebtn', type: 'button', 'aria-label': 'Settings', onclick: openSettings }, '⚙️'); }
+  function setBtn() { return h('button', { class: 'themebtn', type: 'button', 'aria-label': 'Settings', onclick: openSettings }, gearIco()); }
+  function gearIco() { var e = document.createElement('span'); e.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>'; return e; }
   function openSettings() {
     var m = h('div', { class: 'modal setsheet' });
     function close() { if (m.parentNode) m.parentNode.removeChild(m); }
@@ -7065,10 +7068,10 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
     var hint = toggle('Mr. White gets a hint', 'Shows him the category, e.g. "Food" or "Film villain"', function (v) { send({ t: 'settings', hint: v }); });
     var reacts = toggle('Emoji reactions', 'Everyone can throw 😂 🤨 🤡 during the game', function (v) { send({ t: 'settings', reacts: v }); });
     var boardT = toggle('Leaderboard', 'Points and wins for each player in this lobby', function (v) { send({ t: 'settings', board: v }); });
-    var jokerT = toggle('🤡 Joker (6+ players)', 'One player gets the civilian word and wins alone if voted out', function (v) { send({ t: 'settings', joker: v }); });
-    var ucT = toggle('🕵️ Undercover can guess', 'If voted out, only they get 1 secret guess at the civilians\' word (+3). No timer: open till the game ends', function (v) { send({ t: 'settings', ucGuess: v }); });
-    var shT = toggle('🤠 Sheriff', 'One civilian has 1 bullet (once per voting round). Hits the Undercover or Mr. White = out. Anyone else = the Sheriff is out', function (v) { send({ t: 'settings', sheriff: v }); });
-    var chatT = toggle('💬 Chat', 'Open during discussion & voting. Secret words are blocked', function (v) { send({ t: 'settings', chat: v }); });
+    var jokerT = toggle('Joker (6+ players)', 'One player gets the civilian word and wins alone if voted out', function (v) { send({ t: 'settings', joker: v }); });
+    var ucT = toggle('Undercover can guess', 'If voted out, only they get 1 secret guess at the civilians\' word (+3). No timer: open till the game ends', function (v) { send({ t: 'settings', ucGuess: v }); });
+    var shT = toggle('Sheriff', 'One civilian has 1 bullet (once per voting round). Hits the Undercover or Mr. White = out. Anyone else = the Sheriff is out', function (v) { send({ t: 'settings', sheriff: v }); });
+    var chatT = toggle('Chat', 'Open during discussion & voting. Secret words are blocked', function (v) { send({ t: 'settings', chat: v }); });
     var slowRow = h('div', { class: 'set' }), cdRow = h('div', { class: 'set' }), wtRow = h('div', { class: 'set' }), modesBox = h('div');
     var sup = toggle('I\'ll be the supervisor', 'You won\'t get a word. You choose the words and see everyone\'s role', function (v) { send({ t: 'settings', supervisor: v }); });
     var otherSup = h('div');
@@ -7097,13 +7100,13 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
       secsStep.set(s.describeSecs);
       autoRoles.inp.checked = s.autoRoles; sup.inp.checked = S.me.sup;
       hint.inp.checked = s.hint; reacts.inp.checked = s.reacts; boardT.inp.checked = s.board; jokerT.inp.checked = s.joker; ucT.inp.checked = s.ucGuess !== false; shT.inp.checked = !!s.sheriff; chatT.inp.checked = s.chat;
-      fill(slowRow, h('div', { class: 'lbl' }, '🐢 Chat slow mode', h('small', null, 'Seconds between messages per player')),
+      fill(slowRow, h('div', { class: 'lbl' }, 'Chat slow mode', h('small', null, 'Seconds between messages per player')),
         seg([[0, 'Off'], [5, '5s'], [10, '10s'], [30, '30s']], s.chatSlow, function (v) { send({ t: 'settings', chatSlow: v }); }));
       slowRow.style.display = s.chat ? '' : 'none';
-      fill(cdRow, h('div', { class: 'lbl' }, '⏱️ Reaction cooldown', h('small', null, 'Wait between emojis')),
+      fill(cdRow, h('div', { class: 'lbl' }, 'Reaction cooldown', h('small', null, 'Wait between emojis')),
         seg([[1, '1s'], [3, '3s'], [10, '10s']], s.reactCd, function (v) { send({ t: 'settings', reactCd: v }); }));
       cdRow.style.display = s.reacts ? '' : 'none';
-      fill(wtRow, h('div', { class: 'lbl' }, '🎯 Mr. White guesses', h('small', null, 'Times he can guess the word mid-round (everyone sees it)')),
+      fill(wtRow, h('div', { class: 'lbl' }, 'Mr. White guesses', h('small', null, 'Times he can guess the word mid-round (everyone sees it)')),
         seg([[0, 'Off'], [1, '1'], [2, '2'], [3, '3']], s.whiteTries == null ? 2 : s.whiteTries, function (v) { send({ t: 'settings', whiteTries: v }); }));
       fill(modesBox, modePicker(s.modes, function (next) { send({ t: 'settings', modes: next }); }));
       uStep.set(s.undercover); wStep.set(s.white);
@@ -7150,7 +7153,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
     function close() { if (m.parentNode) m.parentNode.removeChild(m); }
     function go() { var v = inp.value.trim(); if (!v) return toast('Type your guess'); send({ t: 'whiteTry', text: v }); close(); }
     inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
-    fill(m, h('div', { class: 'modal-in' }, h('h1', { style: 'font-size:22px' }, '🎯 Mr. White\'s guess'),
+    fill(m, h('div', { class: 'modal-in' }, h('h1', { style: 'font-size:22px' }, 'Mr. White\'s guess'),
       h('p', { class: 'mute small' }, '⚠️ Everyone will see your name and your guess! Right = you win. Wrong = you lose a chance (' + S.me.wLeft + ' left).'),
       inp, h('div', { class: 'gap' }), h('button', { class: 'btn primary', type: 'button', onclick: go }, 'Lock it in'), h('div', { class: 'gap' }), h('button', { class: 'btn yellow', type: 'button', onclick: close }, 'Not yet')));
     document.body.appendChild(m); setTimeout(function () { try { inp.focus(); } catch (e) {} }, 80);
@@ -7181,7 +7184,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
     var m = h('div', { class: 'modal' });
     function close() { if (m.parentNode) m.parentNode.removeChild(m); }
     var alive = S.players.filter(function (p) { return p.in && p.alive && p.id !== S.me.id; });
-    fill(m, h('div', { class: 'modal-in' }, h('h1', { style: 'font-size:22px' }, '🤠 Sheriff\'s shot'),
+    fill(m, h('div', { class: 'modal-in' }, h('h1', { style: 'font-size:22px' }, 'Sheriff\'s shot'),
       h('p', { class: 'mute small' }, '⚠️ Everyone will see it. If they are the Undercover or Mr. White, they are out. If not, YOU are out.'),
       h('div', { class: 'suspects' }, alive.map(function (p) {
         return h('button', { class: 'suspect shpick', type: 'button', onclick: function () {
@@ -7320,7 +7323,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
   var chatMsgs = h('div', { class: 'cmsgs' }), chatInp = h('input', { type: 'text', maxlength: 120, placeholder: 'Say something…', autocomplete: 'off', enterkeyhint: 'send' });
   var chatSend = h('button', { class: 'btn primary', type: 'button', onclick: sendChat }, 'Send'), chatInfo = h('div', { class: 'cinfo' });
   chatInp.addEventListener('keydown', function (e) { if (e.key === 'Enter') sendChat(); });
-  var chatSheet = h('div', { class: 'chatsheet' }, h('div', { class: 'chead' }, h('b', null, '💬 Chat'), chatInfo, h('button', { class: 'link', type: 'button', onclick: function () { chatOpen = false; paintChat(); } }, 'Close')),
+  var chatSheet = h('div', { class: 'chatsheet' }, h('div', { class: 'chead' }, h('b', null, 'Chat'), chatInfo, h('button', { class: 'link', type: 'button', onclick: function () { chatOpen = false; paintChat(); } }, 'Close')),
     chatMsgs, h('div', { class: 'cin' }, chatInp, chatSend));
   document.body.appendChild(chatBtn); document.body.appendChild(chatSheet);
   function chatAllowed() { return !!(S && S.settings && S.settings.chat && S.game !== 'undercover'); }
@@ -7340,7 +7343,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
     var allowed = chatAllowed(), muted = S.me.muteUntil && S.me.muteUntil > Date.now() + offset;
     chatInp.disabled = chatSend.disabled = !allowed || !!muted;
     chatInp.placeholder = muted ? '🔇 You are muted for a bit' : allowed ? 'Say something… (no secret words!)' : '🔒 Chat opens during discussion';
-    fill(chatInfo, S.settings.chatSlow ? '🐢 ' + S.settings.chatSlow + 's' : '');
+    fill(chatInfo, S.settings.chatSlow ? '' + S.settings.chatSlow + 's' : '');
     if (!chatOpen) return;
     var atBottom = chatMsgs.scrollHeight - chatMsgs.scrollTop - chatMsgs.clientHeight < 60;
     var prev = null;
@@ -7569,12 +7572,12 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
       if (e && shownFor !== e.id) {
         shownFor = e.id; buzz(e.id === S.me.id ? [700] : [150, 80, 150]);
         var cls = e.role === 'civilian' ? 'civ' : e.role === 'undercover' ? 'und' : 'wht';
-        fill(res, h('div', { class: 'stampcard' }, h('h2', null, e.sheriff ? (e.sheriff.hit ? '🤠 Shot by Sheriff ' + e.sheriff.by : '🤠 Sheriff missed ' + e.sheriff.target) : 'Voted out'), avatar(e.name, pidx(e.id), 'xl'), h('div', { class: 'kname' }, e.name),
+        fill(res, h('div', { class: 'stampcard' }, h('h2', null, e.sheriff ? (e.sheriff.hit ? '🤠 Shot by Sheriff ' + e.sheriff.by : 'Sheriff missed ' + e.sheriff.target) : 'Voted out'), avatar(e.name, pidx(e.id), 'xl'), h('div', { class: 'kname' }, e.name),
           h('div', { class: 'rstamp ' + cls }, roleLabel(e.role)),
           S.guess && S.guess.uc ? h('p', { style: 'font-weight:800;margin:6px 0 0' }, S.guess.ok ? '🎯 Guessed the civilians\' word! +3 bonus' + (S.guess.text ? ' (“' + S.guess.text + '”)' : '') : 'Guess ✗ Wrong' + (S.guess.text ? ' (“' + S.guess.text + '”)' : ''))
           : S.guess ? h('p', { style: 'font-weight:800;margin:6px 0 0' }, 'Guessed “' + (S.guess.text || '—') + '” ✗ Wrong') : h('p', { class: 'mute small' }, 'The word stays secret until the game ends.')));
       }
-      fill(votes, e && e.sheriff ? [h('h2', null, '🤠 Sheriff\'s shot'), h('p', { style: 'font-weight:800;margin:0' }, e.sheriff.by + ' shot ' + e.sheriff.target + (e.sheriff.hit ? ': it was Mr. White!' : ': not Mr. White, so the Sheriff is out.'))] : [h('h2', null, 'Who voted for whom'), voteBars(e && e.breakdown, e && e.id)]);
+      fill(votes, e && e.sheriff ? [h('h2', null, 'Sheriff\'s shot'), h('p', { style: 'font-weight:800;margin:0' }, e.sheriff.by + ' shot ' + e.sheriff.target + (e.sheriff.hit ? ': it was Mr. White!' : ': not Mr. White, so the Sheriff is out.'))] : [h('h2', null, 'Who voted for whom'), voteBars(e && e.breakdown, e && e.id)]);
       hostBox.style.display = S.me.host ? '' : 'none'; wait.style.display = S.me.host ? 'none' : '';
     } };
   };
@@ -7593,7 +7596,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
         buzz(won === false ? [800] : [150, 80, 150, 80, 150]); // win: happy triple · lose: one long
       }
       fill(top, h('div', { class: 'winner bounce ' + (w === 'civilians' ? 'civ' : w === 'white' ? 'wht' : w === 'joker' ? 'jok' : 'imp') },
-        h('div', { class: 'big' }, w === 'civilians' ? 'Civilians win!' : w === 'white' ? 'Mr. White wins!' : w === 'joker' ? '🤡 Joker wins!' : 'Impostors win!'),
+        h('div', { class: 'big' }, w === 'civilians' ? 'Civilians win!' : w === 'white' ? 'Mr. White wins!' : w === 'joker' ? 'Joker wins!' : 'Impostors win!'),
         h('p', null, w === 'civilians' ? 'Every impostor was caught!' : w === 'joker' ? nameOf(S.lastElim && S.lastElim.id) + ' fooled everyone into voting them out!' : w === 'white' ? nameOf(g && g.by) + ' guessed “' + (g && g.text) + '” ✓' : 'The impostors took over the adda!')));
       fill(words, S.pair ? [h('h2', null, 'The secret word pair'), h('div', { class: 'tiles' }, h('div', { class: 'tile' }, h('small', null, 'CIVILIAN WORD'), h('b', null, S.pair.civilian)), h('div', { class: 'tile' }, h('small', null, 'UNDERCOVER WORD'), h('b', null, S.pair.undercover)))] : null);
       fill(votes, S.lastElim && S.lastElim.breakdown ? h('div', { class: 'card tight' }, h('h2', null, 'Last vote'), voteBars(S.lastElim.breakdown, S.lastElim.id)) : null);
@@ -8282,6 +8285,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
     if (!nameChip) { nameChip = h('button', { type: 'button', id: 'namechip', onclick: function () { if (!S) { mode = 'profile'; render(); } else if (S.phase === 'lobby') { var ni = h('input', { type: 'text', maxlength: 14, value: savedName, autocomplete: 'off', style: 'width:100%;padding:12px;border-radius:12px;border:3px solid #14123a;font:800 18px Nunito,system-ui,sans-serif;box-sizing:border-box' }); uxOpen(h('h3', null, 'Your name'), ni, h('button', { type: 'button', class: 'ux-b', style: 'margin-top:10px', onclick: function () { var v = ni.value.trim(); if (!v) return toast('Enter a name'); savedName = v; store('uc.name', v); send({ t: 'rename', name: v }); sendHello(true); uxClose(); render(); } }, 'Save'), h('button', { type: 'button', class: 'ux-b gh', style: 'margin-top:8px', onclick: function () { uxClose(); openFeedbackShot(); } }, '💬 Send feedback'), h('button', { type: 'button', class: 'ux-b gh', style: 'margin-top:8px', onclick: uxClose }, 'Cancel')); } else openFeedbackShot(); } }); document.body.appendChild(nameChip); }
     var n = (S && S.me && S.me.name) || savedName || '';
     nameChip.style.display = n && mode !== 'profile' ? '' : 'none';
+    if (!window.__ncScroll) { window.__ncScroll = 1; window.addEventListener('scroll', function () { if (nameChip) nameChip.classList.toggle('away', window.scrollY > 70); }, { passive: true }); }
     var t = '👤 ' + n; if (nameChip.textContent !== t) nameChip.textContent = t;
   }
   var HP_OWN = { football: 1, uno: 1, draw: 1, undercover: 1, tapri: 1 };
@@ -9528,7 +9532,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
       var stage = h('div', { class: 'stage' },
         h('div', { class: 's-lbl' }, 'SECRET ASSIGNMENT'),
         h('div', { class: 's-word', style: 'font-size:' + size + 'px' }, w),
-        h('div', { class: 's-note' }, p.role === 'white' ? (L.cfg.hint && L.pair && L.pair.cat ? 'Mr. White · hint: ' + L.pair.cat : 'You are Mr. White — listen and bluff') : p.role === 'joker' ? '🤡 Joker: get yourself voted out to win!' : p.sheriff ? (p.shot ? '🤠 Sheriff (shot this round)' : '🤠 You are the SHERIFF: 1 bullet. Shoot an impostor = they are out. Anyone else = YOU are out') : 'Give one subtle clue on your turn'),
+        h('div', { class: 's-note' }, p.role === 'white' ? (L.cfg.hint && L.pair && L.pair.cat ? 'Mr. White · hint: ' + L.pair.cat : 'You are Mr. White — listen and bluff') : p.role === 'joker' ? 'Joker: get yourself voted out to win!' : p.sheriff ? (p.shot ? 'Sheriff (shot this round)' : '🤠 You are the SHERIFF: 1 bullet. Shoot an impostor = they are out. Anyone else = YOU are out') : 'Give one subtle clue on your turn'),
         h('div', { class: 'shutter' }, h('div', { class: 'plaque' }, h('b', null, 'Top secret chit'), h('span', null, 'Hold the orange button to peek'))));
       var done = h('button', { class: 'btn green', type: 'button', disabled: true, onclick: function () { open(false); opts.onDone(); } }, opts.doneText);
       var hold = h('button', { class: 'btn primary hold', type: 'button' }, 'Hold thumb here to see word');
@@ -9687,11 +9691,11 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
         h('div', { class: 'card tight' },
           soloToggle('Mr. White gets a hint', 'Shows him the category, e.g. "Food" or "Film villain"', 'hint'),
           soloToggle('Leaderboard', 'Points and wins for each player', 'board'),
-          h('div', { class: 'set' }, h('div', { class: 'lbl' }, '🎯 Mr. White guesses', h('small', null, 'Times he can guess the word mid-round (everyone sees it)')),
+          h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Mr. White guesses', h('small', null, 'Times he can guess the word mid-round (everyone sees it)')),
             seg([[0, 'Off'], [1, '1'], [2, '2'], [3, '3']], L.cfg.whiteTries, function (v) { L.cfg.whiteTries = v; saveSolo(); draw(); })),
-          soloToggle('🕵️ Undercover can guess', 'If kicked, they secretly type the civilians\' word on this phone (+3)', 'ucGuess'),
-          soloToggle('🤠 Sheriff', 'One civilian has 1 bullet, once per round. Hits the Undercover or Mr. White = out. Anyone else = the Sheriff is out', 'sheriff'),
-          soloToggle('🤡 Joker (6+ players)', 'One player gets the civilian word and wins alone if voted out', 'joker')),
+          soloToggle('Undercover can guess', 'If kicked, they secretly type the civilians\' word on this phone (+3)', 'ucGuess'),
+          soloToggle('Sheriff', 'One civilian has 1 bullet, once per round. Hits the Undercover or Mr. White = out. Anyone else = the Sheriff is out', 'sheriff'),
+          soloToggle('Joker (6+ players)', 'One player gets the civilian word and wins alone if voted out', 'joker')),
         h('div', { class: 'card tight' }, h('h2', null, '🎒 Word modes'), modePicker(L.cfg.modes, function (next) { L.cfg.modes = next; saveSolo(); draw(); })),
         err, dock(start));
       refresh(); return node;
@@ -9907,7 +9911,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
         h('div', { class: 'wscene-in' },
           h('span', { class: 'pill', style: 'background:var(--yellow)' }, 'VERDICT'),
           h('div', { class: 'spot' }, avatar(p.name, i, 'xl')),
-          h('div', { class: 'caught' }, '🤡 Joker fooled you all!'),
+          h('div', { class: 'caught' }, 'Joker fooled you all!'),
           h('div', { class: 'nm' }, p.name),
           h('p', { class: 'wsub' }, p.name + ' wanted to be voted out. And you did it. 😂'),
           h('div', { class: 'q' }, h('h2', null, 'The Joker wins this round'), h('p', { class: 'mute small', style: 'margin:4px 0 10px' }, p.name + ' gets +6. Everyone else gets nothing.'),
@@ -9937,7 +9941,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
         h('h1', null, 'Verdict'), tickerStrip('PAKDA GAYA? ★ YA GALAT BANDA NIKLA?'),
         ids.map(function (i, k) {
           var p = P[i];
-          return h('div', { class: 'stampcard', style: 'animation-delay:' + (k * 0.35) + 's' }, h('h2', null, L.last.sheriff ? (L.last.sheriff.hit ? '🤠 Shot by Sheriff ' + L.last.sheriff.by : '🤠 Sheriff missed ' + L.last.sheriff.target) : 'Kicked from the circle'), h('div', { class: 'kname' }, p.name),
+          return h('div', { class: 'stampcard', style: 'animation-delay:' + (k * 0.35) + 's' }, h('h2', null, L.last.sheriff ? (L.last.sheriff.hit ? '🤠 Shot by Sheriff ' + L.last.sheriff.by : 'Sheriff missed ' + L.last.sheriff.target) : 'Kicked from the circle'), h('div', { class: 'kname' }, p.name),
             h('div', { class: 'rstamp ' + rcls(p.role), style: 'animation-delay:' + (0.3 + k * 0.35) + 's' }, roleLabel(p.role)),
             p.role === 'white' && L.last.guess[i] === false ? h('p', { style: 'font-weight:800;margin:4px 0' }, 'Guessed the word? ✗ No') : null,
             p.role === 'undercover' && L.last.ucg && i in L.last.ucg ? h('p', { style: 'font-weight:800;margin:4px 0' }, L.last.ucg[i] ? '🎯 Guessed the civilians\' word! +3' : 'Word guess ✗ Wrong') : null,
@@ -9961,7 +9965,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
       var w = L.winner, key = L.pair.civilian + '|' + L.pair.undercover + '|' + w;
       if (!celebrated[key]) { celebrated[key] = 1; later(confetti, 150); buzz([80, 50, 80]); }
       return h('div', null,
-        h('div', { class: 'winner bounce ' + (w === 'civilians' ? 'civ' : w === 'white' ? 'wht' : w === 'joker' ? 'jok' : 'imp') }, h('div', { class: 'big' }, w === 'civilians' ? 'Civilians win!' : w === 'white' ? 'Mr. White wins!' : w === 'joker' ? '🤡 Joker wins!' : 'Impostors win!'),
+        h('div', { class: 'winner bounce ' + (w === 'civilians' ? 'civ' : w === 'white' ? 'wht' : w === 'joker' ? 'jok' : 'imp') }, h('div', { class: 'big' }, w === 'civilians' ? 'Civilians win!' : w === 'white' ? 'Mr. White wins!' : w === 'joker' ? 'Joker wins!' : 'Impostors win!'),
           h('p', null, w === 'civilians' ? 'Every impostor was kicked out of the tapri! +2 each' : w === 'white' ? (L.wmid ? L.players[L.wmid.i].name + ' guessed “' + L.wmid.text + '” mid-round! +6' : 'Caught, but guessed the word! +6') : w === 'joker' ? 'Fooled everyone into voting them out! +6' : 'The impostors took over the adda! +4 each')),
         h('h2', null, 'The secret word pair'),
         h('div', { class: 'tiles' }, h('div', { class: 'tile' }, h('small', null, 'CIVILIAN WORD'), h('b', null, L.pair.civilian)), h('div', { class: 'tile' }, h('small', null, 'UNDERCOVER WORD'), h('b', null, L.pair.undercover))),
@@ -12018,7 +12022,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
         ps.length + nb < 2 ? h('p', { class: 'mute' }, 'Need at least 2 players. Invite friends or add a bot.') : null));
       fill(setBox, h('div', null,
         seg('❤️ Lives', [[1, '1'], [3, '3'], [5, '5'], [7, '7'], [10, '10']], st.lives, 'lives', 'Lose one for every round you don’t win.'),
-        seg('⏱️ Time to pick', [[15, '15s'], [20, '20s'], [30, '30s'], [45, '45s'], [60, '60s']], st.time, 'time'),
+        seg('Time to pick', [[15, '15s'], [20, '20s'], [30, '30s'], [45, '45s'], [60, '60s']], st.time, 'time'),
         seg('✖️ Multiplier', [['0.8', '×0.8'], ['0.67', '×⅔'], ['0.5', '×0.5'], ['rand', '🎲 Random']], st.mult, 'mult', 'Random picks a new one each round and shows it before you pick.'),
         h('div', { class: 'card' }, h('h2', null, '⚖️ Special rules'),
           tog(Z8RN.dup[0], Z8RN.dup[1], st.dup, 'dup'), tog(Z8RN.exact[0], Z8RN.exact[1], st.exact, 'exact'), tog(Z8RN.zero[0], Z8RN.zero[1], st.zero, 'zero')),
@@ -12148,7 +12152,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
       fill(setBox, h('div', null,
         h('div', { class: 'card' }, h('h2', null, 'Bots'), h('div', { style: 'display:flex;gap:12px;align-items:center' }, h('button', { class: 'btn', type: 'button', disabled: !S.me.host, onclick: function () { send({ t: 'ltset', bots: Math.max(0, st.bots - 1) }); } }, '−'), h('b', { style: 'font-size:22px;min-width:28px;text-align:center' }, String(st.bots)), h('button', { class: 'btn', type: 'button', disabled: !S.me.host, onclick: function () { send({ t: 'ltset', bots: Math.min(15, st.bots + 1) }); } }, '+'))),
         seg('Floors', [[1, '1'], [2, '2'], [3, '3']], st.floors, 'floors'),
-        seg('Tile speed', [['slow', '🐢 Slow'], ['normal', '⚡ Normal'], ['fast', '🔥 Fast']], st.speed, 'speed'),
+        seg('Tile speed', [['slow', 'Slow'], ['normal', '⚡ Normal'], ['fast', '🔥 Fast']], st.speed, 'speed'),
         seg('Pushing', [[true, '👊 On'], [false, 'Off']], st.push !== false, 'push')));
       fill(act, S.me.host ? h('button', { class: 'btn primary', type: 'button', onclick: function () { send({ t: 'ltstart' }); } }, '🔷 Start!') : h('p', { class: 'mute center' }, 'Waiting for the host to start. Only the host changes settings.'));
     } };
