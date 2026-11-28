@@ -6609,6 +6609,29 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
 .hx-i-md::after{content:'🏓 🏆 🏸';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:44px;letter-spacing:6px;filter:drop-shadow(0 3px 0 #0006)}
 #apause{position:fixed;inset:0;z-index:8500;background:rgba(10,9,24,.82);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-family:'Nunito',system-ui,sans-serif;text-align:center;padding:20px}
 #apause b{font:900 28px 'Lilita One','Nunito',system-ui,sans-serif}
+/* v91: lobby layout fixes */
+.cb-games>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;cursor:pointer}
+.cb-games>summary::-webkit-details-marker{display:none}
+.cb-games>summary b{font:900 14px 'Nunito',system-ui,sans-serif;display:flex;align-items:center;gap:8px}
+.cb-games>summary b::before{content:'▸';transition:transform .15s}.cb-games[open]>summary b::before{transform:rotate(90deg)}
+.cb-games>summary span{font-size:11px;font-weight:700;opacity:.65}
+.startbar{position:sticky;bottom:0;margin:12px -12px 0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--bg);border-top:3px solid var(--ink);z-index:6}
+.startbar .btn:disabled{opacity:1;background:#e9e4d6;color:#6b6394;text-shadow:none;box-shadow:none;border-style:dashed}
+.startbar .err{margin:6px 0 0;font-size:13px}
+body:has(.startbar) .vbox:not([style*="top"]){bottom:calc(14px + env(safe-area-inset-bottom))}
+body:has(.startbar) .startbar{padding-left:80px}
+.cb-btns .btn{white-space:nowrap}
+@media (max-width:420px){body.inroom:not(.hubmode) #namechip{left:12px;transform:none;top:calc(20px + env(safe-area-inset-top));max-width:34vw}body.inroom:not(.hubmode) .logo{visibility:hidden}}
+
+/* v91b: found by the overlap check at 360px */
+#toast{bottom:auto;top:calc(64px + env(safe-area-inset-top))}
+body.tpmode #toast{top:calc(72px + env(safe-area-inset-top))}
+@media (max-width:420px){.themebtn{width:40px;height:40px}}
+.seg button{min-height:40px}
+.mdb,.z8segs .btn,.cb-sw{min-height:40px}
+body.inroom main#app{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+body.inroom:has(.startbar) main#app{padding-bottom:0}
+body.tpmode #namechip{display:none!important}
 </style>
 <div id="net">Reconnecting…</div>
 <div id="wrap"><header id="hdr"></header><main id="app"></main></div>
@@ -7048,7 +7071,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
     var sw = supWords(), board = h('div');
     if (!isHost) {
       var summary = h('div', { class: 'mute' }), supArea = h('div');
-      fill(root, tickerStrip('WAITING FOR THE GANG ★ HOST WILL START SOON ★ CHAI READY?'), h('div', { class: 'card codecard' }, h('div', { class: 'mute center' }, 'Lobby code'), h('div', { class: 'codeticket' }, h('small', null, 'ADMIT ALL'), h('div', { class: 'bigcode' }, S.code))),
+      fill(root,
         h('div', { class: 'card' }, count, list),
         h('div', { class: 'card' }, h('h2', null, 'Game settings'), summary),
         supArea, sw.root, board,
@@ -7094,9 +7117,6 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
     var startBtn = h('button', { class: 'btn primary', type: 'button', onclick: function () { send({ t: 'start' }); } }, 'Start game');
     var why = h('p', { class: 'err center' });
     fill(root,
-      tickerStrip('WAITING FOR THE GANG ★ SHARE THE CODE ★ CHAI READY?'),
-      h('div', { class: 'card codecard' }, h('div', { class: 'mute center' }, 'Lobby code. Share it with the players'), h('div', { class: 'codeticket' }, h('small', null, 'ADMIT ALL'), h('div', { class: 'bigcode' }, S.code)),
-        h('button', { class: 'btn small', type: 'button', style: 'margin:0 auto', onclick: shareLink }, 'Share link')),
       acc('Players', playersSum, [list], true),
       acc('Rules', rulesSum, [h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Time per clue', h('small', null, 'seconds for each player\'s turn')), secsStep.root),
         autoRoles.root, uRow, wRow, planTxt, sup.root, otherSup]),
@@ -8303,6 +8323,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
     if (!nameChip) { nameChip = h('button', { type: 'button', id: 'namechip', onclick: function () { if (!S) { mode = 'profile'; render(); } else if (S.phase === 'lobby') { var ni = h('input', { type: 'text', maxlength: 14, value: savedName, autocomplete: 'off', style: 'width:100%;padding:12px;border-radius:12px;border:3px solid #14123a;font:800 18px Nunito,system-ui,sans-serif;box-sizing:border-box' }); uxOpen(h('h3', null, 'Your name'), ni, h('button', { type: 'button', class: 'ux-b', style: 'margin-top:10px', onclick: function () { var v = ni.value.trim(); if (!v) return toast('Enter a name'); savedName = v; store('uc.name', v); send({ t: 'rename', name: v }); sendHello(true); uxClose(); render(); } }, 'Save'), h('button', { type: 'button', class: 'ux-b gh', style: 'margin-top:8px', onclick: function () { uxClose(); openFeedbackShot(); } }, '💬 Send feedback'), h('button', { type: 'button', class: 'ux-b gh', style: 'margin-top:8px', onclick: uxClose }, 'Cancel')); } else openFeedbackShot(); } }); document.body.appendChild(nameChip); }
     var n = (S && S.me && S.me.name) || savedName || '';
     nameChip.style.display = n && mode !== 'profile' ? '' : 'none';
+    document.body.classList.toggle('inroom', !!S);
     if (!window.__ncScroll) { window.__ncScroll = 1; window.addEventListener('scroll', function () { if (nameChip) nameChip.classList.toggle('away', window.scrollY > 70); }, { passive: true }); }
     var t = '👤 ' + n; if (nameChip.textContent !== t) nameChip.textContent = t;
   }
@@ -8625,13 +8646,13 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
       cbSig = sig;
       fill(codeBar, h('small', null, 'ROOM CODE · tell your friends'),
         h('div', { class: 'cb-code' }, S.code.split('').map(function (l) { return h('b', null, l); })),
-        h('div', { class: 'cb-btns' }, h('button', { class: 'btn small', type: 'button', onclick: copyCode }, '📋 Copy'),
-          h('button', { class: 'btn small', type: 'button', onclick: shareLink }, '🔗 Share link'),
-          h('button', { class: 'btn small cb-fr', type: 'button', onclick: openInvite }, '👥 Friends', FR.inc.length ? h('em', null, FR.inc.length) : null)),
+        h('div', { class: 'cb-btns' }, h('button', { class: 'btn small', type: 'button', onclick: copyCode }, 'Copy'),
+          h('button', { class: 'btn small', type: 'button', onclick: shareLink }, 'Share'),
+          h('button', { class: 'btn small cb-fr', type: 'button', onclick: openInvite }, 'Invite', FR.inc.length ? h('em', null, FR.inc.length) : null)),
         S.me.host ? h('button', { class: 'cb-sw' + (S.open ? ' on' : ''), type: 'button', onclick: function () { send({ t: 'settings', open: !S.open }); } },
           h('i'), h('span', null, 'Show in open rooms'), h('em', null, S.open ? 'ON' : 'OFF')) : null,
-        S.me.host ? h('div', { class: 'cb-games' }, h('small', null, '🎮 SWITCH GAME · everyone stays in the room'),
-          h('div', { class: 'cb-grid' }, [['undercover', '🕵️', 'Undercover', '#7B2CBF'], ['uno', '🃏', 'UNO', '#E5334A'], ['football', '⚽', 'Football', '#12A850'], ['race', '🏖️', 'Buggy', '#00A6D6'], ['cricket', '🏏', 'Cricket', '#2E7D32'], ['draw', '🎨', 'Draw', '#FF7A00'], ['golf', '⛳', 'Golf', '#4CAF50'], ['bully', '🤼', 'Bully', '#3949AB'], ['rocket', '🚗', 'Turbo', '#1E6BFF'], ['bomb', '💣', 'Bomb', '#C2185B'], ['carrom', '🎯', 'Carrom', '#8A4B14'], ['zero8', '🎯', '0.8 Rule', '#B8860B'], ['matchday', '🏆', 'Match Day', '#0b8a7a'], ['lasttile', '🔷', 'Last Tile', '#17A398'], ['laser', '🔫', 'Laser', '#1F6FD0'], ['tapri', '☕', 'Chai Tapri', '#8D5524']].map(function (G) {
+        S.me.host ? h('details', { class: 'cb-games' }, h('summary', null, h('b', null, 'Switch game'), h('span', null, 'everyone stays in the room')),
+          h('div', { class: 'cb-grid' }, [['undercover', '🕵️', 'Undercover', '#7B2CBF'], ['uno', '🃏', 'UNO', '#E5334A'], ['football', '⚽', 'Football', '#12A850'], ['race', '🏖️', 'Buggy', '#00A6D6'], ['cricket', '🏏', 'Cricket', '#2E7D32'], ['draw', '🎨', 'Draw', '#FF7A00'], ['golf', '⛳', 'Golf', '#4CAF50'], ['bully', '🤼', 'Bully', '#3949AB'], ['rocket', '🚗', 'Turbo', '#1E6BFF'], ['bomb', '💣', 'Bomb', '#C2185B'], ['carrom', '⚪', 'Carrom', '#8A4B14'], ['zero8', '🎯', '0.8 Rule', '#B8860B'], ['matchday', '🏆', 'Match Day', '#0b8a7a'], ['lasttile', '🔷', 'Last Tile', '#17A398'], ['laser', '🔫', 'Laser', '#1F6FD0'], ['tapri', '☕', 'Chai Tapri', '#8D5524']].map(function (G) {
             var on = S.game === G[0];
             return h('button', { class: 'cb-t' + (on ? ' on' : ''), style: '--c:' + G[3], type: 'button', 'aria-label': 'Switch to ' + G[2], onclick: function () { if (on) return; send({ t: 'switchgame', game: G[0] }); buzz(15); } }, h('i', null, G[1]), h('span', null, G[2]));
           }))) : null);
@@ -12245,7 +12266,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
   };
 
   /* ---------- Chai Tapri: the hangout room ---------- */
-  var TP_GAMES = [['undercover', '🕵️', 'Undercover'], ['uno', '🃏', 'UNO'], ['football', '⚽', 'Football'], ['race', '🏖️', 'Buggy'], ['cricket', '🏏', 'Cricket'], ['draw', '🎨', 'Draw'], ['golf', '⛳', 'Golf'], ['bully', '🤼', 'Bully'], ['rocket', '🚗', 'Turbo Ball'], ['bomb', '💣', 'Bomb'], ['carrom', '🎯', 'Carrom'], ['zero8', '🎯', '0.8 Rule'], ['matchday', '🏆', 'Match Day'], ['lasttile', '🔷', 'Last Tile'], ['laser', '🔫', 'Laser']];
+  var TP_GAMES = [['undercover', '🕵️', 'Undercover'], ['uno', '🃏', 'UNO'], ['football', '⚽', 'Football'], ['race', '🏖️', 'Buggy'], ['cricket', '🏏', 'Cricket'], ['draw', '🎨', 'Draw'], ['golf', '⛳', 'Golf'], ['bully', '🤼', 'Bully'], ['rocket', '🚗', 'Turbo Ball'], ['bomb', '💣', 'Bomb'], ['carrom', '⚪', 'Carrom'], ['zero8', '🎯', '0.8 Rule'], ['matchday', '🏆', 'Match Day'], ['lasttile', '🔷', 'Last Tile'], ['laser', '🔫', 'Laser']];
   var ideasPaint = null;
   function openPay() {
     uxOpen(h('h3', null, '💸 Pay for the chai'), h('p', null, 'Scan with PhonePe or any UPI app and pay what you like for the chai. It goes straight to the tapri owner, so it can\u2019t be tracked here.'),
