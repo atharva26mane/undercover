@@ -189,6 +189,10 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(caches.open('uc-fonts').then(async (c) => (await c.match(e.request)) || fetch(e.request).then((r) => { c.put(e.request, r.clone()); return r; })));
     return;
   }
+  if (u.origin === location.origin && u.pathname.startsWith('/assets/')) { // pictures and videos: saved once, then instant
+    e.respondWith(caches.open('uc-assets').then(async (c) => (await c.match(e.request)) || fetch(e.request).then((r) => { if (r.ok) c.put(e.request, r.clone()); return r; })));
+    return;
+  }
   if (u.origin !== location.origin || u.pathname !== '/') return;
   e.respondWith(caches.open(C).then(async (c) => {
     const cached = await c.match('/');
@@ -293,6 +297,20 @@ const server = http.createServer((req, res) => {
     const gz = /\bgzip\b/.test(req.headers['accept-encoding'] || ''), headers = { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=604800', Vary: 'Accept-Encoding' };
     if (gz) headers['Content-Encoding'] = 'gzip';
     res.writeHead(200, headers); return res.end(gz ? GOLFER.gz : GOLFER.raw);
+  }
+  if (url.startsWith('/assets/')) {
+    const m = /^\/assets\/([a-f0-9]{12})\.(webp|jpg|png|mp4)$/.exec(url);
+    const f = m && path.join(__dirname, 'assets', m[1] + '.' + m[2]);
+    if (!f || !fs.existsSync(f)) { res.writeHead(404); return res.end(); }
+    const type = { webp: 'image/webp', jpg: 'image/jpeg', png: 'image/png', mp4: 'video/mp4' }[m[2]];
+    const raw = fs.readFileSync(f); // small files, read once per request
+    if (m[2] === 'mp4' && req.headers.range) { // phones ask videos in pieces
+      const r = /bytes=(\d*)-(\d*)/.exec(req.headers.range), a = +r[1] || 0, z = r[2] ? Math.min(+r[2], raw.length - 1) : raw.length - 1;
+      res.writeHead(206, { 'Content-Type': type, 'Content-Range': 'bytes ' + a + '-' + z + '/' + raw.length, 'Accept-Ranges': 'bytes', 'Content-Length': z - a + 1, 'Cache-Control': 'public, max-age=31536000, immutable' });
+      return res.end(raw.subarray(a, z + 1));
+    }
+    res.writeHead(200, { 'Content-Type': type, 'Content-Length': raw.length, 'Accept-Ranges': 'bytes', 'Cache-Control': 'public, max-age=31536000, immutable' });
+    return res.end(raw);
   }
   if (url === '/healthz') { res.writeHead(200, { 'Content-Type': 'text/plain' }); return res.end('ok'); }
   if (url === '/favicon.ico') { res.writeHead(204); return res.end(); }
