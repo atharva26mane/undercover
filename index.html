@@ -40,7 +40,13 @@ p{margin:6px 0}
 .card{background:var(--card);border:3px solid var(--ink);border-radius:22px;padding:15px;margin-bottom:16px;box-shadow:var(--sh)}
 input[type=text],input[type=number]{width:100%;background:#fff;border:3px solid var(--ink);color:var(--ink);border-radius:14px;padding:12px 14px;font:inherit;font-size:18px;font-weight:700;outline:none}
 input:focus{border-color:var(--violet);box-shadow:0 0 0 4px rgba(124,77,255,.25)}
-input::placeholder{color:#a79fc9}
+input::placeholder{color:#6f66a3}
+.morerules{border-top:2px dashed var(--line);margin-top:4px}
+.morerules>summary::before{content:'▸';margin-right:8px;transition:transform .15s}.morerules[open]>summary::before{transform:rotate(90deg)}.morerules>summary::-webkit-details-marker{display:none}.morerules>summary{list-style:none;cursor:pointer;font-weight:800;font-size:14px;padding:12px 0;min-height:44px;display:flex;align-items:center;color:var(--ink)}
+.startbar{position:sticky;bottom:72px;z-index:5;padding:10px 0 calc(10px + env(safe-area-inset-bottom));margin:0 -12px;padding-left:12px;padding-right:12px;background:linear-gradient(to top,var(--bg) 70%,transparent)}
+.startbar .btn{width:100%}
+.startbar .err:empty{display:none}
+
 input.code{text-transform:uppercase;letter-spacing:.35em;text-align:center;font-weight:900;font-size:26px}
 .btn{display:block;width:100%;min-height:54px;border:3px solid var(--ink);border-radius:16px;font:inherit;font-size:17px;font-weight:900;padding:11px 16px;background:#fff;color:var(--ink);box-shadow:var(--sh);transition:transform .08s,box-shadow .08s}
 .btn:active{transform:translateY(4px);box-shadow:0 0 0 var(--ink)}
@@ -7075,9 +7081,11 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
       h('div', { class: 'card' }, count, list),
       h('div', { class: 'card' }, h('h2', null, 'Settings'),
         h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Time per clue', h('small', null, 'seconds for each player\'s turn')), secsStep.root),
-        autoRoles.root, uRow, wRow, planTxt, wtRow, hint.root, ucT.root, shT.root, jokerT.root, chatT.root, slowRow, reacts.root, cdRow, boardT.root, sup.root, otherSup),
+        autoRoles.root, uRow, wRow, planTxt, sup.root, otherSup,
+        h('details', { class: 'morerules' }, h('summary', null, 'More rules (Mr. White, Sheriff, Joker, chat, emoji)'),
+          wtRow, hint.root, ucT.root, shT.root, jokerT.root, chatT.root, slowRow, reacts.root, cdRow, boardT.root)),
       h('div', { class: 'card tight' }, h('h2', null, '🎒 Word modes'), modesBox),
-      sw.root, board, startBtn, why);
+      sw.root, board, h('div', { class: 'startbar' }, startBtn, why));
     return { root: root, update: function () {
       var s = S.settings, pl = S.plan, supP = S.players.filter(function (p) { return p.sup && p.id !== S.me.id; })[0];
       fill(count, 'Players (' + S.players.length + ')'); setTimeout(function () { popNew(list, S.players, seenIds); }, 0);
