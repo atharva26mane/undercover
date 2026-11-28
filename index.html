@@ -45,6 +45,17 @@ input::placeholder{color:#6f66a3}
 .morerules>summary::before{content:'▸';margin-right:8px;transition:transform .15s}.morerules[open]>summary::before{transform:rotate(90deg)}.morerules>summary::-webkit-details-marker{display:none}.morerules>summary{list-style:none;cursor:pointer;font-weight:800;font-size:14px;padding:12px 0;min-height:44px;display:flex;align-items:center;color:var(--ink)}
  #namechip{transition:opacity .2s}#namechip.away{opacity:0;pointer-events:none}
 .themebtn{display:inline-flex;align-items:center;justify-content:center;color:var(--ink)}@media (max-width:420px){.themebtn{width:40px;height:40px}}
+.acc{background:var(--card);border:3px solid var(--ink);border-radius:16px;margin-bottom:10px;box-shadow:var(--sh)}
+.acc>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:52px;padding:8px 14px;cursor:pointer}
+.acc>summary::-webkit-details-marker{display:none}
+.acc>summary b{font:900 15px 'Nunito',system-ui,sans-serif;display:flex;align-items:center;gap:8px}
+.acc>summary b::before{content:'▸';display:inline-block;transition:transform .15s}
+.acc[open]>summary b::before{transform:rotate(90deg)}
+.acc>summary span{font-size:12px;font-weight:700;color:var(--mute);text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acc>.accbody{padding:0 14px 12px;border-top:2px dashed var(--line)}
+.acc>.accbody>.set:first-child{border-top:0}
+.acc:focus-within{outline:3px solid var(--violet);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.acc>summary b::before{transition:none}}
 .startbar{position:sticky;bottom:72px;z-index:5;padding:10px 0 calc(10px + env(safe-area-inset-bottom));margin:0 -12px;padding-left:12px;padding-right:12px;background:linear-gradient(to top,var(--bg) 70%,transparent)}
 .startbar .btn{width:100%}
 .startbar .err:empty{display:none}
@@ -7043,7 +7054,7 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
         supArea, sw.root, board,
         h('div', { class: 'banner center' }, 'Waiting for the host to start…'));
       return { root: root, update: function () {
-        fill(count, 'Players (' + S.players.length + ')'); setTimeout(function () { popNew(list, S.players, seenIds); }, 0);
+      fill(count, 'Players (' + S.players.length + ')'); setTimeout(function () { popNew(list, S.players, seenIds); }, 0);
         fill(list, S.players.map(function (p) { return playerRow(p); }));
         var s = S.settings, pl = S.plan, supP = S.players.filter(function (p) { return p.sup; })[0];
         fill(summary, h('p', null, 'Time per clue: ' + s.describeSecs + 's'),
@@ -7058,6 +7069,11 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
       } };
     }
     /* host */
+    var playersSum = h('span'), rulesSum = h('span'), extraSum = h('span'), wordsSum = h('span');
+    function acc(title, sum, kids, open) { // one section open at a time: tap a heading to open it, the others fold
+      var d = h('details', { class: 'acc', name: 'lobbyacc' }, h('summary', null, h('b', null, title), sum), h('div', { class: 'accbody' }, kids));
+      if (open) d.open = true; return d;
+    }
     var secsStep = stepper(5, 300, 5, function (v) { send({ t: 'settings', describeSecs: v }); });
     var autoRoles = toggle('Automatic roles', 'Picks Undercover / Mr. White counts from the player count', function (v) { send({ t: 'settings', autoRoles: v }); });
     var uStep = stepper(0, 10, 1, function (v) { send({ t: 'settings', undercover: v }); });
@@ -7081,16 +7097,18 @@ body.fbmode #namechip,body.unomode #namechip,body.ckmode #namechip,body.racing #
       tickerStrip('WAITING FOR THE GANG ★ SHARE THE CODE ★ CHAI READY?'),
       h('div', { class: 'card codecard' }, h('div', { class: 'mute center' }, 'Lobby code. Share it with the players'), h('div', { class: 'codeticket' }, h('small', null, 'ADMIT ALL'), h('div', { class: 'bigcode' }, S.code)),
         h('button', { class: 'btn small', type: 'button', style: 'margin:0 auto', onclick: shareLink }, 'Share link')),
-      h('div', { class: 'card' }, count, list),
-      h('div', { class: 'card' }, h('h2', null, 'Settings'),
-        h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Time per clue', h('small', null, 'seconds for each player\'s turn')), secsStep.root),
-        autoRoles.root, uRow, wRow, planTxt, sup.root, otherSup,
-        h('details', { class: 'morerules' }, h('summary', null, 'More rules (Mr. White, Sheriff, Joker, chat, emoji)'),
-          wtRow, hint.root, ucT.root, shT.root, jokerT.root, chatT.root, slowRow, reacts.root, cdRow, boardT.root)),
-      h('div', { class: 'card tight' }, h('h2', null, '🎒 Word modes'), modesBox),
+      acc('Players', playersSum, [list], true),
+      acc('Rules', rulesSum, [h('div', { class: 'set' }, h('div', { class: 'lbl' }, 'Time per clue', h('small', null, 'seconds for each player\'s turn')), secsStep.root),
+        autoRoles.root, uRow, wRow, planTxt, sup.root, otherSup]),
+      acc('Extra rules', extraSum, [wtRow, hint.root, ucT.root, shT.root, jokerT.root, chatT.root, slowRow, reacts.root, cdRow, boardT.root]),
+      acc('Words', wordsSum, [modesBox]),
       sw.root, board, h('div', { class: 'startbar' }, startBtn, why));
     return { root: root, update: function () {
       var s = S.settings, pl = S.plan, supP = S.players.filter(function (p) { return p.sup && p.id !== S.me.id; })[0];
+        fill(playersSum, S.players.length + ' joined');
+      fill(rulesSum, s.describeSecs + 's per clue · ' + (s.autoRoles ? 'auto roles' : pl.u + ' U / ' + pl.w + ' W') + (S.me.sup ? ' · you supervise' : ''));
+      fill(extraSum, [s.sheriff ? 'Sheriff' : '', s.joker ? 'Joker' : '', s.hint ? 'Hint' : '', s.chat ? 'Chat' : ''].filter(Boolean).join(' · ') || 'none on');
+      fill(wordsSum, modesLabel(s.modes));
       fill(count, 'Players (' + S.players.length + ')'); setTimeout(function () { popNew(list, S.players, seenIds); }, 0);
       fill(list, S.players.map(function (p) {
         return playerRow(p, p.id !== S.me.id ? h('span', { class: 'rowbtns' },
